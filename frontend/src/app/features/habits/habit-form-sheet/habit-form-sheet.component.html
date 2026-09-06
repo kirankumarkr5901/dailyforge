@@ -1,0 +1,171 @@
+<df-sheet [open]="open()" (openChange)="$event ? null : close()" [heading]="heading()">
+  <div class="habit-form">
+    <df-input
+      label="Name"
+      placeholder="e.g. Read"
+      [ngModel]="name()"
+      (ngModelChange)="name.set($event)"
+      [error]="showNameError() ? 'This one is required.' : null"
+    />
+
+    <div class="habit-form__field">
+      <span class="habit-form__label">Icon</span>
+      <div class="habit-form__icons" role="radiogroup" aria-label="Icon">
+        @for (option of icons; track option.key) {
+          <button
+            type="button"
+            class="habit-form__icon"
+            role="radio"
+            [attr.aria-checked]="icon() === option.key"
+            [class.habit-form__icon--selected]="icon() === option.key"
+            [attr.title]="option.label"
+            (click)="icon.set(option.key)"
+          >
+            <lucide-icon [img]="option.icon" [size]="18" aria-hidden="true" />
+          </button>
+        }
+      </div>
+    </div>
+
+    <df-stepper-input
+      label="Points per completion"
+      [min]="1"
+      [max]="200"
+      [ngModel]="points()"
+      (ngModelChange)="points.set($event)"
+    />
+
+    <div class="habit-form__field">
+      <span class="habit-form__label">Type</span>
+      <div class="habit-form__toggle-row">
+        <button
+          type="button"
+          class="habit-form__toggle"
+          [class.habit-form__toggle--selected]="type() === 'NORMAL'"
+          (click)="type.set('NORMAL')"
+        >
+          Normal
+        </button>
+        <button
+          type="button"
+          class="habit-form__toggle"
+          [class.habit-form__toggle--selected]="type() === 'STRICT'"
+          (click)="type.set('STRICT')"
+        >
+          Strict
+        </button>
+      </div>
+      <p class="habit-form__hint">
+        @if (type() === 'STRICT') {
+          Missing a scheduled day costs points. A normal habit only breaks the streak.
+        } @else {
+          Missing a scheduled day breaks the streak, with no point penalty.
+        }
+      </p>
+    </div>
+
+    @if (type() === 'STRICT') {
+      <df-stepper-input
+        label="Penalty for a missed day"
+        [min]="0"
+        [max]="200"
+        [ngModel]="penaltyPoints()"
+        (ngModelChange)="penaltyPoints.set($event)"
+      />
+    }
+
+    <div class="habit-form__field">
+      <span class="habit-form__label">Scheduled days</span>
+      <div class="habit-form__days">
+        @for (label of weekdayLabels; track $index) {
+          <button
+            type="button"
+            class="habit-form__day"
+            [class.habit-form__day--selected]="isDayOn($index)"
+            [attr.aria-pressed]="isDayOn($index)"
+            [attr.title]="weekdayNames[$index]"
+            (click)="toggleDay($index)"
+          >
+            {{ label }}
+          </button>
+        }
+      </div>
+    </div>
+
+    @if (!isEditing()) {
+      <div class="habit-form__field">
+        <df-switch
+          label="Set my own consistency bonus"
+          hint="Otherwise every new habit shares the same bonus curve."
+          [ngModel]="useCustomBonus()"
+          (ngModelChange)="useCustomBonus.set($event)"
+        />
+
+        @if (useCustomBonus()) {
+          <div class="habit-form__bonus-inputs">
+            <df-stepper-input
+              label="Base bonus"
+              [min]="1"
+              [max]="500"
+              [ngModel]="baseBonus()"
+              (ngModelChange)="baseBonus.set($event)"
+            />
+            <df-stepper-input
+              label="Multiplier"
+              [min]="1"
+              [max]="3"
+              [step]="0.1"
+              [decimals]="1"
+              [ngModel]="bonusMultiplier()"
+              (ngModelChange)="bonusMultiplier.set($event)"
+            />
+          </div>
+        }
+      </div>
+
+      <div class="habit-form__preview">
+        <span class="habit-form__label">Consistency bonus preview</span>
+        <div class="habit-form__preview-row">
+          @for (amount of preview(); track $index) {
+            <span class="habit-form__preview-chip">
+              {{ ($index + 1) * 7 }}d
+              <strong>+{{ amount }}</strong>
+            </span>
+          }
+        </div>
+      </div>
+    }
+
+    @if (error(); as message) {
+      <p class="habit-form__error" role="alert">{{ message }}</p>
+    }
+
+    <div class="habit-form__actions">
+      @if (isEditing()) {
+        <button
+          dfButton
+          type="button"
+          variant="danger"
+          [loading]="deleting()"
+          [disabled]="deleting()"
+          (click)="requestDelete()"
+        >
+          <lucide-icon [img]="deleteIcon" [size]="16" aria-hidden="true" />
+          {{ confirmingDelete() ? 'Really delete?' : 'Delete' }}
+        </button>
+      }
+
+      <button
+        dfButton
+        type="button"
+        variant="primary"
+        [fullWidth]="!isEditing()"
+        [loading]="saving()"
+        [disabled]="saving() || nameInvalid()"
+        (click)="save()"
+      >
+        {{ isEditing() ? 'Save changes' : 'Create habit' }}
+      </button>
+    </div>
+  </div>
+</df-sheet>

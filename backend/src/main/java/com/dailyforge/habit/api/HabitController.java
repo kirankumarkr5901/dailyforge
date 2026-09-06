@@ -129,9 +129,17 @@ public class HabitController {
         habits.deleteOrArchive(id, currentUser.require());
     }
 
+    /**
+     * {@code date} is optional: omitting it asks for "today" as resolved server-side
+     * (spec §4.2 — only the server knows the user's local date), which is how a client
+     * that has not yet computed any date opens the board for the first time. The
+     * resolved date comes back in the response either way.
+     */
     @GetMapping("/habits/board")
-    public BoardResponse getBoard(@RequestParam LocalDate date) {
-        return BoardResponse.of(board.board(currentUser.require(), date));
+    public BoardResponse getBoard(@RequestParam(required = false) LocalDate date) {
+        UUID userId = currentUser.require();
+        LocalDate resolved = date != null ? date : dayService.today(dayService.zoneOf(identity.requireSettings(userId).getTimeZone()));
+        return BoardResponse.of(board.board(userId, resolved));
     }
 
     /**

@@ -102,9 +102,10 @@ public final class HabitDtos {
         }
     }
 
-    public record BoardResponse(List<BoardEntryResponse> habits, String bonusHint) {
+    public record BoardResponse(LocalDate date, List<BoardEntryResponse> habits, String bonusHint) {
         public static BoardResponse of(HabitBoard board) {
-            return new BoardResponse(board.habits().stream().map(BoardEntryResponse::of).toList(), board.bonusHint());
+            return new BoardResponse(
+                    board.date(), board.habits().stream().map(BoardEntryResponse::of).toList(), board.bonusHint());
         }
     }
 

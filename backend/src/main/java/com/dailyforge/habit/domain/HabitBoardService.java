@@ -94,7 +94,7 @@ public class HabitBoardService {
             }
         }
 
-        return new HabitBoard(entries, buildHint(hintCandidates));
+        return new HabitBoard(date, entries, buildHint(hintCandidates));
     }
 
     private HabitDayState stateFor(LocalDate date, LocalDate today, boolean done) {

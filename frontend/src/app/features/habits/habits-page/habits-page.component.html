@@ -1,0 +1,79 @@
+<div class="habits-page__header">
+  <h1 class="habits-page__title">Habits</h1>
+
+  @if (session.isAuthenticated()) {
+    <button dfButton type="button" variant="primary" (click)="openCreate()">
+      <lucide-icon [img]="plusIcon" [size]="16" aria-hidden="true" />
+      New habit
+    </button>
+  }
+</div>
+
+@if (!session.isResolved() || (session.isAuthenticated() && loading() && !board())) {
+  <df-card>
+    <df-skeleton height="2.5rem" />
+    <df-skeleton height="3rem" />
+    <df-skeleton height="3rem" />
+  </df-card>
+} @else if (!session.isAuthenticated()) {
+  <df-empty-state
+    [icon]="targetIcon"
+    title="You are browsing as a guest"
+    body="Sign in to plan your habits and start earning streak bonuses."
+  >
+    <button dfButton type="button" variant="primary" (click)="signIn()">Sign in</button>
+  </df-empty-state>
+} @else {
+  @if (viewedDate() && todayDate()) {
+    <df-date-stepper
+      class="habits-page__stepper"
+      [value]="viewedDate()!"
+      [today]="todayDate()!"
+      (valueChange)="changeDate($event)"
+    />
+  }
+
+  @if (error(); as message) {
+    <p class="habits-page__error" role="alert">{{ message }}</p>
+  }
+
+  @if (board(); as current) {
+    @if (current.bonusHint && viewedDate() === todayDate()) {
+      <df-card class="habits-page__hint" elevation="raised">{{ current.bonusHint }}</df-card>
+    }
+
+    @if (current.habits.length === 0) {
+      <df-empty-state
+        [icon]="targetIcon"
+        title="Nothing scheduled for this day"
+        body="Create a habit, or check a different date — a habit only shows up on the days it is scheduled for."
+      >
+        <button dfButton type="button" variant="primary" (click)="openCreate()">New habit</button>
+      </df-empty-state>
+    } @else {
+      <df-card [flush]="true">
+        <div class="habits-page__list">
+          @for (entry of current.habits; track entry.id) {
+            <df-habit-row
+              [entry]="entry"
+              [date]="viewedDate()!"
+              (toggled)="onToggled($event)"
+              (editRequested)="openEdit($event)"
+              (errored)="onRowError($event)"
+            />
+          }
+        </div>
+      </df-card>
+    }
+  }
+}
+
+<df-habit-form-sheet
+  [open]="formOpen()"
+  [habit]="editingHabit()"
+  (closed)="closeForm()"
+  (saved)="onSaved()"
+  (deleted)="onDeleted()"
+/>
+
+<df-commitment-bonus-sheet [open]="commitmentSheetOpen()" (closed)="closeCommitmentSheet()" />

@@ -1,0 +1,104 @@
+:host {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding-block: var(--space-3);
+}
+
+:host + :host {
+  border-top: 1px solid var(--line);
+}
+
+.df-habit-row__icon {
+  flex: none;
+  color: var(--ink-muted);
+}
+
+.df-habit-row__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.df-habit-row__name {
+  color: var(--ink);
+  font-size: var(--text-base);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.df-habit-row__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--ink-muted);
+  font-size: var(--text-xs);
+}
+
+.df-habit-row__streak {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  /* A streak in progress is an earned quantity in the making — the one place outside
+   * the score pill and ledger this system lets warmth appear on the board itself. */
+  color: var(--heat-ink-2);
+}
+
+.df-habit-row__check {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-control);
+  background: var(--surface-raised);
+  color: transparent;
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+}
+
+.df-habit-row__check:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.df-habit-row__check:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.df-habit-row__check[aria-checked='true'] {
+  background: var(--done);
+  border-color: var(--done);
+  color: var(--ink-on-solid);
+}
+
+.df-habit-row__tick {
+  width: 18px;
+  height: 18px;
+}
+
+.df-habit-row__tick path {
+  stroke-dasharray: 18;
+  stroke-dashoffset: 18;
+  transition: stroke-dashoffset var(--duration-base) var(--ease-out);
+}
+
+.df-habit-row__check[aria-checked='true'] .df-habit-row__tick path {
+  stroke-dashoffset: 0;
+}
+
+.df-habit-row__lock {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  color: var(--ink-faint);
+}
