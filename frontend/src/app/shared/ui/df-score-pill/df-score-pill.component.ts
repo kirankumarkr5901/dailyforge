@@ -9,8 +9,11 @@ import {
 } from '@angular/core';
 import { MotionService } from '../../../core/motion/motion.service';
 
-/** Maps an earned amount onto the four heat steps. See `heatThresholds`. */
-export type DfHeatStep = 1 | 2 | 3 | 4;
+/**
+ * Maps an earned amount onto the heat ramp. Step 0 is the unearned state and is cold:
+ * a score of zero is not a quantity the user earned, so it may not be warm.
+ */
+export type DfHeatStep = 0 | 1 | 2 | 3 | 4;
 
 @Component({
   selector: 'df-score-pill',
@@ -68,7 +71,9 @@ export class DfScorePillComponent {
   protected readonly heatStep = computed<DfHeatStep>(() => {
     const delta = this.delta();
     const amount = delta !== null ? Math.abs(delta) : Math.abs(this.total());
-    return this.stepFor(amount);
+    // Nothing earned, nothing warm — the resting state of a new account is cold steel
+    // like everything else on the page.
+    return amount === 0 ? 0 : this.stepFor(amount);
   });
 
   private frame = 0;

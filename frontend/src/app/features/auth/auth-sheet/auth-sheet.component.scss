@@ -1,0 +1,59 @@
+.auth__reason {
+  margin-bottom: var(--space-4);
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+}
+
+.auth__google {
+  display: flex;
+  justify-content: center;
+  min-height: 44px;
+  margin-bottom: var(--space-4);
+}
+
+/* A rule with the word set into it, rather than a floating label above a line. */
+.auth__divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+  color: var(--ink-muted);
+  font-size: var(--text-xs);
+}
+
+.auth__divider::before,
+.auth__divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+.auth__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.auth__error {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid color-mix(in oklab, var(--penalty) 40%, var(--line));
+  border-radius: var(--radius-control);
+  background: var(--penalty-wash);
+  color: var(--penalty-ink);
+  font-size: var(--text-sm);
+}
+
+.auth__switch {
+  display: block;
+  width: 100%;
+  margin-top: var(--space-4);
+  padding: var(--space-2);
+  border: none;
+  background: none;
+  color: var(--info-ink);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}

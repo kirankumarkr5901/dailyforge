@@ -1,0 +1,133 @@
+<div class="shell">
+  <header class="shell__header">
+    <div class="shell__header-inner">
+      <a class="shell__wordmark" routerLink="/home">DailyForge</a>
+
+      <div class="shell__header-right">
+        <df-score-pill [total]="score()" />
+
+        @if (session.isResolved()) {
+          @if (session.isAuthenticated()) {
+            <span class="shell__who">{{ session.displayName() }}</span>
+          } @else {
+            <button type="button" class="shell__signin" (click)="signIn()">
+              {{ 'auth.signIn' | t }}
+            </button>
+          }
+        }
+
+        <button
+          type="button"
+          class="shell__menu"
+          [attr.aria-label]="'nav.menu' | t"
+          aria-haspopup="dialog"
+          [attr.aria-expanded]="drawerOpen()"
+          (click)="openDrawer()"
+        >
+          <lucide-icon [img]="menuIcon" [size]="20" aria-hidden="true" />
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Persistent rail at desktop widths; replaced by the bottom bar below 1024px. -->
+  <nav class="shell__rail" [attr.aria-label]="'nav.menu' | t">
+    <ul>
+      @for (item of navItems; track item.path) {
+        <li>
+          <a
+            [routerLink]="item.path"
+            routerLinkActive="is-active"
+            class="shell__rail-link"
+            [class.is-pending]="!item.ready"
+          >
+            <lucide-icon [img]="item.icon" [size]="18" aria-hidden="true" />
+            <span>{{ item.labelKey | t }}</span>
+          </a>
+        </li>
+      }
+    </ul>
+  </nav>
+
+  <main class="shell__main" id="main">
+    <router-outlet />
+  </main>
+
+  <nav class="shell__bottom" [attr.aria-label]="'nav.menu' | t">
+    @for (item of primaryNav; track item.path) {
+      <a
+        [routerLink]="item.path"
+        routerLinkActive="is-active"
+        class="shell__tab"
+        [class.is-pending]="!item.ready"
+      >
+        <lucide-icon [img]="item.icon" [size]="20" aria-hidden="true" />
+        <span>{{ item.labelKey | t }}</span>
+      </a>
+    }
+
+    <button type="button" class="shell__tab" (click)="openDrawer()">
+      <lucide-icon [img]="moreIcon" [size]="20" aria-hidden="true" />
+      <span>{{ 'nav.more' | t }}</span>
+    </button>
+  </nav>
+</div>
+
+@if (drawerOpen()) {
+  <div class="drawer__scrim" (click)="closeDrawer()">
+    <div
+      class="drawer"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-label]="'nav.menu' | t"
+      (click)="$event.stopPropagation()"
+      (keydown.escape)="closeDrawer()"
+    >
+      <div class="drawer__head">
+        <span class="drawer__title">{{ 'nav.menu' | t }}</span>
+        <button
+          type="button"
+          class="drawer__close"
+          [attr.aria-label]="'nav.close' | t"
+          (click)="closeDrawer()"
+        >
+          <lucide-icon [img]="closeIcon" [size]="20" aria-hidden="true" />
+        </button>
+      </div>
+
+      <ul class="drawer__list">
+        @for (item of navItems; track item.path) {
+          <li>
+            <a
+              [routerLink]="item.path"
+              routerLinkActive="is-active"
+              class="drawer__link"
+              (click)="closeDrawer()"
+            >
+              <lucide-icon [img]="item.icon" [size]="18" aria-hidden="true" />
+              <span>{{ item.labelKey | t }}</span>
+              @if (!item.ready) {
+                <span class="drawer__soon">Soon</span>
+              }
+            </a>
+          </li>
+        }
+      </ul>
+
+      <div class="drawer__foot">
+        @if (session.isAuthenticated()) {
+          <p class="drawer__account">{{ session.user()?.email }}</p>
+          <button type="button" class="drawer__action" (click)="signOut()">
+            {{ 'auth.signOut' | t }}
+          </button>
+        } @else {
+          <button type="button" class="drawer__action" (click)="signIn()">
+            {{ 'auth.signIn' | t }}
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+}
+
+<df-auth-sheet />

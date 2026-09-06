@@ -1,0 +1,352 @@
+.shell {
+  min-height: 100svh;
+  /* The bottom bar is fixed, so the page reserves its height rather than hiding content
+   * behind it. Safe-area inset included from the start for the Capacitor wrap at M9. */
+  padding-bottom: calc(64px + var(--safe-bottom));
+}
+
+/* ------------------------------------------------------------------ header */
+
+.shell__header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  padding-top: var(--safe-top);
+  background: color-mix(in oklab, var(--surface) 92%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+}
+
+.shell__header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  height: var(--header-height);
+  max-width: var(--content-max);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.shell__wordmark {
+  font-family: var(--font-display);
+  font-variation-settings:
+    'wdth' var(--display-width),
+    'wght' 700;
+  font-size: var(--text-lg);
+  letter-spacing: var(--tracking-display);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.shell__header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.shell__who {
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+  max-width: 12ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shell__signin {
+  min-height: 36px;
+  padding-inline: var(--space-3);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-control);
+  background: var(--surface-raised);
+  color: var(--ink);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.shell__signin:hover {
+  background: var(--surface-sunken);
+}
+
+.shell__menu {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  border: none;
+  border-radius: var(--radius-control);
+  background: none;
+  color: var(--ink-muted);
+  cursor: pointer;
+}
+
+.shell__menu:hover {
+  background: var(--surface-sunken);
+  color: var(--ink);
+}
+
+/* ------------------------------------------------------------------ main */
+
+.shell__main {
+  max-width: var(--content-max);
+  margin-inline: auto;
+  padding: var(--space-5) var(--gutter);
+}
+
+/* ------------------------------------------------------------------ bottom bar */
+
+.shell__bottom {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  padding-bottom: var(--safe-bottom);
+  background: var(--surface-raised);
+  border-top: 1px solid var(--line);
+}
+
+.shell__tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 64px;
+  border: none;
+  background: none;
+  color: var(--ink-muted);
+  font-size: 11px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.shell__tab.is-active {
+  color: var(--ink);
+}
+
+/* An unfinished destination reads as dimmed rather than disabled: it is reachable, and
+ * it explains itself when you get there. */
+.shell__tab.is-pending {
+  opacity: 0.55;
+}
+
+.shell__rail {
+  display: none;
+}
+
+/* ------------------------------------------------------------------ desktop */
+
+@media (min-width: 1024px) {
+  .shell {
+    display: grid;
+    grid-template-columns: 232px 1fr;
+    grid-template-areas:
+      'header header'
+      'rail main';
+    padding-bottom: 0;
+  }
+
+  .shell__header {
+    grid-area: header;
+  }
+
+  .shell__header-inner {
+    max-width: none;
+    padding-inline: var(--space-5);
+  }
+
+  /* The rail replaces the bottom bar rather than joining it: two navigations on one
+   * screen makes the user choose between identical routes. */
+  .shell__bottom {
+    display: none;
+  }
+
+  .shell__rail {
+    grid-area: rail;
+    display: block;
+    position: sticky;
+    top: calc(var(--header-height) + var(--safe-top));
+    align-self: start;
+    height: calc(100svh - var(--header-height) - var(--safe-top));
+    padding: var(--space-4) var(--space-3);
+    border-right: 1px solid var(--line);
+  }
+
+  .shell__rail ul {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .shell__rail-link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-height: 40px;
+    padding-inline: var(--space-3);
+    border-radius: var(--radius-control);
+    color: var(--ink-muted);
+    font-size: var(--text-sm);
+    text-decoration: none;
+  }
+
+  .shell__rail-link:hover {
+    background: var(--surface-sunken);
+    color: var(--ink);
+  }
+
+  .shell__rail-link.is-active {
+    background: var(--surface-sunken);
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .shell__rail-link.is-pending {
+    opacity: 0.55;
+  }
+
+  .shell__main {
+    grid-area: main;
+    padding: var(--space-6) var(--space-5);
+  }
+}
+
+/* ------------------------------------------------------------------ drawer */
+
+.drawer__scrim {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-sheet);
+  display: flex;
+  justify-content: flex-end;
+  background: rgba(6 9 12 / 0.5);
+  animation: drawer-fade var(--duration-fast) var(--ease-out);
+}
+
+.drawer {
+  display: flex;
+  flex-direction: column;
+  width: min(320px, 88vw);
+  height: 100%;
+  padding-top: var(--safe-top);
+  padding-bottom: var(--safe-bottom);
+  background: var(--surface-raised);
+  border-left: 1px solid var(--line);
+  box-shadow: var(--elevation-floating);
+  animation: drawer-slide var(--duration-base) var(--ease-out);
+}
+
+.drawer__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--header-height);
+  padding-inline: var(--space-4);
+  border-bottom: 1px solid var(--line);
+}
+
+.drawer__title {
+  font-family: var(--font-display);
+  font-variation-settings:
+    'wdth' var(--display-width),
+    'wght' 600;
+  font-size: var(--text-lg);
+}
+
+.drawer__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  margin-right: calc(var(--space-2) * -1);
+  border: none;
+  border-radius: var(--radius-control);
+  background: none;
+  color: var(--ink-muted);
+  cursor: pointer;
+}
+
+.drawer__list {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-2);
+}
+
+.drawer__link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--tap-min);
+  padding-inline: var(--space-3);
+  border-radius: var(--radius-control);
+  color: var(--ink);
+  font-size: var(--text-base);
+  text-decoration: none;
+}
+
+.drawer__link:hover {
+  background: var(--surface-sunken);
+}
+
+.drawer__link.is-active {
+  background: var(--surface-sunken);
+  font-weight: 600;
+}
+
+.drawer__soon {
+  margin-left: auto;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-control);
+  background: var(--surface-sunken);
+  color: var(--ink-muted);
+  font-size: var(--text-xs);
+}
+
+.drawer__foot {
+  padding: var(--space-4);
+  border-top: 1px solid var(--line);
+}
+
+.drawer__account {
+  margin-bottom: var(--space-2);
+  color: var(--ink-muted);
+  font-size: var(--text-xs);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.drawer__action {
+  width: 100%;
+  min-height: var(--tap-min);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.drawer__action:hover {
+  background: var(--surface-sunken);
+}
+
+@keyframes drawer-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes drawer-slide {
+  from {
+    transform: translateX(16px);
+    opacity: 0;
+  }
+}

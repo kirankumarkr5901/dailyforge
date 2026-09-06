@@ -27,6 +27,12 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-webmvc")
 	implementation("org.flywaydb:flyway-database-postgresql")
 
+	// Identity (M1). The OAuth2 resource-server starter brings Nimbus, which decodes
+	// both our own HS256 access tokens and Google's RS256 ID tokens — so verifying a
+	// Google sign-in needs no Google SDK, just their public JWKS.
+	implementation("org.springframework.boot:spring-boot-starter-security")
+	implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
+
 	developmentOnly("org.springframework.boot:spring-boot-h2console")
 
 	runtimeOnly("com.h2database:h2")
@@ -37,6 +43,7 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-starter-flyway-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-validation-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
+	testImplementation("org.springframework.boot:spring-boot-starter-security-test")
 	testRuntimeOnly("com.h2database:h2")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
