@@ -132,13 +132,13 @@ public class PointsServiceImpl implements PointsService {
         }
     }
 
-    private void reverseOne(PointsEntry original, String reason) {
+    private PointsResult reverseOne(PointsEntry original, String reason) {
         String key = IdempotencyKeys.forReversal(original.getId());
 
         // Idempotent on its own terms: this key can only ever exist as the reversal of
         // exactly this entry, so finding it already present means the work is done.
         if (entries.findByUserIdAndIdempotencyKey(original.getUserId(), key).isPresent()) {
-            return;
+            return zeroResult(original.getUserId());
         }
 
         PointsEntry reversal =
@@ -157,10 +157,10 @@ public class PointsServiceImpl implements PointsService {
         try {
             entries.saveAndFlush(reversal);
         } catch (DataIntegrityViolationException raced) {
-            return; // Someone else's concurrent call already wrote this exact reversal.
+            return zeroResult(original.getUserId()); // a concurrent call already wrote this exact reversal
         }
 
-        applyToCache(original.getUserId(), -original.getAmount());
+        int newTotal = applyToCache(original.getUserId(), -original.getAmount());
         original.markReversed();
         entries.save(original);
 
@@ -171,12 +171,21 @@ public class PointsServiceImpl implements PointsService {
                 original.getUserId(),
                 original.getRuleCode(),
                 reason);
+
+        // A reversal never celebrates — the animation already played once, for the
+        // entry being undone.
+        return new PointsResult(List.of(reversal), -original.getAmount(), newTotal, List.of());
+    }
+
+    private PointsResult zeroResult(UUID userId) {
+        int currentTotal = caches.findById(userId).map(UserScoreCache::getTotalPoints).orElse(0);
+        return new PointsResult(List.of(), 0, currentTotal, List.of());
     }
 
     @Override
     @Transactional
     @SuppressWarnings("unchecked")
-    public void reconcile(UUID userId, ReconcileScope scope) {
+    public PointsResult reconcile(UUID userId, ReconcileScope scope) {
         ReconciliationCalculator<ReconcileScope> calculator =
                 calculators.stream()
                         .filter(c -> c.scopeType().isInstance(scope))
@@ -189,12 +198,20 @@ public class PointsServiceImpl implements PointsService {
             // A scope with nothing registered against it is not an error — it is every
             // scope, until its owning module exists.
             log.debug("No reconciliation calculator registered for {}", scope.getClass().getSimpleName());
-            return;
+            return zeroResult(userId);
         }
 
         String sourceType = calculator.sourceType();
         List<DesiredEntry> desired = calculator.desiredEntries(scope);
-        List<PointsEntry> existing = entries.findAllByUserIdAndSourceTypeAndReversedFalseAndReversesIdIsNull(userId, sourceType);
+        java.util.Set<UUID> sourceIdsInScope = calculator.sourceIdsInScope(scope);
+        // An empty scope has nothing to diff against; some JPA providers reject an
+        // empty IN-clause outright, so this is also a correctness guard, not just an
+        // optimisation.
+        List<PointsEntry> existing =
+                sourceIdsInScope.isEmpty()
+                        ? List.of()
+                        : entries.findAllByUserIdAndSourceTypeAndSourceIdInAndReversedFalseAndReversesIdIsNull(
+                                userId, sourceType, sourceIdsInScope);
 
         Map<ReconcileKey, DesiredEntry> desiredByKey = new java.util.HashMap<>();
         for (DesiredEntry d : desired) {
@@ -206,11 +223,13 @@ public class PointsServiceImpl implements PointsService {
             existingByKey.put(new ReconcileKey(e.getSourceId(), e.getRuleCode()), e);
         }
 
+        List<PointsResult> changes = new ArrayList<>();
+
         // Exists but should not (or should, at a different amount): reverse it.
         for (Map.Entry<ReconcileKey, PointsEntry> entry : existingByKey.entrySet()) {
             DesiredEntry stillWanted = desiredByKey.get(entry.getKey());
             if (stillWanted == null || stillWanted.amount() != entry.getValue().getAmount()) {
-                reverseOne(entry.getValue(), "Reconciliation: recomputed from current data");
+                changes.add(reverseOne(entry.getValue(), "Reconciliation: recomputed from current data"));
             }
         }
 
@@ -223,19 +242,22 @@ public class PointsServiceImpl implements PointsService {
                 // awarded again after an earlier occasion was reversed, without colliding
                 // with that earlier occasion's permanent ledger row.
                 long generation = entries.countBySourceTypeAndSourceIdAndRuleCode(d.sourceType(), d.sourceId(), d.ruleCode());
-                award(
-                        new AwardCommand(
-                                userId,
-                                d.occurredOn(),
-                                d.category(),
-                                d.ruleCode(),
-                                d.amount(),
-                                d.sourceType(),
-                                d.sourceId(),
-                                d.description(),
-                                IdempotencyKeys.forReconciledAward(d.sourceType(), d.sourceId(), d.ruleCode(), generation)));
+                changes.add(
+                        award(
+                                new AwardCommand(
+                                        userId,
+                                        d.occurredOn(),
+                                        d.category(),
+                                        d.ruleCode(),
+                                        d.amount(),
+                                        d.sourceType(),
+                                        d.sourceId(),
+                                        d.description(),
+                                        IdempotencyKeys.forReconciledAward(d.sourceType(), d.sourceId(), d.ruleCode(), generation))));
             }
         }
+
+        return changes.isEmpty() ? zeroResult(userId) : PointsResult.combine(changes);
     }
 
     private record ReconcileKey(UUID sourceId, String ruleCode) {}

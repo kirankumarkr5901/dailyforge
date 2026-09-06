@@ -50,6 +50,15 @@ public interface PointsEntryRepository extends JpaRepository<PointsEntry, UUID> 
             UUID userId, String sourceType);
 
     /**
+     * The same, narrowed to a specific set of source ids — what reconciliation actually
+     * uses. Two different habits share the source type "HABIT_LOG"; without this
+     * narrowing, reconciling one would see the other's entries as no longer desired and
+     * reverse them.
+     */
+    List<PointsEntry> findAllByUserIdAndSourceTypeAndSourceIdInAndReversedFalseAndReversesIdIsNull(
+            UUID userId, String sourceType, java.util.Collection<UUID> sourceIds);
+
+    /**
      * Every entry — reversed or not, reversal or not — that has ever existed for this
      * exact (source, rule). Reconciliation uses this as a generation counter: the same
      * (source, rule) slot can be awarded, reversed, and awarded again arbitrarily many
