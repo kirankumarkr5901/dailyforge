@@ -1,2 +1,6 @@
 <router-outlet />
 <df-toast-host />
+
+@defer (when authSheet.isOpen()) {
+  <df-auth-sheet />
+}
