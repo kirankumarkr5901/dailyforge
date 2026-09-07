@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { Frown, LucideAngularModule, Plus, Sparkles, Target, Trash2 } from 'lucide-angular';
 
@@ -9,10 +9,11 @@ import { ActivityLog, ActivityType } from '../../../core/activity/activity.types
 import { HabitsApi } from '../../../core/habits/habits.api';
 import { HomeApi } from '../../../core/home/home.api';
 import { PointsStore } from '../../../core/points/points.store';
-import { Celebration } from '../../../core/points/points.types';
+import { Celebration, PointsCategory } from '../../../core/points/points.types';
 import { Habit, HabitBoard } from '../../../core/habits/habits.types';
 import { monthsAgoStart } from '../../../core/time/calendar-grid';
 import { LogicalDate } from '../../../core/time/logical-date';
+import { DayDetailSheetComponent } from '../../../shared/day-detail-sheet/day-detail-sheet.component';
 import { DfButtonComponent } from '../../../shared/ui/df-button/df-button.component';
 import { DfCardComponent } from '../../../shared/ui/df-card/df-card.component';
 import { DfDateStepperComponent } from '../../../shared/ui/df-date-stepper/df-date-stepper.component';
@@ -38,6 +39,7 @@ import { HabitRowComponent, HabitToggled } from '../habit-row/habit-row.componen
   selector: 'df-habits-page',
   imports: [
     LucideAngularModule,
+    DayDetailSheetComponent,
     DfButtonComponent,
     DfCardComponent,
     DfDateStepperComponent,
@@ -85,15 +87,32 @@ export class HabitsPageComponent {
    * (owner feedback: "Habit calender is not built in habit page"). Green tone —
    * habit-adherence is the one state the design system itself carves out as an
    * exception to "earned is always warm" (see habit-row's own note). */
-  protected readonly habitDates = signal<ReadonlySet<LogicalDate>>(new Set());
+  protected readonly habitDates = signal<ReadonlyMap<LogicalDate, number>>(new Map());
+
+  /** Which day the history calendar has open, if any — its own sheet, not the page date. */
+  protected readonly historyDay = signal<LogicalDate | null>(null);
+  protected readonly habitCategories: readonly PointsCategory[] = ['HABIT'];
 
   private async loadHabitDates(today: LogicalDate): Promise<void> {
     try {
       const summaries = await firstValueFrom(this.homeApi.heatmap(monthsAgoStart(today, 11), today));
-      this.habitDates.set(new Set(summaries.filter((s) => s.hasHabitCompletion).map((s) => s.date)));
+      // The day's habit points stand in for "how much was logged" — more ticks and a
+      // longer streak both earn more, and they are exactly what the day sheet then
+      // itemises, so the shade and the sheet can never tell different stories.
+      this.habitDates.set(
+        new Map(summaries.filter((s) => s.hasHabitCompletion).map((s) => [s.date, s.pointsByCategory.HABIT ?? 0])),
+      );
     } catch {
       // The calendar just shows nothing marked; the rest of the page still works.
     }
+  }
+
+  protected openHistoryDay(date: LogicalDate): void {
+    this.historyDay.set(date);
+  }
+
+  protected closeHistoryDay(): void {
+    this.historyDay.set(null);
   }
 
   /** Positive and negative one-off activities (spec §6 "activity") — a new section
@@ -104,6 +123,33 @@ export class HabitsPageComponent {
   protected readonly recentActivityLogs = signal<ActivityLog[]>([]);
   protected readonly activityFormOpen = signal(false);
   protected readonly loggingActivityId = signal<string | null>(null);
+
+  /**
+   * Habits and activities are two boards on one route, one at a time (owner feedback:
+   * "Habits and Activities should act as switch or filter button"). Stacking both made
+   * the page a long scroll where the second half was rarely what you came for; the
+   * switch keeps the route and its date context, and shows the one you asked for.
+   */
+  protected readonly view = signal<'habits' | 'activities'>('habits');
+
+  protected setView(view: 'habits' | 'activities'): void {
+    this.view.set(view);
+  }
+
+  /** Grouped by polarity — the only "type" an activity has (owner feedback: "Activities
+   * should be grouped by it's type"). Positive first: the section you are meant to spend
+   * most of your time in. A group with nothing in it is dropped rather than shown empty. */
+  protected readonly activityGroups = computed<{ polarity: 'POSITIVE' | 'NEGATIVE'; label: string; types: ActivityType[] }[]>(() => {
+    const all = this.activityTypes();
+    return (
+      [
+        { polarity: 'POSITIVE' as const, label: 'Positive' },
+        { polarity: 'NEGATIVE' as const, label: 'Negative' },
+      ]
+        .map((group) => ({ ...group, types: all.filter((type) => type.polarity === group.polarity) }))
+        .filter((group) => group.types.length > 0)
+    );
+  });
 
   private async loadActivities(): Promise<void> {
     try {
