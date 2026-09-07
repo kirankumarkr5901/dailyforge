@@ -46,14 +46,14 @@ public class ExerciseService {
             ExerciseKind kind,
             Equipment equipment,
             List<String> muscleGroups,
-            boolean elite) {
+            Boolean elite) {
         Exercise exercise = requireOwned(id, userId);
         exercise.update(
                 name != null ? name : exercise.getName(),
                 kind != null ? kind : exercise.getKind(),
                 equipment != null ? equipment : exercise.getEquipment(),
                 muscleGroups != null ? muscleGroups : exercise.getMuscleGroups(),
-                elite);
+                elite != null ? elite : exercise.isElite());
         return exercises.save(exercise);
     }
 

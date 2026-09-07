@@ -3,9 +3,11 @@ package com.dailyforge.workout.api;
 import com.dailyforge.common.security.CurrentUser;
 import com.dailyforge.workout.api.WorkoutDtos.CreateExerciseRequest;
 import com.dailyforge.workout.api.WorkoutDtos.ExerciseResponse;
+import com.dailyforge.workout.api.WorkoutDtos.HistoryEntryResponse;
 import com.dailyforge.workout.api.WorkoutDtos.UpdateExerciseRequest;
 import com.dailyforge.workout.domain.Exercise;
 import com.dailyforge.workout.domain.ExerciseService;
+import com.dailyforge.workout.domain.WorkoutSetService;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
@@ -27,10 +29,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class ExerciseController {
 
     private final ExerciseService exercises;
+    private final WorkoutSetService sets;
     private final CurrentUser currentUser;
 
-    public ExerciseController(ExerciseService exercises, CurrentUser currentUser) {
+    public ExerciseController(ExerciseService exercises, WorkoutSetService sets, CurrentUser currentUser) {
         this.exercises = exercises;
+        this.sets = sets;
         this.currentUser = currentUser;
     }
 
@@ -51,7 +55,7 @@ public class ExerciseController {
                         request.kind(),
                         request.equipment(),
                         request.muscleGroups() != null ? request.muscleGroups() : List.of(),
-                        request.isElite());
+                        Boolean.TRUE.equals(request.isElite()));
         return ExerciseResponse.of(exercise, userId);
     }
 
@@ -68,5 +72,13 @@ public class ExerciseController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable UUID id) {
         exercises.deleteOrArchive(id, currentUser.require());
+    }
+
+    /** Every set ever logged for this exercise, newest first (spec §11's history view). */
+    @GetMapping("/{id}/history")
+    public List<HistoryEntryResponse> history(@PathVariable UUID id) {
+        UUID userId = currentUser.require();
+        exercises.requireVisible(id, userId); // 404s if this exercise is not visible to the caller
+        return sets.history(userId, id).stream().map(HistoryEntryResponse::of).toList();
     }
 }

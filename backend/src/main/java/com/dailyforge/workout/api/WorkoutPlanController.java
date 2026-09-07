@@ -49,6 +49,18 @@ public class WorkoutPlanController {
         return plans.listActive(userId).stream().map(this::toResponse).toList();
     }
 
+    @GetMapping("/archived")
+    public List<PlanResponse> listArchived() {
+        UUID userId = currentUser.require();
+        return plans.listArchived(userId).stream().map(this::toResponse).toList();
+    }
+
+    @PostMapping("/{id}/unarchive")
+    public PlanResponse unarchive(@PathVariable UUID id) {
+        UUID userId = currentUser.require();
+        return toResponse(plans.unarchive(id, userId));
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public PlanResponse create(@Valid @RequestBody CreatePlanRequest request) {
@@ -88,7 +100,7 @@ public class WorkoutPlanController {
         PlanExercise pe =
                 plans.addExercise(
                         id, userId, request.exerciseId(), request.dayIndex(), request.targetSets(), request.targetReps(), request.notes());
-        return PlanExerciseResponse.of(pe, exercises.requireVisible(pe.getExerciseId(), userId).getName());
+        return PlanExerciseResponse.of(pe, exercises.requireVisible(pe.getExerciseId(), userId));
     }
 
     @DeleteMapping("/{id}/exercises/{planExerciseId}")
@@ -102,7 +114,7 @@ public class WorkoutPlanController {
             @PathVariable UUID id, @PathVariable UUID planExerciseId, @Valid @RequestBody MoveExerciseRequest request) {
         UUID userId = currentUser.require();
         PlanExercise pe = plans.moveExercise(id, userId, planExerciseId, request.toDayIndex());
-        return PlanExerciseResponse.of(pe, exercises.requireVisible(pe.getExerciseId(), userId).getName());
+        return PlanExerciseResponse.of(pe, exercises.requireVisible(pe.getExerciseId(), userId));
     }
 
     @PatchMapping("/{id}/days/{dayIndex}/exercises/order")
@@ -122,7 +134,7 @@ public class WorkoutPlanController {
                 .map(
                         pe -> {
                             Exercise exercise = exercises.requireVisible(pe.getExerciseId(), userId);
-                            return PlanExerciseResponse.of(pe, exercise.getName());
+                            return PlanExerciseResponse.of(pe, exercise);
                         })
                 .toList();
     }
