@@ -63,13 +63,23 @@
   </div>
 
   @if (filteredApplications().length === 0) {
-    <df-empty-state
-      [icon]="briefcaseIcon"
-      title="No applications yet"
-      body="Add your first application to start tracking the pipeline."
-    >
-      <button dfButton type="button" variant="primary" (click)="openForm()">New application</button>
-    </df-empty-state>
+    @if (applications().length > 0) {
+      <df-empty-state
+        [icon]="briefcaseIcon"
+        title="Nothing at that status"
+        body="Try a different filter, or show every application."
+      >
+        <button dfButton type="button" variant="secondary" (click)="statusFilter.set('')">Show all</button>
+      </df-empty-state>
+    } @else {
+      <df-empty-state
+        [icon]="briefcaseIcon"
+        title="No applications yet"
+        body="Add your first application to start tracking the pipeline."
+      >
+        <button dfButton type="button" variant="primary" (click)="openForm()">New application</button>
+      </df-empty-state>
+    }
   } @else {
     <div class="jobs-page__list">
       @for (app of filteredApplications(); track app.id) {
