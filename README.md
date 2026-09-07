@@ -42,7 +42,9 @@ The target-date field in the goal form is a plain text field (`YYYY-MM-DD`) rath
 
 With M8 merged, every tracker named in spec §11 is built, and the points economy is a closed loop: every category earns, and rewards is where it can be spent.
 
-Onboarding (spec §8.11's 5-step coach-mark tour) is built: it opens once, automatically, for a visitor who has not completed or skipped it — server-tracked (`user_settings.onboardingCompletedAt`) for a signed-in visitor, locally for an anonymous one — and can always be reopened from Settings' "Replay tour". A dedicated accessibility/reduced-motion audit pass, named alongside Rewards and onboarding in M8's own scope, is not yet done — empty states, `aria-label`s, and the `--motion-scale` token have been applied as each screen was built rather than as a separate pass, but a systematic audit has not happened yet.
+Onboarding (spec §8.11's 5-step coach-mark tour) is built: it opens once, automatically, for a visitor who has not completed or skipped it — server-tracked (`user_settings.onboardingCompletedAt`) for a signed-in visitor, locally for an anonymous one — and can always be reopened from Settings' "Replay tour". A dedicated accessibility/reduced-motion audit pass was named alongside Rewards and onboarding in M8's own scope; empty states, `aria-label`s, and the `--motion-scale` token were applied as each screen was built, and a separate systematic audit pass was deliberately dropped as out of scope for this project.
+
+With onboarding built, M8 — and every tracker named in spec §11 — is complete. UI development is done.
 
 ## Requirements
 
