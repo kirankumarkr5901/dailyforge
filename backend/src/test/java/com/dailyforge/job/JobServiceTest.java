@@ -6,12 +6,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.dailyforge.common.error.ApiException;
 import com.dailyforge.identity.repo.UserRepository;
 import com.dailyforge.identity.repo.UserSettingsRepository;
+import com.dailyforge.job.domain.InterviewStage;
 import com.dailyforge.job.domain.JobApplication;
 import com.dailyforge.job.domain.JobService;
 import com.dailyforge.job.domain.JobSource;
 import com.dailyforge.job.domain.JobStatus;
 import com.dailyforge.testsupport.TestUsers;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +47,7 @@ class JobServiceTest {
         JobApplication app =
                 jobs.create(user, "Acme", "Engineer", null, null, null, null, JobSource.APPLIED, null, null, LocalDate.of(2026, 3, 1));
 
-        jobs.transition(app.getId(), user, JobStatus.INTERVIEW, 1, "First round", LocalDate.of(2026, 3, 5));
+        jobs.transition(app.getId(), user, JobStatus.INTERVIEW, 1, InterviewStage.TECHNICAL, "First round", LocalDate.of(2026, 3, 5));
 
         JobApplication reloaded = jobs.requireOwned(app.getId(), user);
         assertThat(reloaded.getStatus()).isEqualTo(JobStatus.INTERVIEW);
@@ -58,7 +60,8 @@ class JobServiceTest {
         UUID user = TestUsers.create(users, settings);
         JobApplication responded =
                 jobs.create(user, "Acme", "Engineer", null, null, null, null, JobSource.APPLIED, null, null, LocalDate.of(2026, 3, 1));
-        jobs.transition(responded.getId(), user, JobStatus.INTERVIEW, 1, null, LocalDate.of(2026, 3, 6)); // 5 days to respond
+        jobs.transition(
+                responded.getId(), user, JobStatus.INTERVIEW, 1, InterviewStage.TECHNICAL, null, LocalDate.of(2026, 3, 6)); // 5 days to respond
 
         jobs.create(user, "Ghost Co", "Engineer", null, null, null, null, JobSource.APPLIED, null, null, LocalDate.of(2026, 3, 1)); // never responds
 
@@ -77,5 +80,64 @@ class JobServiceTest {
                 jobs.create(userA, "Acme", "Engineer", null, null, null, null, JobSource.APPLIED, null, null, LocalDate.of(2026, 3, 1));
 
         assertThatThrownBy(() -> jobs.requireOwned(app.getId(), userB)).isInstanceOf(ApiException.class);
+    }
+
+    @Test
+    void anInterviewMustSayWhichKindItIs() {
+        UUID user = TestUsers.create(users, settings);
+        JobApplication app =
+                jobs.create(user, "Acme", "Engineer", null, null, null, null, JobSource.APPLIED, null, null, LocalDate.of(2026, 3, 1));
+
+        assertThatThrownBy(() -> jobs.transition(app.getId(), user, JobStatus.INTERVIEW, 1, null, null, LocalDate.of(2026, 3, 5)))
+                .isInstanceOf(ApiException.class)
+                .hasMessageContaining("technical or HR");
+    }
+
+    @Test
+    void eachInterviewStageHasItsOwnCeiling() {
+        UUID user = TestUsers.create(users, settings);
+        JobApplication app =
+                jobs.create(user, "Acme", "Engineer", null, null, null, null, JobSource.APPLIED, null, null, LocalDate.of(2026, 3, 1));
+
+        // Technical runs to 3, HR only to 2 (owner's own vocabulary).
+        jobs.transition(app.getId(), user, JobStatus.INTERVIEW, 3, InterviewStage.TECHNICAL, null, LocalDate.of(2026, 3, 5));
+        assertThat(jobs.requireOwned(app.getId(), user).getInterviewStage()).isEqualTo(InterviewStage.TECHNICAL);
+
+        assertThatThrownBy(() -> jobs.transition(app.getId(), user, JobStatus.INTERVIEW, 3, InterviewStage.HR, null, LocalDate.of(2026, 3, 6)))
+                .isInstanceOf(ApiException.class)
+                .hasMessageContaining("round 1 to 2");
+    }
+
+    @Test
+    void aRejectionRemembersTheInterviewRoundItCameFrom() {
+        UUID user = TestUsers.create(users, settings);
+        JobApplication app =
+                jobs.create(user, "Acme", "Engineer", null, null, null, null, JobSource.APPLIED, null, null, LocalDate.of(2026, 3, 1));
+
+        jobs.transition(app.getId(), user, JobStatus.INTERVIEW, 1, InterviewStage.HR, null, LocalDate.of(2026, 3, 5));
+        jobs.transition(app.getId(), user, JobStatus.REJECTED, null, null, null, LocalDate.of(2026, 3, 9));
+
+        var origin = jobs.rejectionOrigins(List.of(jobs.requireOwned(app.getId(), user))).get(app.getId());
+
+        assertThat(origin.fromStatus()).isEqualTo(JobStatus.INTERVIEW);
+        assertThat(origin.stage()).isEqualTo(InterviewStage.HR);
+        assertThat(origin.round()).isEqualTo(1);
+        // Rejecting does not erase where it got to — that is the whole point of the label.
+        assertThat(jobs.requireOwned(app.getId(), user).getInterviewStage()).isEqualTo(InterviewStage.HR);
+    }
+
+    @Test
+    void aRejectionStraightFromAppliedHasNoInterviewToNameAtAll() {
+        UUID user = TestUsers.create(users, settings);
+        JobApplication app =
+                jobs.create(user, "Acme", "Engineer", null, null, null, null, JobSource.APPLIED, null, null, LocalDate.of(2026, 3, 1));
+
+        jobs.transition(app.getId(), user, JobStatus.REJECTED, null, null, null, LocalDate.of(2026, 3, 4));
+
+        var origin = jobs.rejectionOrigins(List.of(jobs.requireOwned(app.getId(), user))).get(app.getId());
+
+        assertThat(origin.fromStatus()).isEqualTo(JobStatus.APPLIED); // "rejected at screening"
+        assertThat(origin.stage()).isNull();
+        assertThat(origin.round()).isNull();
     }
 }

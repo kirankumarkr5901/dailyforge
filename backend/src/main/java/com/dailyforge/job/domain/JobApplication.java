@@ -56,6 +56,10 @@ public class JobApplication {
     @Column(name = "current_round", nullable = false)
     private int currentRound;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "interview_stage", length = 20)
+    private InterviewStage interviewStage;
+
     @Column(name = "next_follow_up_on")
     private LocalDate nextFollowUpOn;
 
@@ -126,10 +130,22 @@ public class JobApplication {
         this.nextFollowUpOn = nextFollowUpOn;
     }
 
-    public void transitionTo(JobStatus toStatus, Integer roundNumber) {
+    /**
+     * The interview stage is kept, not cleared, when the application leaves INTERVIEW:
+     * "rejected after HR round 1" is only sayable because the application still
+     * remembers where it got to (owner feedback). Moving *back* to an earlier stage
+     * than an interview is the one case that clears it, since it is no longer true.
+     */
+    public void transitionTo(JobStatus toStatus, Integer roundNumber, InterviewStage stage) {
         this.status = toStatus;
         if (roundNumber != null) {
             this.currentRound = roundNumber;
+        }
+        if (stage != null) {
+            this.interviewStage = stage;
+        } else if (toStatus == JobStatus.APPLIED || toStatus == JobStatus.ASSESSMENT) {
+            this.interviewStage = null;
+            this.currentRound = 0;
         }
     }
 
@@ -191,6 +207,10 @@ public class JobApplication {
 
     public int getCurrentRound() {
         return currentRound;
+    }
+
+    public InterviewStage getInterviewStage() {
+        return interviewStage;
     }
 
     public LocalDate getNextFollowUpOn() {

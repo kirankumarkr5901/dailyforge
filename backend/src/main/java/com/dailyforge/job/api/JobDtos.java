@@ -1,8 +1,10 @@
 package com.dailyforge.job.api;
 
+import com.dailyforge.job.domain.InterviewStage;
 import com.dailyforge.job.domain.JobApplication;
 import com.dailyforge.job.domain.JobEvent;
 import com.dailyforge.job.domain.JobService.Metrics;
+import com.dailyforge.job.domain.JobService.RejectionOrigin;
 import com.dailyforge.job.domain.JobSource;
 import com.dailyforge.job.domain.JobStatus;
 import jakarta.validation.constraints.NotBlank;
@@ -40,7 +42,14 @@ public final class JobDtos {
             @Size(max = 1000) String note,
             LocalDate nextFollowUpOn) {}
 
-    public record TransitionRequest(@NotNull JobStatus toStatus, Integer roundNumber, String note, @NotNull LocalDate occurredOn) {}
+    /** {@code interviewStage} is required when moving to INTERVIEW, and the round is
+     * validated against that stage's own ceiling (technical 1-3, HR 1-2). */
+    public record TransitionRequest(
+            @NotNull JobStatus toStatus,
+            Integer roundNumber,
+            InterviewStage interviewStage,
+            String note,
+            @NotNull LocalDate occurredOn) {}
 
     public record ApplicationResponse(
             UUID id,
@@ -57,16 +66,20 @@ public final class JobDtos {
             LocalDate nextFollowUpOn,
             String note,
             LocalDate appliedOn,
-            /** Only set when status is REJECTED — the stage the rejection came from, for
-             * a display label like "Rejected at screening" (owner feedback), never a
-             * status of its own. */
-            JobStatus rejectedFromStatus) {
+            /** Which kind of interview the application is in (or last reached). */
+            InterviewStage interviewStage,
+            /** Only set when status is REJECTED — where the rejection came from, for a
+             * display label like "Rejected at screening" or "Rejected after HR round 1"
+             * (owner feedback), never a status of its own. */
+            JobStatus rejectedFromStatus,
+            InterviewStage rejectedFromStage,
+            Integer rejectedFromRound) {
 
         public static ApplicationResponse of(JobApplication app) {
             return of(app, null);
         }
 
-        public static ApplicationResponse of(JobApplication app, JobStatus rejectedFromStatus) {
+        public static ApplicationResponse of(JobApplication app, RejectionOrigin origin) {
             return new ApplicationResponse(
                     app.getId(),
                     app.getCompany(),
@@ -82,14 +95,30 @@ public final class JobDtos {
                     app.getNextFollowUpOn(),
                     app.getNote(),
                     app.getAppliedOn(),
-                    rejectedFromStatus);
+                    app.getInterviewStage(),
+                    origin != null ? origin.fromStatus() : null,
+                    origin != null ? origin.stage() : null,
+                    origin != null ? origin.round() : null);
         }
     }
 
-    public record EventResponse(UUID id, JobStatus fromStatus, JobStatus toStatus, Integer roundNumber, LocalDate occurredOn, String note) {
+    public record EventResponse(
+            UUID id,
+            JobStatus fromStatus,
+            JobStatus toStatus,
+            Integer roundNumber,
+            InterviewStage interviewStage,
+            LocalDate occurredOn,
+            String note) {
         public static EventResponse of(JobEvent event) {
             return new EventResponse(
-                    event.getId(), event.getFromStatus(), event.getToStatus(), event.getRoundNumber(), event.getOccurredOn(), event.getNote());
+                    event.getId(),
+                    event.getFromStatus(),
+                    event.getToStatus(),
+                    event.getRoundNumber(),
+                    event.getInterviewStage(),
+                    event.getOccurredOn(),
+                    event.getNote());
         }
     }
 

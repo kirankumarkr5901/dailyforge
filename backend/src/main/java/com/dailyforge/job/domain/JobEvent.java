@@ -34,6 +34,10 @@ public class JobEvent {
     @Column(name = "round_number")
     private Integer roundNumber;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "interview_stage", length = 20)
+    private InterviewStage interviewStage;
+
     @Column(name = "occurred_on", nullable = false)
     private LocalDate occurredOn;
 
@@ -48,13 +52,20 @@ public class JobEvent {
     }
 
     public static JobEvent create(
-            UUID applicationId, JobStatus fromStatus, JobStatus toStatus, Integer roundNumber, LocalDate occurredOn, String note) {
+            UUID applicationId,
+            JobStatus fromStatus,
+            JobStatus toStatus,
+            Integer roundNumber,
+            InterviewStage interviewStage,
+            LocalDate occurredOn,
+            String note) {
         JobEvent event = new JobEvent();
         event.id = UUID.randomUUID();
         event.applicationId = applicationId;
         event.fromStatus = fromStatus;
         event.toStatus = toStatus;
         event.roundNumber = roundNumber;
+        event.interviewStage = interviewStage;
         event.occurredOn = occurredOn;
         event.note = note;
         return event;
@@ -71,6 +82,10 @@ public class JobEvent {
 
     public UUID getApplicationId() {
         return applicationId;
+    }
+
+    public InterviewStage getInterviewStage() {
+        return interviewStage;
     }
 
     public JobStatus getFromStatus() {

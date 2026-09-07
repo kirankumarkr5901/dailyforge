@@ -4,6 +4,8 @@ import { LogicalDate } from '../time/logical-date';
 
 export type JobSource = 'APPLIED' | 'REFERRAL_REQUESTED' | 'REFERRED' | 'RECRUITER';
 export type JobStatus = 'APPLIED' | 'ASSESSMENT' | 'INTERVIEW' | 'OFFER' | 'REJECTED' | 'WITHDRAWN' | 'GHOSTED';
+/** Which kind of interview round — the backend caps technical at 3 and HR at 2. */
+export type InterviewStage = 'TECHNICAL' | 'HR';
 
 export interface JobApplication {
   id: string;
@@ -20,8 +22,12 @@ export interface JobApplication {
   nextFollowUpOn: LogicalDate | null;
   note: string | null;
   appliedOn: LogicalDate;
-  /** Only set when status is REJECTED — the stage the rejection came from. */
+  /** Which kind of interview this is in, or last reached. */
+  interviewStage: InterviewStage | null;
+  /** Only set when status is REJECTED — where the rejection came from, for the label. */
   rejectedFromStatus: JobStatus | null;
+  rejectedFromStage: InterviewStage | null;
+  rejectedFromRound: number | null;
 }
 
 export interface CreateApplicationPayload {
@@ -40,6 +46,7 @@ export interface CreateApplicationPayload {
 export interface TransitionPayload {
   toStatus: JobStatus;
   roundNumber?: number;
+  interviewStage?: InterviewStage;
   note?: string;
   occurredOn: LogicalDate;
 }

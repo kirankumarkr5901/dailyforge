@@ -39,7 +39,7 @@ public class JobController {
     @GetMapping
     public List<ApplicationResponse> list(@RequestParam(required = false) JobStatus status) {
         var apps = jobs.list(currentUser.require(), status);
-        var rejectedFrom = jobs.rejectedFromStatuses(apps);
+        var rejectedFrom = jobs.rejectionOrigins(apps);
         return apps.stream().map(app -> ApplicationResponse.of(app, rejectedFrom.get(app.getId()))).toList();
     }
 
@@ -82,7 +82,15 @@ public class JobController {
 
     @PostMapping("/{id}/transition")
     public ApplicationResponse transition(@PathVariable UUID id, @Valid @RequestBody TransitionRequest request) {
-        var app = jobs.transition(id, currentUser.require(), request.toStatus(), request.roundNumber(), request.note(), request.occurredOn());
+        var app =
+                jobs.transition(
+                        id,
+                        currentUser.require(),
+                        request.toStatus(),
+                        request.roundNumber(),
+                        request.interviewStage(),
+                        request.note(),
+                        request.occurredOn());
         return ApplicationResponse.of(app);
     }
 
