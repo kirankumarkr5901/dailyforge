@@ -51,19 +51,17 @@
         <button dfButton type="button" variant="primary" (click)="openCreate()">New habit</button>
       </df-empty-state>
     } @else {
-      <df-card [flush]="true">
-        <div class="habits-page__list">
-          @for (entry of current.habits; track entry.id) {
-            <df-habit-row
-              [entry]="entry"
-              [date]="viewedDate()!"
-              (toggled)="onToggled($event)"
-              (editRequested)="openEdit($event)"
-              (errored)="onRowError($event)"
-            />
-          }
-        </div>
-      </df-card>
+      <div class="habits-page__list">
+        @for (entry of current.habits; track entry.id) {
+          <df-habit-row
+            [entry]="entry"
+            [date]="viewedDate()!"
+            (toggled)="onToggled($event)"
+            (editRequested)="openEdit($event)"
+            (errored)="onRowError($event)"
+          />
+        }
+      </div>
     }
   }
 }
