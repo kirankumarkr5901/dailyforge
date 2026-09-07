@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
-import { LucideAngularModule, Plus, Trash2 } from 'lucide-angular';
+import { ArchiveRestore, LucideAngularModule, Plus, SquarePen, Star, Trash2 } from 'lucide-angular';
 
 import { WorkoutsApi } from '../../../core/workouts/workouts.api';
 import { Exercise, PlanExercise, WorkoutPlan } from '../../../core/workouts/workouts.types';
@@ -47,14 +47,25 @@ export class PlanManagerSheetComponent {
 
   protected readonly plusIcon = Plus;
   protected readonly deleteIcon = Trash2;
+  protected readonly editIcon = SquarePen;
+  protected readonly restoreIcon = ArchiveRestore;
+  protected readonly eliteIcon = Star;
 
   protected readonly plans = signal<WorkoutPlan[]>([]);
+  protected readonly archivedPlans = signal<WorkoutPlan[]>([]);
+  protected readonly showArchived = signal(false);
   protected readonly selectedPlanId = signal<string | null>(null);
   protected readonly newPlanName = signal('');
   protected readonly newPlanDays = signal(3);
   protected readonly creating = signal(false);
   protected readonly pickerOpen = signal(false);
   protected readonly pickerDayIndex = signal(0);
+
+  /** The one day label (or the plan name, index -1) currently being edited inline. */
+  protected readonly editingDayIndex = signal<number | null>(null);
+  protected readonly dayLabelDraft = signal('');
+  protected readonly editingPlanName = signal(false);
+  protected readonly planNameDraft = signal('');
 
   protected readonly selectedPlan = computed(() => this.plans().find((p) => p.id === this.selectedPlanId()) ?? null);
 
@@ -79,8 +90,12 @@ export class PlanManagerSheetComponent {
   }
 
   private async refresh(): Promise<void> {
-    const list = await firstValueFrom(this.api.plans());
+    const [list, archived] = await Promise.all([
+      firstValueFrom(this.api.plans()),
+      firstValueFrom(this.api.archivedPlans()),
+    ]);
     this.plans.set(list);
+    this.archivedPlans.set(archived);
     if (!this.selectedPlanId() && list.length > 0) {
       this.selectedPlanId.set(list.find((p) => p.isActive)?.id ?? list[0].id);
     }
@@ -126,6 +141,54 @@ export class PlanManagerSheetComponent {
     this.changed.emit();
   }
 
+  protected async restore(planId: string): Promise<void> {
+    await firstValueFrom(this.api.unarchivePlan(planId));
+    await this.refresh();
+    this.selectedPlanId.set(planId);
+    this.changed.emit();
+  }
+
+  protected startRenamingDay(dayIndex: number, currentLabel: string): void {
+    this.editingDayIndex.set(dayIndex);
+    this.dayLabelDraft.set(currentLabel);
+  }
+
+  protected cancelRenamingDay(): void {
+    this.editingDayIndex.set(null);
+  }
+
+  protected async saveDayLabel(planId: string): Promise<void> {
+    const dayIndex = this.editingDayIndex();
+    const label = this.dayLabelDraft().trim();
+    if (dayIndex === null || !label) {
+      return;
+    }
+    await firstValueFrom(this.api.relabelDay(planId, dayIndex, label));
+    this.editingDayIndex.set(null);
+    await this.refresh();
+    this.changed.emit();
+  }
+
+  protected startRenamingPlan(currentName: string): void {
+    this.editingPlanName.set(true);
+    this.planNameDraft.set(currentName);
+  }
+
+  protected cancelRenamingPlan(): void {
+    this.editingPlanName.set(false);
+  }
+
+  protected async savePlanName(planId: string): Promise<void> {
+    const name = this.planNameDraft().trim();
+    if (!name) {
+      return;
+    }
+    await firstValueFrom(this.api.updatePlan(planId, { name }));
+    this.editingPlanName.set(false);
+    await this.refresh();
+    this.changed.emit();
+  }
+
   protected openPickerForDay(dayIndex: number): void {
     this.pickerDayIndex.set(dayIndex);
     this.pickerOpen.set(true);
@@ -152,6 +215,10 @@ export class PlanManagerSheetComponent {
     await firstValueFrom(this.api.moveExercise(planId, planExerciseId, dayIndex));
     await this.refresh();
     this.changed.emit();
+  }
+
+  protected toggleArchivedView(): void {
+    this.showArchived.update((v) => !v);
   }
 
   protected close(): void {

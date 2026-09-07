@@ -4,6 +4,22 @@
       <h3 class="exercise-card__name">{{ entry().name }}</h3>
       <df-chip tone="equipment" [equipment]="equipmentTone(entry().equipment)">{{ equipmentLabel(entry().equipment) }}</df-chip>
     </div>
+    <span class="exercise-card__header-actions">
+      @if (done()) {
+        <span class="exercise-card__done-badge" aria-hidden="true">
+          <lucide-icon [img]="doneIcon" [size]="18" />
+        </span>
+      }
+      <button
+        dfIconButton
+        type="button"
+        label="History"
+        variant="ghost"
+        [icon]="historyIcon"
+        [size]="16"
+        (click)="historyRequested.emit()"
+      ></button>
+    </span>
   </div>
 
   <div class="exercise-card__prs">

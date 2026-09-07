@@ -12,7 +12,17 @@
         @for (exercise of results(); track exercise.id) {
           <li>
             <button type="button" class="exercise-picker__result" (click)="select(exercise)">
-              <span>{{ exercise.name }}</span>
+              <span class="exercise-picker__result-main">
+                <span class="exercise-picker__result-name" [class.exercise-picker__result-name--elite]="exercise.isElite">
+                  {{ exercise.name }}
+                  @if (exercise.isElite) {
+                    <lucide-icon [img]="starIcon" [size]="14" aria-hidden="true" />
+                  }
+                </span>
+                @if (exercise.muscleGroups.length > 0) {
+                  <span class="exercise-picker__result-muscles">{{ exercise.muscleGroups.join(', ') }}</span>
+                }
+              </span>
               <df-chip tone="equipment" [equipment]="equipmentTone(exercise.equipment)">{{ equipmentLabel(exercise.equipment) }}</df-chip>
             </button>
           </li>
@@ -30,6 +40,32 @@
             (ngModelChange)="newEquipment.set($event)"
           />
         </div>
+
+        <div class="exercise-picker__muscle-field">
+          <span class="exercise-picker__muscle-label">Muscles targeted</span>
+          <div class="exercise-picker__muscle-chips">
+            @for (group of muscleGroupOptions; track group) {
+              <button
+                type="button"
+                class="exercise-picker__muscle-chip"
+                [class.exercise-picker__muscle-chip--selected]="newMuscleGroups().includes(group)"
+                [attr.aria-pressed]="newMuscleGroups().includes(group)"
+                (click)="toggleMuscleGroup(group)"
+              >
+                {{ group }}
+              </button>
+            }
+          </div>
+        </div>
+
+        <label class="exercise-picker__elite-field">
+          <input type="checkbox" [ngModel]="newElite()" (ngModelChange)="newElite.set($event)" />
+          <span>
+            <lucide-icon [img]="starIcon" [size]="14" aria-hidden="true" />
+            Elite — an advanced move, flagged so it stands out in your plan
+          </span>
+        </label>
+
         <button
           dfButton
           type="button"

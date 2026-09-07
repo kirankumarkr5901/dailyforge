@@ -7,6 +7,7 @@ import {
   CreateExercisePayload,
   DeleteSetResponse,
   Exercise,
+  ExerciseHistoryEntry,
   LogSetPayload,
   PlanExercise,
   SetWriteResponse,
@@ -36,8 +37,20 @@ export class WorkoutsApi {
     return this.http.delete<void>(`${this.base}/exercises/${id}`);
   }
 
+  exerciseHistory(id: string): Observable<ExerciseHistoryEntry[]> {
+    return this.http.get<ExerciseHistoryEntry[]>(`${this.base}/exercises/${id}/history`);
+  }
+
   plans(): Observable<WorkoutPlan[]> {
     return this.http.get<WorkoutPlan[]>(`${this.base}/workout-plans`);
+  }
+
+  archivedPlans(): Observable<WorkoutPlan[]> {
+    return this.http.get<WorkoutPlan[]>(`${this.base}/workout-plans/archived`);
+  }
+
+  unarchivePlan(id: string): Observable<WorkoutPlan> {
+    return this.http.post<WorkoutPlan>(`${this.base}/workout-plans/${id}/unarchive`, {});
   }
 
   createPlan(name: string, dayCount: number): Observable<WorkoutPlan> {

@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
-import { LucideAngularModule, Plus, SquarePen, Trash2 } from 'lucide-angular';
+import { CircleCheck, History, LucideAngularModule, Plus, SquarePen, Trash2 } from 'lucide-angular';
 
 import { ExerciseBoardEntry, WorkoutSet } from '../../../core/workouts/workouts.types';
 import { DfButtonComponent } from '../../../shared/ui/df-button/df-button.component';
@@ -28,10 +28,13 @@ export class ExerciseCardComponent {
   readonly logRequested = output<void>();
   readonly editSetRequested = output<WorkoutSet>();
   readonly deleteSetRequested = output<WorkoutSet>();
+  readonly historyRequested = output<void>();
 
   protected readonly plusIcon = Plus;
   protected readonly editIcon = SquarePen;
   protected readonly deleteIcon = Trash2;
+  protected readonly doneIcon = CircleCheck;
+  protected readonly historyIcon = History;
 
   protected readonly equipmentTone = equipmentTone;
   protected readonly equipmentLabel = equipmentLabel;

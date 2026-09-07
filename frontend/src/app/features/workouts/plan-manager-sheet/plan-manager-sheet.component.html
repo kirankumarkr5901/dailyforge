@@ -9,26 +9,66 @@
       />
 
       @if (selectedPlan(); as plan) {
+        @if (editingPlanName()) {
+          <div class="plan-manager__rename-row">
+            <df-input
+              label="Plan name"
+              [ngModel]="planNameDraft()"
+              (ngModelChange)="planNameDraft.set($event)"
+            />
+            <button dfButton type="button" variant="primary" (click)="savePlanName(plan.id)">Save</button>
+            <button dfButton type="button" variant="ghost" (click)="cancelRenamingPlan()">Cancel</button>
+          </div>
+        }
+
         <div class="plan-manager__plan-actions">
           @if (!plan.isActive) {
             <button dfButton type="button" variant="secondary" (click)="activate(plan.id)">Make active</button>
           }
+          <button dfButton type="button" variant="ghost" (click)="startRenamingPlan(plan.name)">
+            <lucide-icon [img]="editIcon" [size]="16" aria-hidden="true" />
+            Rename
+          </button>
           <button dfButton type="button" variant="ghost" (click)="archive(plan.id)">Archive</button>
         </div>
 
         @for (label of plan.dayLabels; track $index) {
           <df-card>
-            <div class="plan-manager__day-header">
-              <h3 class="plan-manager__day-title">{{ label }}</h3>
-              <button dfButton type="button" variant="ghost" (click)="openPickerForDay($index + 1)">
-                <lucide-icon [img]="plusIcon" [size]="16" aria-hidden="true" />
-                Add
-              </button>
-            </div>
+            @if (editingDayIndex() === $index + 1) {
+              <div class="plan-manager__rename-row">
+                <df-input
+                  label="Day name"
+                  [ngModel]="dayLabelDraft()"
+                  (ngModelChange)="dayLabelDraft.set($event)"
+                />
+                <button dfButton type="button" variant="primary" (click)="saveDayLabel(plan.id)">Save</button>
+                <button dfButton type="button" variant="ghost" (click)="cancelRenamingDay()">Cancel</button>
+              </div>
+            } @else {
+              <div class="plan-manager__day-header">
+                <button
+                  type="button"
+                  class="plan-manager__day-title plan-manager__day-title--editable"
+                  (click)="startRenamingDay($index + 1, label)"
+                >
+                  {{ label }}
+                  <lucide-icon [img]="editIcon" [size]="14" aria-hidden="true" />
+                </button>
+                <button dfButton type="button" variant="ghost" (click)="openPickerForDay($index + 1)">
+                  <lucide-icon [img]="plusIcon" [size]="16" aria-hidden="true" />
+                  Add
+                </button>
+              </div>
+            }
 
             @for (pe of exercisesForDay(plan, $index + 1); track pe.id) {
               <div class="plan-manager__exercise">
-                <span>{{ pe.exerciseName }}</span>
+                <span class="plan-manager__exercise-name">
+                  {{ pe.exerciseName }}
+                  @if (pe.isElite) {
+                    <lucide-icon [img]="eliteIcon" [size]="14" aria-hidden="true" />
+                  }
+                </span>
                 <button
                   dfIconButton
                   type="button"
@@ -55,7 +95,12 @@
 
           @for (pe of extrasFor(plan); track pe.id) {
             <div class="plan-manager__exercise">
-              <span>{{ pe.exerciseName }}</span>
+              <span class="plan-manager__exercise-name">
+                {{ pe.exerciseName }}
+                @if (pe.isElite) {
+                  <lucide-icon [img]="eliteIcon" [size]="14" aria-hidden="true" />
+                }
+              </span>
               <button
                 dfIconButton
                 type="button"
@@ -88,6 +133,28 @@
         Create plan
       </button>
     </df-card>
+
+    <button type="button" class="plan-manager__archived-toggle" (click)="toggleArchivedView()">
+      {{ showArchived() ? 'Hide' : 'Show' }} archived plans ({{ archivedPlans().length }})
+    </button>
+
+    @if (showArchived()) {
+      @if (archivedPlans().length > 0) {
+        <ul class="plan-manager__archived-list">
+          @for (plan of archivedPlans(); track plan.id) {
+            <li class="plan-manager__archived-item">
+              <span>{{ plan.name }}</span>
+              <button dfButton type="button" variant="secondary" (click)="restore(plan.id)">
+                <lucide-icon [img]="restoreIcon" [size]="16" aria-hidden="true" />
+                Restore
+              </button>
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="plan-manager__empty">No archived plans.</p>
+      }
+    }
   </div>
 </df-sheet>
 

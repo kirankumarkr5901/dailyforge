@@ -37,3 +37,27 @@
   gap: var(--space-4);
   margin-bottom: var(--space-4);
 }
+
+.workouts-page__group-title {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+/* A single mobile column of cards does not become a desktop layout by stretching wider
+ * — it becomes two columns of cards instead, with each muscle-group heading spanning
+ * both. The group titles opt into the grid explicitly since `df-exercise-card` already
+ * auto-flows into whichever layout its container uses. */
+@media (min-width: 1024px) {
+  .workouts-page__cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    align-items: start;
+  }
+
+  .workouts-page__group-title {
+    grid-column: 1 / -1;
+  }
+}

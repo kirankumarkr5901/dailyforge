@@ -47,24 +47,40 @@
   }
 
   <div class="workouts-page__cards">
-    @for (entry of sortedExercises(); track entry.exerciseId) {
-      <df-exercise-card
-        [entry]="entry"
-        (logRequested)="openLogSheetForCard(entry)"
-        (editSetRequested)="openEditSheet(entry, $event)"
-        (deleteSetRequested)="deleteSet($event)"
-      />
-    } @empty {
-      <df-empty-state
-        [icon]="targetIcon"
-        title="Nothing planned for this day"
-        body="Add an exercise to start logging, or manage your plans to fill this day in advance."
-      >
-        <button dfButton type="button" variant="primary" (click)="openAddExercise()">
-          <lucide-icon [img]="plusIcon" [size]="16" aria-hidden="true" />
-          Add exercise
-        </button>
-      </df-empty-state>
+    @if (muscleGroupSections().length > 1) {
+      @for (section of muscleGroupSections(); track section.group) {
+        <h2 class="workouts-page__group-title">{{ section.group }}</h2>
+        @for (entry of section.exercises; track entry.exerciseId) {
+          <df-exercise-card
+            [entry]="entry"
+            (logRequested)="openLogSheetForCard(entry)"
+            (editSetRequested)="openEditSheet(entry, $event)"
+            (deleteSetRequested)="deleteSet($event)"
+            (historyRequested)="openHistorySheet(entry)"
+          />
+        }
+      }
+    } @else {
+      @for (entry of sortedExercises(); track entry.exerciseId) {
+        <df-exercise-card
+          [entry]="entry"
+          (logRequested)="openLogSheetForCard(entry)"
+          (editSetRequested)="openEditSheet(entry, $event)"
+          (deleteSetRequested)="deleteSet($event)"
+          (historyRequested)="openHistorySheet(entry)"
+        />
+      } @empty {
+        <df-empty-state
+          [icon]="targetIcon"
+          title="Nothing planned for this day"
+          body="Add an exercise to start logging, or manage your plans to fill this day in advance."
+        >
+          <button dfButton type="button" variant="primary" (click)="openAddExercise()">
+            <lucide-icon [img]="plusIcon" [size]="16" aria-hidden="true" />
+            Add exercise
+          </button>
+        </df-empty-state>
+      }
     }
   </div>
 
@@ -91,6 +107,14 @@
 
 <df-exercise-picker-sheet [open]="pickerOpen()" (closed)="pickerOpen.set(false)" (picked)="onExercisePicked($event)" />
 
+<df-exercise-history-sheet
+  [open]="historySheetOpen()"
+  [exerciseId]="historyContext()?.id ?? null"
+  [exerciseName]="historyContext()?.name ?? ''"
+  [equipment]="historyContext()?.equipment ?? 'BARBELL'"
+  (closed)="closeHistorySheet()"
+/>
+
 <df-plan-manager-sheet
   [open]="planManagerOpen()"
   (closed)="planManagerOpen.set(false)"
@@ -98,3 +122,5 @@
 />
 
 <df-rest-timer />
+
+<df-celebration [trigger]="celebrationTrigger()" label="Session complete!" />

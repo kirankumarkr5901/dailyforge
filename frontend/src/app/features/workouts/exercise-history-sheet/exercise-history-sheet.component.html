@@ -1,0 +1,20 @@
+<df-sheet [open]="open()" (openChange)="$event ? null : close()" [heading]="exerciseName() + ' — history'">
+  <div class="exercise-history">
+    @if (loading()) {
+      <df-skeleton height="2.5rem" />
+      <df-skeleton height="2.5rem" />
+      <df-skeleton height="2.5rem" />
+    } @else if (entries().length === 0) {
+      <p class="exercise-history__empty">Nothing logged for this exercise yet.</p>
+    } @else {
+      <ul class="exercise-history__list">
+        @for (entry of entries(); track entry.set.id) {
+          <li class="exercise-history__row">
+            <span class="exercise-history__date">{{ formatLong(entry.date) }}</span>
+            <span class="exercise-history__value">{{ setLabel(entry) }}</span>
+          </li>
+        }
+      </ul>
+    }
+  </div>
+</df-sheet>

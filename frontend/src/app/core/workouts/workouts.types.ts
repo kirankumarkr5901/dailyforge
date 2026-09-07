@@ -30,6 +30,8 @@ export interface PlanExercise {
   id: string;
   exerciseId: string;
   exerciseName: string;
+  muscleGroups: string[];
+  isElite: boolean;
   dayIndex: number;
   sortOrder: number;
   targetSets: number | null;
@@ -68,6 +70,8 @@ export interface ExerciseBoardEntry {
   name: string;
   kind: ExerciseKind;
   equipment: Equipment;
+  muscleGroups: string[];
+  isElite: boolean;
   recentPr: Pr | null;
   lifetimePr: Pr | null;
   sets: WorkoutSet[];
@@ -107,4 +111,9 @@ export interface SetWriteResponse {
 
 export interface DeleteSetResponse {
   points: PointsEnvelope;
+}
+
+export interface ExerciseHistoryEntry {
+  date: LogicalDate;
+  set: WorkoutSet;
 }
