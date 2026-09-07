@@ -117,6 +117,32 @@ public class JobService {
         return status != null ? applications.findAllByUserIdAndStatusOrderByAppliedOnDesc(userId, status) : applications.findAllByUserIdOrderByAppliedOnDesc(userId);
     }
 
+    /**
+     * For every application currently REJECTED, the stage it was rejected *from* — the
+     * owner's own display-label distinction ("rejected at screening" vs. after an
+     * interview), computed from the timeline rather than stored as its own status.
+     * Batched the same way {@link #metrics} batches its own event lookup, to keep the
+     * list endpoint at one query regardless of how many applications there are.
+     */
+    @Transactional(readOnly = true)
+    public java.util.Map<UUID, JobStatus> rejectedFromStatuses(List<JobApplication> apps) {
+        List<UUID> rejectedIds = apps.stream().filter(a -> a.getStatus() == JobStatus.REJECTED).map(JobApplication::getId).toList();
+        if (rejectedIds.isEmpty()) {
+            return java.util.Map.of();
+        }
+        List<JobEvent> allEvents = events.findAllByApplicationIdIn(rejectedIds);
+        var eventsByApp = allEvents.stream().collect(java.util.stream.Collectors.groupingBy(JobEvent::getApplicationId));
+
+        java.util.Map<UUID, JobStatus> result = new java.util.HashMap<>();
+        for (var entry : eventsByApp.entrySet()) {
+            entry.getValue().stream()
+                    .filter(e -> e.getToStatus() == JobStatus.REJECTED)
+                    .max(java.util.Comparator.comparing(JobEvent::getOccurredOn).thenComparing(JobEvent::getCreatedAt))
+                    .ifPresent(latest -> result.put(entry.getKey(), latest.getFromStatus()));
+        }
+        return result;
+    }
+
     @Transactional(readOnly = true)
     public List<JobEvent> timeline(UUID id, UUID userId) {
         JobApplication app = requireOwned(id, userId);

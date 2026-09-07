@@ -81,24 +81,28 @@
       </df-empty-state>
     }
   } @else {
-    <div class="jobs-page__list">
-      @for (app of filteredApplications(); track app.id) {
-        <df-card>
-          <div class="jobs-page__app-header">
-            <div>
-              <h3 class="jobs-page__app-company">{{ app.company }}</h3>
-              <p class="jobs-page__app-role">{{ app.role }}@if (app.city) { , {{ app.city }} }</p>
+    @for (group of groupedApplications(); track group.date) {
+      <h2 class="jobs-page__date-title">{{ formatLong(group.date) }}</h2>
+      <div class="jobs-page__list">
+        @for (app of group.apps; track app.id) {
+          <df-card>
+            <div class="jobs-page__app-header">
+              <div>
+                <h3 class="jobs-page__app-company">{{ app.company }}</h3>
+                <p class="jobs-page__app-role">{{ app.role }}@if (app.city) { , {{ app.city }} }</p>
+                <span class="jobs-page__app-label">{{ displayLabel(app) }}</span>
+              </div>
             </div>
-          </div>
-          <df-select
-            label="Status"
-            [options]="statusOptions"
-            [ngModel]="app.status"
-            (ngModelChange)="advance(app, $event)"
-          />
-        </df-card>
-      }
-    </div>
+            <df-select
+              label="Status"
+              [options]="statusOptions"
+              [ngModel]="app.status"
+              (ngModelChange)="advance(app, $event)"
+            />
+          </df-card>
+        }
+      </div>
+    }
   }
 }
 

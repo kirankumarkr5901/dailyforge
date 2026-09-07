@@ -38,7 +38,9 @@ public class JobController {
 
     @GetMapping
     public List<ApplicationResponse> list(@RequestParam(required = false) JobStatus status) {
-        return jobs.list(currentUser.require(), status).stream().map(ApplicationResponse::of).toList();
+        var apps = jobs.list(currentUser.require(), status);
+        var rejectedFrom = jobs.rejectedFromStatuses(apps);
+        return apps.stream().map(app -> ApplicationResponse.of(app, rejectedFrom.get(app.getId()))).toList();
     }
 
     @PostMapping
