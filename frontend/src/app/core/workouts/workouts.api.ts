@@ -94,6 +94,14 @@ export class WorkoutsApi {
     });
   }
 
+  updatePlanExercise(
+    planId: string,
+    planExerciseId: string,
+    patch: { targetSets?: number | null; targetReps?: number | null; notes?: string | null },
+  ): Observable<PlanExercise> {
+    return this.http.patch<PlanExercise>(`${this.base}/workout-plans/${planId}/exercises/${planExerciseId}`, patch);
+  }
+
   session(date: LogicalDate, planId?: string | null, dayIndex?: number | null): Observable<WorkoutSession> {
     let params = new HttpParams().set('date', date);
     if (planId) {

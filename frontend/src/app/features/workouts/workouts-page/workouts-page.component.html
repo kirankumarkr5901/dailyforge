@@ -46,6 +46,29 @@
     <p class="workouts-page__error" role="alert">{{ message }}</p>
   }
 
+  @if (availableMuscleGroups().length > 1) {
+    <div class="workouts-page__muscle-filter" role="group" aria-label="Filter by muscle group">
+      <button
+        type="button"
+        class="workouts-page__muscle-chip"
+        [class.workouts-page__muscle-chip--selected]="muscleFilter() === null"
+        (click)="setMuscleFilter(null)"
+      >
+        All
+      </button>
+      @for (group of availableMuscleGroups(); track group) {
+        <button
+          type="button"
+          class="workouts-page__muscle-chip"
+          [class.workouts-page__muscle-chip--selected]="muscleFilter() === group"
+          (click)="setMuscleFilter(group)"
+        >
+          {{ group }}
+        </button>
+      }
+    </div>
+  }
+
   <div class="workouts-page__cards">
     @if (muscleGroupSections().length > 1) {
       @for (section of muscleGroupSections(); track section.group) {
@@ -61,7 +84,7 @@
         }
       }
     } @else {
-      @for (entry of sortedExercises(); track entry.exerciseId) {
+      @for (entry of filteredExercises(); track entry.exerciseId) {
         <df-exercise-card
           [entry]="entry"
           (logRequested)="openLogSheetForCard(entry)"
@@ -70,16 +93,26 @@
           (historyRequested)="openHistorySheet(entry)"
         />
       } @empty {
-        <df-empty-state
-          [icon]="targetIcon"
-          title="Nothing planned for this day"
-          body="Add an exercise to start logging, or manage your plans to fill this day in advance."
-        >
-          <button dfButton type="button" variant="primary" (click)="openAddExercise()">
-            <lucide-icon [img]="plusIcon" [size]="16" aria-hidden="true" />
-            Add exercise
-          </button>
-        </df-empty-state>
+        @if (sortedExercises().length > 0) {
+          <df-empty-state
+            [icon]="targetIcon"
+            title="Nothing for that muscle group today"
+            body="Try a different filter, or show every exercise."
+          >
+            <button dfButton type="button" variant="secondary" (click)="setMuscleFilter(null)">Show all</button>
+          </df-empty-state>
+        } @else {
+          <df-empty-state
+            [icon]="targetIcon"
+            title="Nothing planned for this day"
+            body="Add an exercise to start logging, or manage your plans to fill this day in advance."
+          >
+            <button dfButton type="button" variant="primary" (click)="openAddExercise()">
+              <lucide-icon [img]="plusIcon" [size]="16" aria-hidden="true" />
+              Add exercise
+            </button>
+          </df-empty-state>
+        }
       }
     }
   </div>

@@ -79,6 +79,8 @@ public final class WorkoutDtos {
 
     public record MoveExerciseRequest(@NotNull Integer toDayIndex) {}
 
+    public record UpdatePlanExerciseRequest(Integer targetSets, Integer targetReps, @Size(max = 200) String notes) {}
+
     public record ReorderDayRequest(@NotNull List<UUID> orderedPlanExerciseIds) {}
 
     public record PlanExerciseResponse(

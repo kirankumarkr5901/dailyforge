@@ -139,6 +139,16 @@ public class WorkoutPlanService {
         return planExercises.save(pe);
     }
 
+    @Transactional
+    public PlanExercise updateExercise(
+            UUID planId, UUID userId, UUID planExerciseId, Integer targetSets, Integer targetReps, String notes) {
+        requireOwned(planId, userId);
+        PlanExercise pe =
+                planExercises.findByIdAndPlanId(planExerciseId, planId).orElseThrow(() -> ApiException.notFound("That exercise"));
+        pe.updateTargets(targetSets, targetReps, notes);
+        return planExercises.save(pe);
+    }
+
     /** Reorders every exercise on one day to match the given sequence (keyboard-reachable per spec §8.2). */
     @Transactional
     public void reorderDay(UUID planId, UUID userId, int dayIndex, List<UUID> orderedPlanExerciseIds) {

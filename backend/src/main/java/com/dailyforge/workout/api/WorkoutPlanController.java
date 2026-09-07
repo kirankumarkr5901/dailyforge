@@ -109,6 +109,17 @@ public class WorkoutPlanController {
         plans.removeExercise(id, currentUser.require(), planExerciseId);
     }
 
+    @PatchMapping("/{id}/exercises/{planExerciseId}")
+    public PlanExerciseResponse updateExercise(
+            @PathVariable UUID id,
+            @PathVariable UUID planExerciseId,
+            @Valid @RequestBody WorkoutDtos.UpdatePlanExerciseRequest request) {
+        UUID userId = currentUser.require();
+        PlanExercise pe =
+                plans.updateExercise(id, userId, planExerciseId, request.targetSets(), request.targetReps(), request.notes());
+        return PlanExerciseResponse.of(pe, exercises.requireVisible(pe.getExerciseId(), userId));
+    }
+
     @PostMapping("/{id}/exercises/{planExerciseId}/move")
     public PlanExerciseResponse moveExercise(
             @PathVariable UUID id, @PathVariable UUID planExerciseId, @Valid @RequestBody MoveExerciseRequest request) {

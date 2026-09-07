@@ -62,6 +62,13 @@
   font-size: var(--text-sm);
 }
 
+.plan-manager__exercise-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
 .plan-manager__exercise-name {
   display: inline-flex;
   align-items: center;
@@ -70,6 +77,58 @@
 
 .plan-manager__exercise-name lucide-icon {
   color: var(--heat-2);
+}
+
+.plan-manager__exercise-targets,
+.plan-manager__exercise-notes {
+  color: var(--ink-muted);
+  font-size: var(--text-xs);
+}
+
+.plan-manager__exercise-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex: none;
+}
+
+.plan-manager__move-select {
+  min-height: var(--tap-min);
+  padding-inline: var(--space-2);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-control);
+  background: var(--surface-raised);
+  color: var(--ink);
+  font-size: var(--text-xs);
+}
+
+/* Same fix as df-select's own option styling: the popup a browser renders for a
+ * native <select>'s options is a separate surface that paints white by default
+ * regardless of the control's own background. */
+.plan-manager__move-select option {
+  background: var(--surface-raised);
+  color: var(--ink);
+}
+
+.plan-manager__targets-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  margin-top: var(--space-2);
+  border-radius: var(--radius-card);
+  background: var(--surface-sunken);
+}
+
+.plan-manager__targets-form df-input {
+  flex: 1;
+  min-width: 120px;
+}
+
+.plan-manager__targets-form-actions {
+  display: flex;
+  gap: var(--space-2);
 }
 
 .plan-manager__empty {

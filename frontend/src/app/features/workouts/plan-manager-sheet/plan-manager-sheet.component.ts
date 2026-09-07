@@ -1,7 +1,8 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
-import { ArchiveRestore, LucideAngularModule, Plus, SquarePen, Star, Trash2 } from 'lucide-angular';
+import { ArchiveRestore, LucideAngularModule, Plus, Settings2, SquarePen, Star, Trash2 } from 'lucide-angular';
 
 import { WorkoutsApi } from '../../../core/workouts/workouts.api';
 import { Exercise, PlanExercise, WorkoutPlan } from '../../../core/workouts/workouts.types';
@@ -24,6 +25,7 @@ import { ExercisePickerSheetComponent } from '../exercise-picker-sheet/exercise-
   selector: 'df-plan-manager-sheet',
   imports: [
     FormsModule,
+    NgTemplateOutlet,
     LucideAngularModule,
     DfButtonComponent,
     DfCardComponent,
@@ -46,10 +48,13 @@ export class PlanManagerSheetComponent {
   readonly changed = output<void>();
 
   protected readonly plusIcon = Plus;
+  /** Templates cannot call the global String() directly. */
+  protected readonly String = String;
   protected readonly deleteIcon = Trash2;
   protected readonly editIcon = SquarePen;
   protected readonly restoreIcon = ArchiveRestore;
   protected readonly eliteIcon = Star;
+  protected readonly targetsIcon = Settings2;
 
   protected readonly plans = signal<WorkoutPlan[]>([]);
   protected readonly archivedPlans = signal<WorkoutPlan[]>([]);
@@ -69,13 +74,25 @@ export class PlanManagerSheetComponent {
 
   protected readonly selectedPlan = computed(() => this.plans().find((p) => p.id === this.selectedPlanId()) ?? null);
 
-  protected readonly dayOptions = computed<readonly DfSelectOption[]>(() => {
+  /** Every place an exercise can be moved to — Extras plus every real day — for the
+   * "Move to" select on each plan-exercise row. */
+  protected readonly moveOptions = computed<readonly DfSelectOption[]>(() => {
     const plan = this.selectedPlan();
     if (!plan) {
       return [];
     }
-    return plan.dayLabels.map((label, i) => ({ value: String(i + 1), label }));
+    return [
+      { value: '0', label: 'Extras' },
+      ...plan.dayLabels.map((label, i) => ({ value: String(i + 1), label })),
+    ];
   });
+
+  protected readonly editingExerciseId = signal<string | null>(null);
+  /** 0 means "no target set" — df-stepper-input has no notion of null, and a target of
+   * literally zero sets or reps would be meaningless anyway. */
+  protected readonly targetSetsDraft = signal(0);
+  protected readonly targetRepsDraft = signal(0);
+  protected readonly notesDraft = signal('');
 
   protected readonly planOptions = computed<readonly DfSelectOption[]>(() =>
     this.plans().map((p) => ({ value: p.id, label: p.name + (p.isActive ? ' (active)' : '') })),
@@ -211,8 +228,36 @@ export class PlanManagerSheetComponent {
     this.changed.emit();
   }
 
-  protected async moveToDay(planId: string, planExerciseId: string, dayIndex: number): Promise<void> {
-    await firstValueFrom(this.api.moveExercise(planId, planExerciseId, dayIndex));
+  protected async moveToDay(planId: string, planExerciseId: string, dayIndex: string): Promise<void> {
+    await firstValueFrom(this.api.moveExercise(planId, planExerciseId, Number(dayIndex)));
+    await this.refresh();
+    this.changed.emit();
+  }
+
+  protected startEditingExercise(pe: PlanExercise): void {
+    this.editingExerciseId.set(pe.id);
+    this.targetSetsDraft.set(pe.targetSets ?? 0);
+    this.targetRepsDraft.set(pe.targetReps ?? 0);
+    this.notesDraft.set(pe.notes ?? '');
+  }
+
+  protected cancelEditingExercise(): void {
+    this.editingExerciseId.set(null);
+  }
+
+  protected async saveExerciseTargets(planId: string): Promise<void> {
+    const planExerciseId = this.editingExerciseId();
+    if (!planExerciseId) {
+      return;
+    }
+    await firstValueFrom(
+      this.api.updatePlanExercise(planId, planExerciseId, {
+        targetSets: this.targetSetsDraft() || null,
+        targetReps: this.targetRepsDraft() || null,
+        notes: this.notesDraft().trim() || null,
+      }),
+    );
+    this.editingExerciseId.set(null);
     await this.refresh();
     this.changed.emit();
   }

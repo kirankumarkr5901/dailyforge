@@ -95,6 +95,8 @@ export class WorkoutsPageComponent {
   protected readonly celebrationTrigger = signal(0);
   protected readonly historySheetOpen = signal(false);
   protected readonly historyContext = signal<{ id: string; name: string; equipment: Equipment } | null>(null);
+  /** null means "every muscle group" — the default, unfiltered view. */
+  protected readonly muscleFilter = signal<string | null>(null);
 
   protected readonly selectedPlan = computed(() => this.plans().find((p) => p.id === this.selectedPlanId()) ?? null);
 
@@ -116,6 +118,25 @@ export class WorkoutsPageComponent {
     return [...exercises].sort((a, b) => Number(a.sets.length > 0) - Number(b.sets.length > 0));
   });
 
+  /** Every muscle group any exercise on today's board targets, for the filter chips —
+   * membership, not just an exercise's primary (grouping) group, so filtering by
+   * "triceps" still finds a chest-primary exercise that also works triceps. */
+  protected readonly availableMuscleGroups = computed<string[]>(() => {
+    const groups = new Set<string>();
+    for (const entry of this.sortedExercises()) {
+      for (const group of entry.muscleGroups) {
+        groups.add(group);
+      }
+    }
+    return [...groups].sort();
+  });
+
+  protected readonly filteredExercises = computed<ExerciseBoardEntry[]>(() => {
+    const filter = this.muscleFilter();
+    const exercises = this.sortedExercises();
+    return filter ? exercises.filter((entry) => entry.muscleGroups.includes(filter)) : exercises;
+  });
+
   /** Grouped by primary muscle group (spec §11's "exercises grouped by muscle group,
    * each as a log card") — an exercise with several targets groups under its first one,
    * so it appears exactly once rather than being duplicated across sections. Ungrouped
@@ -125,7 +146,7 @@ export class WorkoutsPageComponent {
   protected readonly muscleGroupSections = computed<{ group: string; exercises: ExerciseBoardEntry[] }[]>(() => {
     const order: string[] = [];
     const buckets = new Map<string, ExerciseBoardEntry[]>();
-    for (const entry of this.sortedExercises()) {
+    for (const entry of this.filteredExercises()) {
       const group = entry.muscleGroups[0] ?? 'Other';
       if (!buckets.has(group)) {
         buckets.set(group, []);
@@ -140,6 +161,10 @@ export class WorkoutsPageComponent {
     }
     return order.map((group) => ({ group, exercises: buckets.get(group)! }));
   });
+
+  protected setMuscleFilter(group: string | null): void {
+    this.muscleFilter.set(group);
+  }
 
   constructor() {
     let wasAuthenticated = false;
@@ -191,17 +216,20 @@ export class WorkoutsPageComponent {
 
   protected async changeDate(date: LogicalDate): Promise<void> {
     this.viewedDate.set(date);
+    this.muscleFilter.set(null);
     await this.refreshSession(date);
   }
 
   protected async changePlan(planId: string): Promise<void> {
     this.selectedPlanId.set(planId || null);
     this.selectedDayIndex.set(1);
+    this.muscleFilter.set(null);
     await this.refreshSession();
   }
 
   protected async changeDay(dayIndex: string): Promise<void> {
     this.selectedDayIndex.set(Number(dayIndex));
+    this.muscleFilter.set(null);
     await this.refreshSession();
   }
 

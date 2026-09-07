@@ -31,6 +31,34 @@
   font-size: var(--text-sm);
 }
 
+.workouts-page__muscle-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.workouts-page__muscle-chip {
+  min-height: var(--tap-min);
+  padding-inline: var(--space-3);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-pill);
+  background: var(--surface-raised);
+  color: var(--ink);
+  font-size: var(--text-sm);
+  text-transform: capitalize;
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+}
+
+.workouts-page__muscle-chip--selected {
+  border-color: var(--heat-2);
+  background: var(--heat-fill-2);
+  color: var(--heat-ink);
+}
+
 .workouts-page__cards {
   display: flex;
   flex-direction: column;
