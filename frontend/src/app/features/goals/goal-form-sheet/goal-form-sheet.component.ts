@@ -14,6 +14,7 @@ import { DfInputComponent } from '../../../shared/ui/df-input/df-input.component
 import { DfSelectComponent, DfSelectOption } from '../../../shared/ui/df-select/df-select.component';
 import { DfSheetComponent } from '../../../shared/ui/df-sheet/df-sheet.component';
 import { DfStepperInputComponent } from '../../../shared/ui/df-stepper-input/df-stepper-input.component';
+import { ToastService } from '../../../shared/ui/df-toast/toast.service';
 
 const KIND_OPTIONS: readonly DfSelectOption[] = [
   { value: 'HABIT_ADHERENCE', label: 'Habit adherence' },
@@ -41,6 +42,7 @@ export class GoalFormSheetComponent {
   private readonly api = inject(GoalApi);
   private readonly habitsApi = inject(HabitsApi);
   private readonly workoutsApi = inject(WorkoutsApi);
+  private readonly toasts = inject(ToastService);
 
   readonly open = input.required<boolean>();
   readonly date = input<LogicalDate | null>(null);
@@ -64,11 +66,12 @@ export class GoalFormSheetComponent {
 
   protected readonly habitOptions = signal<DfSelectOption[]>([]);
   protected readonly exerciseOptions = signal<DfSelectOption[]>([]);
+  protected readonly optionsLoading = signal(false);
 
   protected readonly targetValueLabel = computed(() => {
     switch (this.kind()) {
       case 'HABIT_ADHERENCE':
-        return 'Days to complete';
+        return 'Streak length (days)';
       case 'EXERCISE_TARGET':
         return 'Target weight (kg)';
       case 'RUN_DISTANCE':
@@ -91,12 +94,22 @@ export class GoalFormSheetComponent {
   }
 
   private async loadOptions(): Promise<void> {
-    const [habits, exercises] = await Promise.all([
-      firstValueFrom(this.habitsApi.list()),
-      firstValueFrom(this.workoutsApi.searchExercises()),
-    ]);
-    this.habitOptions.set(habits.map((h) => ({ value: h.id, label: h.name })));
-    this.exerciseOptions.set(exercises.map((e) => ({ value: e.id, label: e.name })));
+    this.optionsLoading.set(true);
+    try {
+      const [habits, exercises] = await Promise.all([
+        firstValueFrom(this.habitsApi.list()),
+        firstValueFrom(this.workoutsApi.searchExercises()),
+      ]);
+      this.habitOptions.set(habits.map((h) => ({ value: h.id, label: h.name })));
+      this.exerciseOptions.set(exercises.map((e) => ({ value: e.id, label: e.name })));
+    } catch {
+      // Previously silent: a failed fetch here left both dropdowns empty with no
+      // explanation at all, reading as "the list just doesn't exist" rather than "this
+      // did not load". A toast at least says which of those it actually is.
+      this.toasts.show('Could not load your habits and exercises. Check your connection.', { tone: 'penalty' });
+    } finally {
+      this.optionsLoading.set(false);
+    }
   }
 
   protected async save(): Promise<void> {

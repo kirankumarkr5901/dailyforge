@@ -30,7 +30,10 @@ import org.springframework.test.context.ActiveProfiles;
 /**
  * Goals (spec §5.4, §8.6). Progress is recomputed from each kind's own module on every
  * read, and a goal auto-completes — awarding GOAL_COMPLETE — the moment that recompute
- * crosses the target, exactly the way the habit and PR reconcilers cross theirs.
+ * crosses the target, exactly the way the habit and PR reconcilers cross theirs. The
+ * one exception is HABIT_ADHERENCE, whose target is the habit's own current streak: it
+ * sits at "reached, claimable" instead of auto-completing, waiting for an explicit
+ * claim (owner feedback).
  */
 @SpringBootTest
 @Import(GoalClockTestConfig.class)
@@ -54,7 +57,7 @@ class GoalServiceTest {
     }
 
     @Test
-    void aHabitAdherenceGoalAutoCompletesAndAwardsTheRewardOnceTheTargetIsReached() {
+    void aHabitAdherenceGoalTracksTheCurrentStreakAndWaitsToBeClaimed() {
         setToday(TODAY);
         UUID user = TestUsers.create(users, settings);
         var habit = habitService.create(user, "Read", "book", 10, HabitType.NORMAL, 0, 20, new BigDecimal("1.5"), 127, TODAY);
@@ -64,11 +67,37 @@ class GoalServiceTest {
                 goalService.create(
                         user, "Read 1 day", null, GoalKind.HABIT_ADHERENCE, GoalPeriodType.WEEK, TODAY, null, 75, habit.getId(), null, BigDecimal.ONE);
 
-        assertThat(goal.getStatus()).isEqualTo(GoalStatus.COMPLETED); // already true at creation-time refresh
+        // The target streak is reached (a 1-day streak, matching the 1-day target), but
+        // a habit goal never auto-completes — it waits at ACTIVE, claimable, until the
+        // owner's own "Claim" action calls complete() (owner feedback: an explicit
+        // claim moment, not a silent auto-award).
+        assertThat(goal.getCurrentValue()).isEqualByComparingTo("1");
+        assertThat(goal.getStatus()).isEqualTo(GoalStatus.ACTIVE);
+        boolean awardedBeforeClaim =
+                entries.findAllByUserIdAndSourceTypeAndReversedFalseAndReversesIdIsNull(user, "GOAL").stream()
+                        .anyMatch(e -> e.getRuleCode().equals("GOAL_COMPLETE"));
+        assertThat(awardedBeforeClaim).isFalse();
+
+        Goal claimed = goalService.complete(goal.getId(), user);
+        assertThat(claimed.getStatus()).isEqualTo(GoalStatus.COMPLETED);
         boolean awarded =
                 entries.findAllByUserIdAndSourceTypeAndReversedFalseAndReversesIdIsNull(user, "GOAL").stream()
                         .anyMatch(e -> e.getRuleCode().equals("GOAL_COMPLETE") && e.getAmount() == 75);
         assertThat(awarded).isTrue();
+    }
+
+    @Test
+    void claimingAHabitAdherenceGoalBeforeItsStreakIsReachedIsRejected() {
+        setToday(TODAY);
+        UUID user = TestUsers.create(users, settings);
+        var habit = habitService.create(user, "Read", "book", 10, HabitType.NORMAL, 0, 20, new BigDecimal("1.5"), 127, TODAY);
+        // Not logged today, so the streak is still 0 against a 3-day target.
+
+        Goal goal =
+                goalService.create(
+                        user, "Read 3 days", null, GoalKind.HABIT_ADHERENCE, GoalPeriodType.WEEK, TODAY, null, 75, habit.getId(), null, new BigDecimal("3"));
+
+        assertThatThrownBy(() -> goalService.complete(goal.getId(), user)).isInstanceOf(ApiException.class);
     }
 
     @Test
