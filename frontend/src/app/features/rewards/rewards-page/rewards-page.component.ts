@@ -56,6 +56,8 @@ export class RewardsPageComponent {
   protected readonly rewards = signal<Reward[]>([]);
   protected readonly formOpen = signal(false);
   protected readonly redeemingId = signal<string | null>(null);
+  /** null means "every tier" — the default, unfiltered view. */
+  protected readonly tierFilter = signal<RewardTier | null>(null);
 
   private static readonly TIER_ORDER: readonly RewardTier[] = ['MICRO', 'WEEKLY', 'MONTHLY'];
   private static readonly TIER_LABELS: Record<RewardTier, string> = {
@@ -64,16 +66,30 @@ export class RewardsPageComponent {
     MONTHLY: 'Monthly',
   };
 
+  protected readonly tierFilterOptions = RewardsPageComponent.TIER_ORDER.map((tier) => ({
+    tier,
+    label: RewardsPageComponent.TIER_LABELS[tier],
+  }));
+
   /** Three sections, owner feedback's own order — a small daily treat first, a monthly
-   * splurge last. A tier with nothing in it is skipped rather than shown empty. */
+   * splurge last. A tier with nothing in it is skipped rather than shown empty. The
+   * clickable tier filter above narrows this to one tier at a time. */
   protected readonly tierSections = computed<{ tier: RewardTier; label: string; rewards: Reward[] }[]>(() => {
     const all = this.rewards();
-    return RewardsPageComponent.TIER_ORDER.map((tier) => ({
-      tier,
-      label: RewardsPageComponent.TIER_LABELS[tier],
-      rewards: all.filter((r) => r.tier === tier),
-    })).filter((section) => section.rewards.length > 0);
+    const filter = this.tierFilter();
+    const order = filter ? [filter] : RewardsPageComponent.TIER_ORDER;
+    return order
+      .map((tier) => ({
+        tier,
+        label: RewardsPageComponent.TIER_LABELS[tier],
+        rewards: all.filter((r) => r.tier === tier),
+      }))
+      .filter((section) => section.rewards.length > 0);
   });
+
+  protected setTierFilter(tier: RewardTier | null): void {
+    this.tierFilter.set(tier);
+  }
 
   constructor() {
     let wasAuthenticated = false;

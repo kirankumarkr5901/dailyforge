@@ -33,6 +33,27 @@
       <button dfButton type="button" variant="primary" (click)="openForm()">New reward</button>
     </df-empty-state>
   } @else {
+    <div class="rewards-page__tier-filter" role="group" aria-label="Filter by tier">
+      <button
+        type="button"
+        class="rewards-page__tier-chip"
+        [class.rewards-page__tier-chip--selected]="tierFilter() === null"
+        (click)="setTierFilter(null)"
+      >
+        All
+      </button>
+      @for (option of tierFilterOptions; track option.tier) {
+        <button
+          type="button"
+          class="rewards-page__tier-chip"
+          [class.rewards-page__tier-chip--selected]="tierFilter() === option.tier"
+          (click)="setTierFilter(option.tier)"
+        >
+          {{ option.label }}
+        </button>
+      }
+    </div>
+
     @for (section of tierSections(); track section.tier) {
       <h2 class="rewards-page__tier-title">{{ section.label }}</h2>
       <div class="rewards-page__list">
@@ -71,6 +92,10 @@
           </df-card>
         }
       </div>
+    } @empty {
+      <df-empty-state title="Nothing in that tier" body="Try a different filter, or show every reward.">
+        <button dfButton type="button" variant="secondary" (click)="setTierFilter(null)">Show all</button>
+      </df-empty-state>
     }
   }
 }
