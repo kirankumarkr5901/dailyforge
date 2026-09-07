@@ -2,6 +2,7 @@ package com.dailyforge.identity.api;
 
 import com.dailyforge.common.error.ApiException;
 import com.dailyforge.common.security.CurrentUser;
+import com.dailyforge.common.time.DayService;
 import com.dailyforge.identity.api.AuthDtos.MeResponse;
 import com.dailyforge.identity.api.AuthDtos.SettingsResponse;
 import com.dailyforge.identity.api.AuthDtos.UpdateSettingsRequest;
@@ -30,14 +31,17 @@ public class MeController {
     private final IdentityService identity;
     private final UserSettingsRepository settingsRepository;
     private final CurrentUser currentUser;
+    private final DayService dayService;
 
     public MeController(
             IdentityService identity,
             UserSettingsRepository settingsRepository,
-            CurrentUser currentUser) {
+            CurrentUser currentUser,
+            DayService dayService) {
         this.identity = identity;
         this.settingsRepository = settingsRepository;
         this.currentUser = currentUser;
+        this.dayService = dayService;
     }
 
     /**
@@ -48,6 +52,19 @@ public class MeController {
     public MeResponse me() {
         UUID userId = currentUser.require();
         return MeResponse.of(identity.requireUser(userId), identity.requireSettings(userId));
+    }
+
+    /**
+     * The user's current local date (spec §4.2 — only the server may decide this). A
+     * screen that needs "today" before it has any other server response to read it
+     * from (the run tracker's log sheet, for one) calls this instead of computing one
+     * client-side, which non-negotiable #5 forbids.
+     */
+    @GetMapping("/today")
+    public java.util.Map<String, java.time.LocalDate> today() {
+        UUID userId = currentUser.require();
+        var zone = dayService.zoneOf(identity.requireSettings(userId).getTimeZone());
+        return java.util.Map.of("date", dayService.today(zone));
     }
 
     @PatchMapping("/settings")

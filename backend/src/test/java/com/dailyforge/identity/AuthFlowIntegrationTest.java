@@ -80,6 +80,17 @@ class AuthFlowIntegrationTest {
     }
 
     @Test
+    void meTodayResolvesTheSignedInUsersLocalDateServerSide() throws Exception {
+        JsonNode response = signup("today@example.com", "a-long-enough-password");
+        String access = response.get("accessToken").asString();
+
+        mockMvc
+                .perform(get("/api/v1/me/today").header("Authorization", "Bearer " + access))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.date").isNotEmpty());
+    }
+
+    @Test
     void emailIsNormalisedSoCaseDoesNotCreateASecondAccount() throws Exception {
         signup("Kiran@Example.com", "a-long-enough-password");
 

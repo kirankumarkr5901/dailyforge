@@ -66,10 +66,8 @@ export const routes: Routes = [
       {
         path: 'run',
         title: 'Runs — DailyForge',
-        ...notBuiltYet(
-          'The run tracker lands at M5',
-          'Distance points, milestone bonuses and records by bracket.',
-        ),
+        loadComponent: () =>
+          import('./features/runs/runs-page/runs-page.component').then((m) => m.RunsPageComponent),
       },
       {
         path: 'goals',

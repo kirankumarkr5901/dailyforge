@@ -1,0 +1,122 @@
+<div class="runs-page__header">
+  <h1 class="runs-page__title">Runs</h1>
+
+  @if (session.isAuthenticated()) {
+    <button dfButton type="button" variant="primary" (click)="openLogSheet()">
+      <lucide-icon [img]="plusIcon" [size]="16" aria-hidden="true" />
+      Log run
+    </button>
+  }
+</div>
+
+@if (!session.isResolved() || (session.isAuthenticated() && loading() && !records())) {
+  <df-card>
+    <df-skeleton height="2.5rem" />
+    <df-skeleton height="4rem" />
+    <df-skeleton height="4rem" />
+  </df-card>
+} @else if (!session.isAuthenticated()) {
+  <df-empty-state
+    [icon]="footprintsIcon"
+    title="You are browsing as a guest"
+    body="Sign in to log your runs and start earning milestone bonuses."
+  >
+    <button dfButton type="button" variant="primary" (click)="signIn()">Sign in</button>
+  </df-empty-state>
+} @else {
+  @if (error(); as message) {
+    <p class="runs-page__error" role="alert">{{ message }}</p>
+  }
+
+  @if (records(); as recordsValue) {
+    <df-card class="runs-page__score" elevation="raised">
+      <span class="runs-page__score-label">Running score</span>
+      <df-score-pill [total]="recordsValue.lifetimeRunPoints" />
+    </df-card>
+
+    <div class="runs-page__pr-row">
+      <df-card>
+        <h2 class="runs-page__section-title">Top by distance</h2>
+        @for (run of recordsValue.topByDistance; track run.id) {
+          <p class="runs-page__pr-line">{{ distanceLabel(run.distanceMeters) }} — {{ paceLabel(run.paceSecPerKm) }}</p>
+        } @empty {
+          <p class="runs-page__empty-line">No runs yet.</p>
+        }
+      </df-card>
+      <df-card>
+        <h2 class="runs-page__section-title">Top by pace</h2>
+        @for (run of recordsValue.topByPace; track run.id) {
+          <p class="runs-page__pr-line">{{ paceLabel(run.paceSecPerKm) }} — {{ distanceLabel(run.distanceMeters) }}</p>
+        } @empty {
+          <p class="runs-page__empty-line">No runs yet.</p>
+        }
+      </df-card>
+    </div>
+
+    <details class="runs-page__brackets">
+      <summary>Bracket bests</summary>
+      @for (bracket of brackets; track bracket) {
+        <div class="runs-page__bracket">
+          <h3 class="runs-page__bracket-title">{{ bracketLabels[bracket] }}</h3>
+          @for (run of recordsValue.byBracket[bracket]; track run.id) {
+            <p class="runs-page__pr-line">{{ paceLabel(run.paceSecPerKm) }} — {{ distanceLabel(run.distanceMeters) }}</p>
+          } @empty {
+            <p class="runs-page__empty-line">Nothing here yet.</p>
+          }
+        </div>
+      }
+    </details>
+  }
+
+  <h2 class="runs-page__section-title">All runs</h2>
+  @if (runs().length === 0) {
+    <df-empty-state
+      [icon]="footprintsIcon"
+      title="No runs logged yet"
+      body="Log your first run to start tracking distance, pace, and milestones."
+    >
+      <button dfButton type="button" variant="primary" (click)="openLogSheet()">Log run</button>
+    </df-empty-state>
+  } @else {
+    <df-card [flush]="true">
+      <div class="runs-page__list">
+        @for (run of runs(); track run.id) {
+          <div class="runs-page__row">
+            <div class="runs-page__row-main">
+              <span class="runs-page__row-date">{{ formatLong(run.date) }}</span>
+              <span class="runs-page__row-stats">
+                {{ distanceLabel(run.distanceMeters) }} · {{ durationLabel(run.durationSeconds) }} ·
+                {{ paceLabel(run.paceSecPerKm) }}
+              </span>
+            </div>
+            <df-chip tone="neutral">{{ run.type }}</df-chip>
+            <button
+              dfIconButton
+              type="button"
+              label="Edit this run"
+              variant="ghost"
+              [icon]="editIcon"
+              (click)="openEditSheet(run)"
+            ></button>
+            <button
+              dfIconButton
+              type="button"
+              label="Delete this run"
+              variant="ghost"
+              [icon]="deleteIcon"
+              (click)="deleteRun(run)"
+            ></button>
+          </div>
+        }
+      </div>
+    </df-card>
+  }
+}
+
+<df-run-form-sheet
+  [open]="formOpen()"
+  [date]="editingRun()?.date ?? todayDate()"
+  [editingRun]="editingRun()"
+  (closed)="closeForm()"
+  (saved)="onRunSaved($event)"
+/>

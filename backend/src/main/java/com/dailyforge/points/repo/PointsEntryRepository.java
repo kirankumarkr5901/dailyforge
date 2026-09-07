@@ -96,6 +96,14 @@ public interface PointsEntryRepository extends JpaRepository<PointsEntry, UUID> 
     @Query("select coalesce(sum(e.amount), 0) from PointsEntry e where e.userId = :userId")
     int sumAmountForUser(@Param("userId") UUID userId);
 
+    /**
+     * The all-time total for one category, with no date bound — spec §8.5's "a separate
+     * running-only total" is a lifetime figure, unlike {@link #sumAmountByCategoryBetween}
+     * which the score snapshot uses for a bounded window (today/week/month).
+     */
+    @Query("select coalesce(sum(e.amount), 0) from PointsEntry e where e.userId = :userId and e.category = :category")
+    int sumAmountByCategoryAllTime(@Param("userId") UUID userId, @Param("category") PointsCategory category);
+
     @Query("select count(e) from PointsEntry e where e.userId = :userId")
     int countForUser(@Param("userId") UUID userId);
 
