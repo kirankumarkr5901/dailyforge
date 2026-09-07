@@ -67,7 +67,12 @@ spring:
     activate:
       on-profile: local
   datasource:
-    url: jdbc:h2:file:./.data/dailyforge;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;AUTO_SERVER=TRUE
+    # DB_CLOSE_DELAY=-1: without it, H2 closes the database file entirely the moment
+    # the connection pool's last idle connection is evicted (Hikari does this
+    # routinely), and the next request to need a connection crashes with "The database
+    # has been closed" rather than silently reopening it. -1 keeps the database open
+    # for the life of the JVM regardless of how many connections are open at once.
+    url: jdbc:h2:file:./.data/dailyforge;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1
     username: sa
     password: ''
     driver-class-name: org.h2.Driver
