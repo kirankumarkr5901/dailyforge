@@ -1,12 +1,48 @@
-.home-page__title {
-  font-size: var(--text-2xl);
-  margin: 0 0 var(--space-5);
-}
-
 .home-page__error {
   margin: 0 0 var(--space-4);
   color: var(--penalty-ink);
   font-size: var(--text-sm);
+}
+
+/* `display: contents` below the desktop breakpoint means this wrapper does not exist
+ * as a box at all — its children lay out exactly as if they were direct children of
+ * the page, the same single mobile column as before. Only at desktop width does it
+ * become an actual two-column grid. */
+.home-page__grid {
+  display: contents;
+}
+
+.home-page__col-main,
+.home-page__col-side {
+  display: contents;
+}
+
+@media (min-width: 1024px) {
+  .home-page__grid {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    align-items: start;
+    gap: var(--space-4);
+    margin-bottom: var(--space-4);
+  }
+
+  .home-page__col-main,
+  .home-page__col-side {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .home-page__quote,
+  .home-page__score,
+  .home-page__heatmap-card {
+    margin-bottom: 0;
+  }
+
+  .home-page__col-side {
+    position: sticky;
+    top: calc(var(--header-height) + var(--safe-top) + var(--space-4));
+  }
 }
 
 .home-page__quote {
