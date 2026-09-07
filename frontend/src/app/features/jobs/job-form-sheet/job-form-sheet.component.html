@@ -1,0 +1,31 @@
+<df-sheet [open]="open()" (openChange)="$event ? null : close()" heading="New application">
+  <div class="job-form">
+    <df-input label="Company" [ngModel]="company()" (ngModelChange)="company.set($event)" />
+    <df-input label="Role" [ngModel]="role()" (ngModelChange)="role.set($event)" />
+    <df-input label="City (optional)" [ngModel]="city()" (ngModelChange)="city.set($event)" />
+    <df-select label="Source" [options]="sourceOptions" [ngModel]="source()" (ngModelChange)="source.set($event)" />
+
+    @if (source() !== 'APPLIED') {
+      <df-input label="Referrer name (optional)" [ngModel]="referrerName()" (ngModelChange)="referrerName.set($event)" />
+    }
+
+    <df-input label="Note (optional)" [ngModel]="note()" (ngModelChange)="note.set($event)" />
+
+    @if (error(); as message) {
+      <p class="job-form__error" role="alert">{{ message }}</p>
+    }
+
+    <button
+      dfButton
+      type="button"
+      variant="primary"
+      size="lg"
+      [fullWidth]="true"
+      [loading]="saving()"
+      [disabled]="saving() || !company().trim() || !role().trim()"
+      (click)="save()"
+    >
+      Add application
+    </button>
+  </div>
+</df-sheet>

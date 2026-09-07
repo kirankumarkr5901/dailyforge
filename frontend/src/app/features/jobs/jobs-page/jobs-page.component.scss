@@ -1,0 +1,85 @@
+.jobs-page__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.jobs-page__title {
+  font-size: var(--text-2xl);
+  margin: 0;
+}
+
+.jobs-page__error {
+  margin: 0 0 var(--space-4);
+  color: var(--penalty-ink);
+  font-size: var(--text-sm);
+}
+
+.jobs-page__metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+  text-align: center;
+}
+
+.jobs-page__metric {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.jobs-page__metric-value {
+  font-size: var(--text-xl);
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.jobs-page__metric-label {
+  color: var(--ink-muted);
+  font-size: var(--text-xs);
+}
+
+.jobs-page__followup {
+  margin-bottom: var(--space-4);
+}
+
+.jobs-page__section-title {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-base);
+}
+
+.jobs-page__followup-line {
+  margin: 0;
+  padding-block: var(--space-1);
+  color: var(--ink);
+  font-size: var(--text-sm);
+}
+
+.jobs-page__filter {
+  margin-bottom: var(--space-4);
+  max-width: 220px;
+}
+
+.jobs-page__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.jobs-page__app-header {
+  margin-bottom: var(--space-3);
+}
+
+.jobs-page__app-company {
+  margin: 0;
+  font-size: var(--text-base);
+}
+
+.jobs-page__app-role {
+  margin: 2px 0 0;
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+}

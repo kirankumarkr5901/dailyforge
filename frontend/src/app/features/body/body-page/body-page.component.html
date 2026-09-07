@@ -1,0 +1,106 @@
+<div class="body-page__header">
+  <h1 class="body-page__title">Body</h1>
+
+  @if (session.isAuthenticated()) {
+    <button dfButton type="button" variant="primary" (click)="openLogSheet()">
+      <lucide-icon [img]="plusIcon" [size]="16" aria-hidden="true" />
+      Log weight
+    </button>
+  }
+</div>
+
+@if (!session.isResolved() || (session.isAuthenticated() && loading() && !summary())) {
+  <df-card>
+    <df-skeleton height="6rem" />
+    <df-skeleton height="10rem" />
+  </df-card>
+} @else if (!session.isAuthenticated()) {
+  <df-empty-state
+    [icon]="scaleIcon"
+    title="You are browsing as a guest"
+    body="Sign in to track your weight — no points here, just the numbers."
+  >
+    <button dfButton type="button" variant="primary" (click)="signIn()">Sign in</button>
+  </df-empty-state>
+} @else {
+  @if (error(); as message) {
+    <p class="body-page__error" role="alert">{{ message }}</p>
+  }
+
+  @if (summary(); as body) {
+    @if (body.currentWeightKg === null) {
+      <df-empty-state
+        [icon]="scaleIcon"
+        title="No weight logged yet"
+        body="Log your first weight to see your BMI band and trend."
+      >
+        <button dfButton type="button" variant="primary" (click)="openLogSheet()">Log weight</button>
+      </df-empty-state>
+    } @else {
+      <df-card class="body-page__summary">
+        <div class="body-page__weight-row">
+          <span class="body-page__weight">{{ body.currentWeightKg }} kg</span>
+          @if (body.weeklyStreak > 0) {
+            <span class="body-page__streak">{{ body.weeklyStreak }}-week streak</span>
+          }
+        </div>
+
+        @if (body.band) {
+          <div class="body-page__bmi">
+            <span class="body-page__bmi-value">BMI {{ body.bmi }}</span>
+            <div class="body-page__bmi-scale">
+              @for (band of bandOrder; track band) {
+                <span class="body-page__bmi-band" [class.body-page__bmi-band--active]="band === body.band">
+                  {{ bandLabels[band] }}
+                </span>
+              }
+            </div>
+          </div>
+        } @else {
+          <p class="body-page__no-height">Add your height in Settings to see your BMI.</p>
+        }
+
+        <div class="body-page__deltas">
+          <div>
+            <span class="body-page__delta-label">Since last log</span>
+            <span class="body-page__delta-value">
+              <lucide-icon [img]="deltaIcon(body.deltaSinceLastLog)" [size]="14" aria-hidden="true" />
+              {{ deltaLabel(body.deltaSinceLastLog) }}
+            </span>
+          </div>
+          <div>
+            <span class="body-page__delta-label">Since 30 days ago</span>
+            <span class="body-page__delta-value">
+              <lucide-icon [img]="deltaIcon(body.deltaSince30Days)" [size]="14" aria-hidden="true" />
+              {{ deltaLabel(body.deltaSince30Days) }}
+            </span>
+          </div>
+        </div>
+      </df-card>
+
+      <h2 class="body-page__section-title">Recent logs</h2>
+      <df-card [flush]="true">
+        <div class="body-page__list">
+          @for (entry of body.entries.slice().reverse(); track entry.id) {
+            <div class="body-page__row">
+              <div class="body-page__row-main">
+                <span>{{ formatLong(entry.date) }}</span>
+                <span class="body-page__row-weight">{{ entry.weightKg }} kg</span>
+              </div>
+              <button
+                dfIconButton
+                type="button"
+                label="Delete this entry"
+                variant="ghost"
+                [icon]="deleteIcon"
+                (click)="deleteEntry(entry)"
+              ></button>
+            </div>
+          }
+        </div>
+      </df-card>
+    }
+  }
+}
+
+<df-body-log-sheet [open]="logSheetOpen()" [date]="todayDate()" (closed)="closeLogSheet()" (saved)="onLogged()" />
