@@ -1,0 +1,21 @@
+:host {
+  display: block;
+}
+
+.body-weight-chart {
+  display: block;
+  width: 100%;
+  height: 120px;
+}
+
+.body-weight-chart__dot {
+  fill: var(--ink-faint);
+}
+
+.body-weight-chart__line {
+  stroke: var(--heat-2);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
