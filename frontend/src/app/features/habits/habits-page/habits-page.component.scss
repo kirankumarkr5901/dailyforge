@@ -50,3 +50,56 @@
   flex-direction: column;
   gap: var(--space-3);
 }
+
+.habits-page__activities-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--space-5);
+  margin-bottom: var(--space-2);
+}
+
+.habits-page__activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.habits-page__activity-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.habits-page__activity-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-pill);
+  background: var(--heat-fill-2);
+  color: var(--heat-ink);
+}
+
+.habits-page__activity-icon--negative {
+  background: var(--penalty-wash);
+  color: var(--penalty-ink);
+}
+
+.habits-page__activity-name {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  color: var(--ink);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.habits-page__activity-points {
+  color: var(--ink-muted);
+  font-size: var(--text-xs);
+  font-weight: 400;
+}

@@ -77,6 +77,55 @@
       </div>
     }
   }
+
+  <div class="habits-page__activities-header">
+    <h2 class="habits-page__section-title">Activities</h2>
+    <button dfButton type="button" variant="ghost" (click)="openActivityForm()">
+      <lucide-icon [img]="plusIcon" [size]="16" aria-hidden="true" />
+      New activity
+    </button>
+  </div>
+
+  @if (activityTypes().length === 0) {
+    <df-empty-state
+      title="Nothing here yet"
+      body="A positive or negative one-off action — outside your habits and trackers — worth its own point value each time it happens."
+    >
+      <button dfButton type="button" variant="secondary" (click)="openActivityForm()">New activity</button>
+    </df-empty-state>
+  } @else {
+    <div class="habits-page__activity-list">
+      @for (type of activityTypes(); track type.id) {
+        <df-card class="habits-page__activity-row">
+          <span class="habits-page__activity-icon" [class.habits-page__activity-icon--negative]="type.polarity === 'NEGATIVE'">
+            <lucide-icon [img]="type.polarity === 'POSITIVE' ? positiveIcon : negativeIcon" [size]="16" aria-hidden="true" />
+          </span>
+          <span class="habits-page__activity-name">
+            {{ type.name }}
+            <span class="habits-page__activity-points">{{ type.polarity === 'POSITIVE' ? '+' : '−' }}{{ type.points }} pts</span>
+          </span>
+          <button
+            dfButton
+            type="button"
+            variant="secondary"
+            [loading]="loggingActivityId() === type.id"
+            [disabled]="loggingActivityId() === type.id"
+            (click)="logActivity(type)"
+          >
+            Log
+          </button>
+          <button
+            dfIconButton
+            type="button"
+            label="Remove this activity"
+            variant="ghost"
+            [icon]="deleteIcon"
+            (click)="archiveActivityType(type)"
+          ></button>
+        </df-card>
+      }
+    </div>
+  }
 }
 
 <df-habit-form-sheet
@@ -88,3 +137,5 @@
 />
 
 <df-commitment-bonus-sheet [open]="commitmentSheetOpen()" (closed)="closeCommitmentSheet()" />
+
+<df-activity-type-form-sheet [open]="activityFormOpen()" (closed)="closeActivityForm()" (saved)="onActivityTypeCreated($event)" />

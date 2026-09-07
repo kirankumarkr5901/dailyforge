@@ -1,0 +1,24 @@
+<df-sheet [open]="open()" (openChange)="$event ? null : close()" heading="New activity">
+  <div class="activity-type-form">
+    <df-input label="Name" placeholder="e.g. Meditated" [ngModel]="name()" (ngModelChange)="name.set($event)" />
+    <df-select label="Type" [options]="polarityOptions" [ngModel]="polarity()" (ngModelChange)="polarity.set($event)" />
+    <df-stepper-input label="Points" suffix="pts" [min]="1" [max]="1000" [ngModel]="points()" (ngModelChange)="points.set($event)" />
+
+    @if (error(); as message) {
+      <p class="activity-type-form__error" role="alert">{{ message }}</p>
+    }
+
+    <button
+      dfButton
+      type="button"
+      variant="primary"
+      size="lg"
+      [fullWidth]="true"
+      [loading]="saving()"
+      [disabled]="saving() || !name().trim()"
+      (click)="save()"
+    >
+      Create activity
+    </button>
+  </div>
+</df-sheet>

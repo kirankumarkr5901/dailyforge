@@ -1,9 +1,11 @@
 import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { LucideAngularModule, Plus, Target } from 'lucide-angular';
+import { Frown, LucideAngularModule, Plus, Sparkles, Target, Trash2 } from 'lucide-angular';
 
 import { AuthSheetService } from '../../../core/auth/auth-sheet.service';
 import { SessionStore } from '../../../core/auth/session.store';
+import { ActivityApi } from '../../../core/activity/activity.api';
+import { ActivityLog, ActivityType } from '../../../core/activity/activity.types';
 import { HabitsApi } from '../../../core/habits/habits.api';
 import { HomeApi } from '../../../core/home/home.api';
 import { PointsStore } from '../../../core/points/points.store';
@@ -15,9 +17,11 @@ import { DfButtonComponent } from '../../../shared/ui/df-button/df-button.compon
 import { DfCardComponent } from '../../../shared/ui/df-card/df-card.component';
 import { DfDateStepperComponent } from '../../../shared/ui/df-date-stepper/df-date-stepper.component';
 import { DfEmptyStateComponent } from '../../../shared/ui/df-empty-state/df-empty-state.component';
+import { DfIconButtonComponent } from '../../../shared/ui/df-icon-button/df-icon-button.component';
 import { DfMonthCalendarComponent } from '../../../shared/ui/df-month-calendar/df-month-calendar.component';
 import { DfSkeletonComponent } from '../../../shared/ui/df-skeleton/df-skeleton.component';
 import { ToastService } from '../../../shared/ui/df-toast/toast.service';
+import { ActivityTypeFormSheetComponent } from '../../activities/activity-type-form-sheet/activity-type-form-sheet.component';
 import { CommitmentBonusSheetComponent } from '../commitment-bonus-sheet/commitment-bonus-sheet.component';
 import { HabitFormSheetComponent } from '../habit-form-sheet/habit-form-sheet.component';
 import { HabitRowComponent, HabitToggled } from '../habit-row/habit-row.component';
@@ -38,8 +42,10 @@ import { HabitRowComponent, HabitToggled } from '../habit-row/habit-row.componen
     DfCardComponent,
     DfDateStepperComponent,
     DfEmptyStateComponent,
+    DfIconButtonComponent,
     DfMonthCalendarComponent,
     DfSkeletonComponent,
+    ActivityTypeFormSheetComponent,
     CommitmentBonusSheetComponent,
     HabitFormSheetComponent,
     HabitRowComponent,
@@ -51,6 +57,7 @@ import { HabitRowComponent, HabitToggled } from '../habit-row/habit-row.componen
 export class HabitsPageComponent {
   private readonly api = inject(HabitsApi);
   private readonly homeApi = inject(HomeApi);
+  private readonly activityApi = inject(ActivityApi);
   private readonly toasts = inject(ToastService);
   private readonly points = inject(PointsStore);
 
@@ -59,6 +66,9 @@ export class HabitsPageComponent {
 
   protected readonly targetIcon = Target;
   protected readonly plusIcon = Plus;
+  protected readonly positiveIcon = Sparkles;
+  protected readonly negativeIcon = Frown;
+  protected readonly deleteIcon = Trash2;
 
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
@@ -86,6 +96,85 @@ export class HabitsPageComponent {
     }
   }
 
+  /** Positive and negative one-off activities (spec §6 "activity") — a new section
+   * here rather than a whole separate route (owner feedback: "build one new section of
+   * positive and negative actions" under Habits), since both are personal-behaviour
+   * logging in the same everyday sense a habit tick is. */
+  protected readonly activityTypes = signal<ActivityType[]>([]);
+  protected readonly recentActivityLogs = signal<ActivityLog[]>([]);
+  protected readonly activityFormOpen = signal(false);
+  protected readonly loggingActivityId = signal<string | null>(null);
+
+  private async loadActivities(): Promise<void> {
+    try {
+      const [types, logs] = await Promise.all([
+        firstValueFrom(this.activityApi.list()),
+        firstValueFrom(this.activityApi.recentLogs()),
+      ]);
+      this.activityTypes.set(types);
+      this.recentActivityLogs.set(logs.slice(0, 10));
+    } catch {
+      // The section just shows nothing; the habit board above still works.
+    }
+  }
+
+  protected openActivityForm(): void {
+    this.activityFormOpen.set(true);
+  }
+
+  protected closeActivityForm(): void {
+    this.activityFormOpen.set(false);
+  }
+
+  protected async onActivityTypeCreated(type: ActivityType): Promise<void> {
+    this.closeActivityForm();
+    this.activityTypes.update((types) => [...types, type]);
+    this.toasts.show('Activity created.');
+  }
+
+  protected async logActivity(type: ActivityType): Promise<void> {
+    const date = this.todayDate();
+    if (this.loggingActivityId() || !date) {
+      return;
+    }
+    this.loggingActivityId.set(type.id);
+    try {
+      const response = await firstValueFrom(this.activityApi.log(type.id, { date, count: 1 }));
+      this.points.applyEnvelope(response.points);
+      this.recentActivityLogs.update((logs) => [response.log, ...logs].slice(0, 10));
+      const delta = response.points.delta;
+      this.toasts.show(`${type.name}. ${delta >= 0 ? '+' : ''}${delta} pts`, {
+        tone: delta > 0 ? 'earned' : delta < 0 ? 'penalty' : 'neutral',
+        actionLabel: 'Undo',
+        action: () => void this.undoActivityLog(response.log.id),
+      });
+    } catch {
+      this.toasts.show('Could not log that. Try again.', { tone: 'penalty' });
+    } finally {
+      this.loggingActivityId.set(null);
+    }
+  }
+
+  private async undoActivityLog(logId: string): Promise<void> {
+    try {
+      const response = await firstValueFrom(this.activityApi.deleteLog(logId));
+      this.points.applyEnvelope(response.points);
+      this.recentActivityLogs.update((logs) => logs.filter((l) => l.id !== logId));
+    } catch {
+      this.toasts.show('Could not undo that. Try again.', { tone: 'penalty' });
+    }
+  }
+
+  protected async archiveActivityType(type: ActivityType): Promise<void> {
+    try {
+      await firstValueFrom(this.activityApi.archive(type.id));
+      this.activityTypes.update((types) => types.filter((t) => t.id !== type.id));
+      this.toasts.show('Activity removed.');
+    } catch {
+      this.toasts.show('Could not remove that activity. Try again.', { tone: 'penalty' });
+    }
+  }
+
   constructor() {
     // Anonymous browsing is real elsewhere in the app, but a habit board is entirely
     // this user's own logged history — there is nothing generic to show a guest, so the
@@ -99,6 +188,8 @@ export class HabitsPageComponent {
       if (!isAuthenticated && this.session.isResolved()) {
         this.board.set(null);
         this.habitsList.set([]);
+        this.activityTypes.set([]);
+        this.recentActivityLogs.set([]);
         this.loading.set(false);
       }
       wasAuthenticated = isAuthenticated;
@@ -118,6 +209,7 @@ export class HabitsPageComponent {
       if (this.todayDate()) {
         void this.loadHabitDates(this.todayDate()!);
       }
+      void this.loadActivities();
     } catch {
       this.error.set('Could not load your habits. Check your connection and try again.');
     } finally {
