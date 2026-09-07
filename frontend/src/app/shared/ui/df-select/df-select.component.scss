@@ -45,6 +45,18 @@
   outline: none;
 }
 
+/*
+ * The control itself is transparent so it takes the field's own background, but the
+ * dropdown popup a browser renders for its <option>s is a separate surface that most
+ * browsers paint white by default regardless of the select's own background — pairing
+ * that with our light dark-mode ink color made every option unreadable. Options get an
+ * explicit opaque background so the popup always matches the current theme.
+ */
+.df-select__control option {
+  background: var(--surface-raised);
+  color: var(--ink);
+}
+
 .df-select__control:disabled {
   color: var(--ink-muted);
   cursor: not-allowed;

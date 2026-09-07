@@ -1,13 +1,14 @@
 import { DOCUMENT, Injectable, effect, inject, signal } from '@angular/core';
 
 /**
- * Three states, not a boolean. `SYSTEM` follows the OS and is the default, which is why
- * the attribute is removed rather than set to a value in that case: the stylesheet's
- * `prefers-color-scheme` branch is what should win.
+ * Three states, not a boolean. `SYSTEM` follows the OS. The product default is `DARK`
+ * regardless of OS preference — "cold steel, earned heat" reads as intended in the dark
+ * palette, and a visitor who has never touched Settings should land there.
  */
 export type ThemeChoice = 'SYSTEM' | 'LIGHT' | 'DARK';
 
 const STORAGE_KEY = 'dailyforge.theme';
+const DEFAULT_CHOICE: ThemeChoice = 'DARK';
 
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
@@ -45,7 +46,7 @@ export class ThemeService {
 
   private read(): ThemeChoice {
     const stored = this.safeStorage()?.getItem(STORAGE_KEY);
-    return stored === 'LIGHT' || stored === 'DARK' || stored === 'SYSTEM' ? stored : 'SYSTEM';
+    return stored === 'LIGHT' || stored === 'DARK' || stored === 'SYSTEM' ? stored : DEFAULT_CHOICE;
   }
 
   private persist(choice: ThemeChoice): void {
