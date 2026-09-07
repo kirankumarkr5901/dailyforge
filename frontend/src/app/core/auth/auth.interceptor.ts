@@ -93,8 +93,19 @@ function retryAfterRefresh(
         refreshed.next(response.accessToken);
         return response.accessToken;
       } catch (error) {
-        // The refresh token is dead. Clear the session and ask for a sign-in rather than
-        // retrying forever against a session that no longer exists.
+        // Rotation means a refresh token works exactly once (see RefreshTokenService):
+        // presenting an already-used one looks identical to theft, and the backend
+        // responds by revoking the whole session. `refreshing` only dedupes concurrent
+        // refreshes within this one tab — a second tab (or a request already in flight
+        // across a reload) can still present the same now-stale token here. Before
+        // treating that as a genuine expiry, check whether storage has since moved on:
+        // if another attempt already won and rotated it, this failure is stale, not
+        // real, and the session is actually still fine.
+        const current = storage.read();
+        if (current && current.refreshToken !== tokens.refreshToken) {
+          refreshed.next(current.accessToken);
+          return current.accessToken;
+        }
         storage.clear();
         sheet.open('expired');
         throw error;
