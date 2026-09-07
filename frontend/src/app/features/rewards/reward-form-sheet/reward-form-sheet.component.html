@@ -1,0 +1,36 @@
+<df-sheet [open]="open()" (openChange)="$event ? null : close()" heading="New reward">
+  <div class="reward-form">
+    <df-input label="Name" placeholder="e.g. Movie night" [ngModel]="name()" (ngModelChange)="name.set($event)" />
+    <df-stepper-input label="Cost" suffix="pts" [min]="1" [max]="100000" [ngModel]="cost()" (ngModelChange)="cost.set($event)" />
+
+    <df-switch
+      label="Repeatable"
+      hint="Off makes this a one-off — redeemable again only after refunding the last one."
+      [ngModel]="isRepeatable()"
+      (ngModelChange)="isRepeatable.set($event)"
+    />
+
+    <df-switch label="Limit stock" [ngModel]="hasStock()" (ngModelChange)="hasStock.set($event)" />
+
+    @if (hasStock()) {
+      <df-stepper-input label="Stock" [min]="0" [max]="1000" [ngModel]="stock()" (ngModelChange)="stock.set($event)" />
+    }
+
+    @if (error(); as message) {
+      <p class="reward-form__error" role="alert">{{ message }}</p>
+    }
+
+    <button
+      dfButton
+      type="button"
+      variant="primary"
+      size="lg"
+      [fullWidth]="true"
+      [loading]="saving()"
+      [disabled]="saving() || !name().trim()"
+      (click)="save()"
+    >
+      Create reward
+    </button>
+  </div>
+</df-sheet>

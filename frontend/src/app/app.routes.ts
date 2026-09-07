@@ -85,6 +85,12 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/body/body-page/body-page.component').then((m) => m.BodyPageComponent),
       },
+      {
+        path: 'rewards',
+        title: 'Rewards — DailyForge',
+        loadComponent: () =>
+          import('./features/rewards/rewards-page/rewards-page.component').then((m) => m.RewardsPageComponent),
+      },
 
       {
         path: 'settings',

@@ -1,0 +1,49 @@
+package com.dailyforge.reward.api;
+
+import com.dailyforge.points.api.PointsDtos.PointsEnvelope;
+import com.dailyforge.points.domain.PointsResult;
+import com.dailyforge.reward.domain.Reward;
+import com.dailyforge.reward.domain.RewardRedemption;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import java.time.Instant;
+import java.util.UUID;
+
+public final class RewardDtos {
+
+    private RewardDtos() {}
+
+    public record CreateRewardRequest(
+            @NotBlank @Size(max = 120) String name,
+            @NotNull @Min(1) Integer cost,
+            @NotBlank @Size(max = 40) String icon,
+            boolean isRepeatable,
+            Integer stock) {}
+
+    public record RewardResponse(UUID id, String name, int cost, String icon, boolean isRepeatable, Integer stock) {
+        public static RewardResponse of(Reward reward) {
+            return new RewardResponse(reward.getId(), reward.getName(), reward.getCost(), reward.getIcon(), reward.isRepeatable(), reward.getStock());
+        }
+    }
+
+    public record RedeemResponse(UUID redemptionId, PointsEnvelope points) {
+        public static RedeemResponse of(RewardRedemption redemption, PointsResult result) {
+            return new RedeemResponse(redemption.getId(), PointsEnvelope.of(result));
+        }
+    }
+
+    public record RefundResponse(PointsEnvelope points) {
+        public static RefundResponse of(PointsResult result) {
+            return new RefundResponse(PointsEnvelope.of(result));
+        }
+    }
+
+    public record RedemptionResponse(UUID id, UUID rewardId, int pointsSpent, Instant redeemedAt, boolean refunded) {
+        public static RedemptionResponse of(RewardRedemption redemption) {
+            return new RedemptionResponse(
+                    redemption.getId(), redemption.getRewardId(), redemption.getPointsSpent(), redemption.getRedeemedAt(), redemption.isRefunded());
+        }
+    }
+}

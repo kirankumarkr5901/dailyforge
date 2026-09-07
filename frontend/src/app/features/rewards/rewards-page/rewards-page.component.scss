@@ -1,0 +1,61 @@
+.rewards-page__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.rewards-page__title {
+  font-size: var(--text-2xl);
+  margin: 0;
+}
+
+.rewards-page__error {
+  margin: 0 0 var(--space-4);
+  color: var(--penalty-ink);
+  font-size: var(--text-sm);
+}
+
+.rewards-page__score {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+
+.rewards-page__score-label {
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+}
+
+.rewards-page__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.rewards-page__reward-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.rewards-page__reward-name {
+  margin: 0 0 var(--space-1);
+  font-size: var(--text-base);
+}
+
+.rewards-page__reward-cost {
+  color: var(--heat-ink-2);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.rewards-page__reward-stock {
+  margin-left: var(--space-2);
+  color: var(--ink-muted);
+  font-size: var(--text-xs);
+}

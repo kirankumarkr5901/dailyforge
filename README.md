@@ -38,7 +38,11 @@ The seeded quote pool is a deliberately smaller, honestly-labelled starter set (
 
 The target-date field in the goal form is a plain text field (`YYYY-MM-DD`) rather than a date picker, and job stage transitions are a per-application status dropdown rather than the spec's own stepper visual — both trade a nicety for shipping the underlying mechanism correctly, the same kind of call M3's habit-reorder buttons made.
 
-With M7 merged, every tracker named in spec §11 is built. Rewards (§8.9) is the one remaining page the plan's own first line promises; it was scoped as a later addition (§13.8) and is not yet started.
+**M8 — Rewards. Complete.** The spend side of the loop the plan's own first line promises (spec §5.4, §8.9): create a reward, redeem it for a real, source-tracked negative award, and undo within the same day to refund it — through the same `reverseBySource` mechanism every other reversible action in the app uses. A reward can be repeatable or one-off (a one-off cannot be redeemed again until its last redemption is refunded), and optionally stock-limited, with stock restored on refund. The redeem button's disabled reason reads exactly as spec §8.9 phrases it — "Costs 500. You have 340." — computed live from the score the server actually returned, never guessed at.
+
+With M8 merged, every tracker named in spec §11 is built, and the points economy is a closed loop: every category earns, and rewards is where it can be spent.
+
+Onboarding (spec §8.11's 5-step coach-mark tour) and a dedicated accessibility/reduced-motion audit pass, both named alongside Rewards in M8's own scope, are not yet built — empty states, `aria-label`s, and the `--motion-scale` token have been applied as each screen was built rather than as a separate pass, but neither a first-launch tour nor a systematic audit has happened yet.
 
 ## Requirements
 
