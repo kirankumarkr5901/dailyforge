@@ -1,0 +1,122 @@
+:host {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-sheet);
+  display: grid;
+  place-items: center;
+  padding: var(--space-5);
+  background: color-mix(in oklab, var(--ink) 45%, transparent);
+  animation: tour-fade-in var(--duration-base) var(--ease-out);
+}
+
+@keyframes tour-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.tour {
+  position: relative;
+  width: min(100%, 380px);
+  padding: var(--space-6) var(--space-5) var(--space-5);
+  border-radius: var(--radius-sheet);
+  background: var(--surface-raised);
+  box-shadow: var(--elevation-floating);
+}
+
+.tour__skip {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: var(--space-1) var(--space-2);
+  border: none;
+  background: none;
+  color: var(--ink-muted);
+  font-size: var(--text-xs);
+  cursor: pointer;
+}
+
+.tour__skip:hover {
+  color: var(--ink);
+}
+
+.tour__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+.tour__icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-sunken);
+  color: var(--ink);
+}
+
+.tour__title {
+  margin: 0;
+  font-size: var(--text-lg);
+}
+
+.tour__body {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+}
+
+.tour__action {
+  margin-top: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-control);
+  background: var(--surface-raised);
+  color: var(--ink);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tour__action:hover {
+  background: var(--surface-sunken);
+}
+
+.tour__dots {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
+}
+
+.tour__dot {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--line-strong);
+  cursor: pointer;
+}
+
+.tour__dot--active {
+  background: var(--ink);
+  width: 20px;
+}
+
+.tour__actions {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.tour__actions > [dfbutton] {
+  flex: 1;
+}

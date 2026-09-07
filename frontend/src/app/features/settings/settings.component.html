@@ -22,6 +22,16 @@
   </df-card>
 </section>
 
+<section class="page__section">
+  <h2 class="page__heading">Help</h2>
+  <df-card>
+    <div class="stack">
+      <p class="page__hint">See the 5-step welcome tour again, any time.</p>
+      <button dfButton type="button" variant="secondary" (click)="replayTour()">Replay tour</button>
+    </div>
+  </df-card>
+</section>
+
 @if (session.isAuthenticated()) {
   <section class="page__section">
     <h2 class="page__heading">{{ 'settings.account' | t }}</h2>

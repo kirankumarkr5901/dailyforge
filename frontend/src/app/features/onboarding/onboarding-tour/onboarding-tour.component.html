@@ -1,0 +1,43 @@
+<div class="tour" role="dialog" aria-modal="true" [attr.aria-label]="'Welcome tour, step ' + (index() + 1) + ' of ' + steps.length">
+  <button type="button" class="tour__skip" (click)="skip()">
+    <lucide-icon [img]="closeIcon" [size]="16" aria-hidden="true" />
+    Skip
+  </button>
+
+  @if (steps[index()]; as step) {
+    <div class="tour__content">
+      <div class="tour__icon">
+        <lucide-icon [img]="step.icon" [size]="28" aria-hidden="true" />
+      </div>
+      <h2 class="tour__title">{{ step.title }}</h2>
+      <p class="tour__body">{{ step.body }}</p>
+
+      @if (step.action; as action) {
+        <button type="button" class="tour__action" (click)="runAction(action.route)">{{ action.label }}</button>
+      }
+    </div>
+  }
+
+  <div class="tour__dots" role="tablist" aria-label="Tour progress">
+    @for (step of steps; track $index) {
+      <button
+        type="button"
+        class="tour__dot"
+        [class.tour__dot--active]="$index === index()"
+        role="tab"
+        [attr.aria-selected]="$index === index()"
+        [attr.aria-label]="'Step ' + ($index + 1)"
+        (click)="goTo($index)"
+      ></button>
+    }
+  </div>
+
+  <div class="tour__actions">
+    @if (index() > 0) {
+      <button dfButton type="button" variant="ghost" (click)="back()">Back</button>
+    }
+    <button dfButton type="button" variant="primary" [fullWidth]="index() === 0" (click)="next()">
+      {{ isLast() ? 'Got it' : 'Next' }}
+    </button>
+  </div>
+</div>

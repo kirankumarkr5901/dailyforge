@@ -2,7 +2,9 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { inject } from '@angular/core';
 import { AuthSheetService } from './core/auth/auth-sheet.service';
+import { OnboardingService } from './core/onboarding/onboarding.service';
 import { AuthSheetComponent } from './features/auth/auth-sheet/auth-sheet.component';
+import { OnboardingTourComponent } from './features/onboarding/onboarding-tour/onboarding-tour.component';
 import { DfToastHostComponent } from './shared/ui/df-toast/df-toast-host.component';
 
 /**
@@ -19,11 +21,12 @@ import { DfToastHostComponent } from './shared/ui/df-toast/df-toast-host.compone
  */
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, DfToastHostComponent, AuthSheetComponent],
+  imports: [RouterOutlet, DfToastHostComponent, AuthSheetComponent, OnboardingTourComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class App {
   protected readonly authSheet = inject(AuthSheetService);
+  protected readonly onboarding = inject(OnboardingService);
 }
