@@ -50,10 +50,10 @@ export const routes: Routes = [
       {
         path: 'workout',
         title: 'Workout — DailyForge',
-        ...notBuiltYet(
-          'The workout tracker lands at M4',
-          'Plans, sets, personal records and the rest timer. The points engine it reports to is built first, at M2.',
-        ),
+        loadComponent: () =>
+          import('./features/workouts/workouts-page/workouts-page.component').then(
+            (m) => m.WorkoutsPageComponent,
+          ),
       },
       {
         path: 'habits',

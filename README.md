@@ -20,9 +20,13 @@ Google sign-in is built but **dark by default**: it appears only when `GOOGLE_CL
 
 **M3 — Habits. Complete.** The first feature that actually earns a point (spec §4.3, §5.4, §8): create, edit, reorder and archive habits; the streak and consistency-bonus calculator, matching the spec's own worked example exactly; a strict habit's missed-day penalty; the whole-day commitment bonus; the daily rollover job closing out missed scheduled days; and the board read model with its server-computed bonus-hint strip. The tracker UI ticks and unticks live against the real engine, with an Undo toast on every change and the live bonus preview shown while creating a habit.
 
-Screens for M4–M7 are routed to a placeholder naming the milestone that builds them, so the navigation is real and testable now.
+**M4 — Workouts. Complete.** The shared exercise catalog (spec §6), workout plans with days and an Extras bucket for unassigned exercises, and the tracker itself (spec §8.3): logging a set, the personal-record calculator (recent and lifetime, reconciled the same way a habit's streak is — a heavier set overtakes the old record and reverses its bonus), the whole-session completion celebration, and a rest timer that starts automatically after a set. Bodyweight exercises rank by added weight only, per the plan; cardio exercises earn the per-set point with no PR bonus, per the plan's own table.
 
-Milestones M4–M9 are listed in spec §11. **M4 is the workout tracker.**
+Plan-day reordering is up/down rather than drag-and-drop, and an elite exercise's multi-day placement has no dedicated assignment picker yet — both are reachable through the ordinary add/move actions, matching the same trade the habit planner made at M3. The exercise history chart is a plain list for now; a charting library is not yet part of the stack.
+
+Screens for M5–M7 are routed to a placeholder naming the milestone that builds them, so the navigation is real and testable now.
+
+Milestones M5–M9 are listed in spec §11. **M5 is the run tracker.**
 
 ## Requirements
 

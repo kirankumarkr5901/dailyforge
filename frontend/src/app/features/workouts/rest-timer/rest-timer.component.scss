@@ -1,0 +1,40 @@
+.rest-timer {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--space-6) + var(--safe-bottom));
+  transform: translateX(-50%);
+  /* Below --z-sheet on purpose: this is ambient chrome, not urgent, and must never
+   * sit above an open sheet's own controls and block them. */
+  z-index: calc(var(--z-sheet) - 1);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-pill);
+  background: var(--ink);
+  color: var(--ink-inverse);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.rest-timer__label {
+  font-size: var(--text-xs);
+  opacity: 0.7;
+}
+
+.rest-timer__time {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  font-size: var(--text-base);
+}
+
+.rest-timer__btn {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.15);
+  color: inherit;
+  cursor: pointer;
+}

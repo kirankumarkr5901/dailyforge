@@ -1,0 +1,78 @@
+<df-sheet
+  [open]="open()"
+  (openChange)="$event ? null : close()"
+  [heading]="(isEditing() ? 'Edit set — ' : 'Log — ') + exerciseName()"
+>
+  <div class="log-set">
+    @if (!isBodyweight()) {
+      <div class="log-set__mode">
+        <button
+          type="button"
+          class="log-set__mode-btn"
+          [class.log-set__mode-btn--selected]="weightMode() === 'SINGLE'"
+          (click)="weightMode.set('SINGLE')"
+        >
+          Per hand
+        </button>
+        <button
+          type="button"
+          class="log-set__mode-btn"
+          [class.log-set__mode-btn--selected]="weightMode() === 'COMBINED'"
+          (click)="weightMode.set('COMBINED')"
+        >
+          Combined
+        </button>
+      </div>
+
+      <df-stepper-input
+        label="Weight"
+        suffix="kg"
+        [min]="0"
+        [max]="500"
+        [step]="2.5"
+        [decimals]="1"
+        [ngModel]="weight()"
+        (ngModelChange)="weight.set($event)"
+      />
+    } @else {
+      <df-stepper-input
+        label="Added weight"
+        suffix="kg"
+        hint="Belt or vest weight — leave at 0 for bodyweight only."
+        [min]="0"
+        [max]="200"
+        [step]="2.5"
+        [decimals]="1"
+        [ngModel]="addedWeight()"
+        (ngModelChange)="addedWeight.set($event)"
+      />
+    }
+
+    <p class="log-set__total">{{ computedTotal() }} kg total</p>
+
+    <df-stepper-input
+      label="Reps"
+      [min]="0"
+      [max]="100"
+      [ngModel]="reps()"
+      (ngModelChange)="reps.set($event)"
+    />
+
+    @if (error(); as message) {
+      <p class="log-set__error" role="alert">{{ message }}</p>
+    }
+
+    <button
+      dfButton
+      type="button"
+      variant="primary"
+      size="lg"
+      [fullWidth]="true"
+      [loading]="saving()"
+      [disabled]="saving()"
+      (click)="save()"
+    >
+      {{ isEditing() ? 'Save changes' : 'Log set' }}
+    </button>
+  </div>
+</df-sheet>

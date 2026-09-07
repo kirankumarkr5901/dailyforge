@@ -1,0 +1,160 @@
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { firstValueFrom } from 'rxjs';
+import { LucideAngularModule, Plus, Trash2 } from 'lucide-angular';
+
+import { WorkoutsApi } from '../../../core/workouts/workouts.api';
+import { Exercise, PlanExercise, WorkoutPlan } from '../../../core/workouts/workouts.types';
+import { DfButtonComponent } from '../../../shared/ui/df-button/df-button.component';
+import { DfCardComponent } from '../../../shared/ui/df-card/df-card.component';
+import { DfIconButtonComponent } from '../../../shared/ui/df-icon-button/df-icon-button.component';
+import { DfInputComponent } from '../../../shared/ui/df-input/df-input.component';
+import { DfSelectComponent, DfSelectOption } from '../../../shared/ui/df-select/df-select.component';
+import { DfSheetComponent } from '../../../shared/ui/df-sheet/df-sheet.component';
+import { DfStepperInputComponent } from '../../../shared/ui/df-stepper-input/df-stepper-input.component';
+import { ExercisePickerSheetComponent } from '../exercise-picker-sheet/exercise-picker-sheet.component';
+
+/**
+ * Plans and days (spec §8.2). Day 0 is rendered as "Extras" — the bucket for exercises
+ * attached to a plan but not yet placed on a real day. Reordering is up/down rather
+ * than drag-and-drop (spec's own keyboard-reachable fallback), the same trade the habit
+ * planner made at M3.
+ */
+@Component({
+  selector: 'df-plan-manager-sheet',
+  imports: [
+    FormsModule,
+    LucideAngularModule,
+    DfButtonComponent,
+    DfCardComponent,
+    DfIconButtonComponent,
+    DfInputComponent,
+    DfSelectComponent,
+    DfSheetComponent,
+    DfStepperInputComponent,
+    ExercisePickerSheetComponent,
+  ],
+  templateUrl: './plan-manager-sheet.component.html',
+  styleUrl: './plan-manager-sheet.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class PlanManagerSheetComponent {
+  private readonly api = inject(WorkoutsApi);
+
+  readonly open = input.required<boolean>();
+  readonly closed = output<void>();
+  readonly changed = output<void>();
+
+  protected readonly plusIcon = Plus;
+  protected readonly deleteIcon = Trash2;
+
+  protected readonly plans = signal<WorkoutPlan[]>([]);
+  protected readonly selectedPlanId = signal<string | null>(null);
+  protected readonly newPlanName = signal('');
+  protected readonly newPlanDays = signal(3);
+  protected readonly creating = signal(false);
+  protected readonly pickerOpen = signal(false);
+  protected readonly pickerDayIndex = signal(0);
+
+  protected readonly selectedPlan = computed(() => this.plans().find((p) => p.id === this.selectedPlanId()) ?? null);
+
+  protected readonly dayOptions = computed<readonly DfSelectOption[]>(() => {
+    const plan = this.selectedPlan();
+    if (!plan) {
+      return [];
+    }
+    return plan.dayLabels.map((label, i) => ({ value: String(i + 1), label }));
+  });
+
+  protected readonly planOptions = computed<readonly DfSelectOption[]>(() =>
+    this.plans().map((p) => ({ value: p.id, label: p.name + (p.isActive ? ' (active)' : '') })),
+  );
+
+  constructor() {
+    effect(() => {
+      if (this.open()) {
+        void this.refresh();
+      }
+    });
+  }
+
+  private async refresh(): Promise<void> {
+    const list = await firstValueFrom(this.api.plans());
+    this.plans.set(list);
+    if (!this.selectedPlanId() && list.length > 0) {
+      this.selectedPlanId.set(list.find((p) => p.isActive)?.id ?? list[0].id);
+    }
+  }
+
+  protected extrasFor(plan: WorkoutPlan): PlanExercise[] {
+    return plan.exercises.filter((e) => e.dayIndex === 0);
+  }
+
+  protected exercisesForDay(plan: WorkoutPlan, dayIndex: number): PlanExercise[] {
+    return plan.exercises.filter((e) => e.dayIndex === dayIndex);
+  }
+
+  protected async createPlan(): Promise<void> {
+    if (this.creating() || !this.newPlanName().trim()) {
+      return;
+    }
+    this.creating.set(true);
+    try {
+      const plan = await firstValueFrom(this.api.createPlan(this.newPlanName().trim(), this.newPlanDays()));
+      this.newPlanName.set('');
+      this.newPlanDays.set(3);
+      await this.refresh();
+      this.selectedPlanId.set(plan.id);
+      this.changed.emit();
+    } finally {
+      this.creating.set(false);
+    }
+  }
+
+  protected async activate(planId: string): Promise<void> {
+    await firstValueFrom(this.api.updatePlan(planId, { isActive: true }));
+    await this.refresh();
+    this.changed.emit();
+  }
+
+  protected async archive(planId: string): Promise<void> {
+    await firstValueFrom(this.api.archivePlan(planId));
+    if (this.selectedPlanId() === planId) {
+      this.selectedPlanId.set(null);
+    }
+    await this.refresh();
+    this.changed.emit();
+  }
+
+  protected openPickerForDay(dayIndex: number): void {
+    this.pickerDayIndex.set(dayIndex);
+    this.pickerOpen.set(true);
+  }
+
+  protected async onExercisePicked(exercise: Exercise): Promise<void> {
+    const plan = this.selectedPlan();
+    this.pickerOpen.set(false);
+    if (!plan) {
+      return;
+    }
+    await firstValueFrom(this.api.addPlanExercise(plan.id, exercise.id, this.pickerDayIndex()));
+    await this.refresh();
+    this.changed.emit();
+  }
+
+  protected async removeExercise(planId: string, planExerciseId: string): Promise<void> {
+    await firstValueFrom(this.api.removePlanExercise(planId, planExerciseId));
+    await this.refresh();
+    this.changed.emit();
+  }
+
+  protected async moveToDay(planId: string, planExerciseId: string, dayIndex: number): Promise<void> {
+    await firstValueFrom(this.api.moveExercise(planId, planExerciseId, dayIndex));
+    await this.refresh();
+    this.changed.emit();
+  }
+
+  protected close(): void {
+    this.closed.emit();
+  }
+}

@@ -1,0 +1,12 @@
+@if (timer.running()) {
+  <div class="rest-timer" role="status" aria-live="polite">
+    <span class="rest-timer__label">Rest</span>
+    <span class="rest-timer__time">{{ display() }}</span>
+    <button type="button" class="rest-timer__btn" aria-label="Add 30 seconds" (click)="addThirty()">
+      <lucide-icon [img]="plusIcon" [size]="16" aria-hidden="true" />
+    </button>
+    <button type="button" class="rest-timer__btn" aria-label="Dismiss rest timer" (click)="dismiss()">
+      <lucide-icon [img]="closeIcon" [size]="16" aria-hidden="true" />
+    </button>
+  </div>
+}
