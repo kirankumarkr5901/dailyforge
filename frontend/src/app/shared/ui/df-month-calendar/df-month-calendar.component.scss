@@ -4,6 +4,59 @@
   gap: var(--space-2);
 }
 
+/* The heading is the control: a whole month grid is not what most visits to these pages
+ * are for, so it stays folded away behind its own summary until asked for. */
+.month-calendar__disclosure {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: var(--tap-min);
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.month-calendar__disclosure:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.month-calendar__heading {
+  font-size: var(--text-base);
+  font-weight: 600;
+}
+
+.month-calendar__summary {
+  flex: 1;
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+}
+
+.month-calendar__chevron {
+  color: var(--ink-muted);
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.month-calendar__chevron--open {
+  transform: rotate(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .month-calendar__chevron {
+    transition: none;
+  }
+}
+
+.month-calendar__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
 .month-calendar__nav {
   display: flex;
   align-items: center;
@@ -73,7 +126,28 @@
   color: var(--ink-muted);
   font-size: var(--text-sm);
   cursor: pointer;
-  transition: background-color var(--duration-fast) var(--ease-out);
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.month-calendar__cell:hover:not(:disabled) {
+  transform: scale(1.06);
+}
+
+/* Nothing logged means nothing to open — still part of the month, just not a control. */
+.month-calendar__cell:disabled {
+  cursor: default;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .month-calendar__cell {
+    transition: background-color var(--duration-fast) var(--ease-out);
+  }
+
+  .month-calendar__cell:hover:not(:disabled) {
+    transform: none;
+  }
 }
 
 .month-calendar__cell--pad {
@@ -86,18 +160,45 @@
   outline-offset: 1px;
 }
 
-.month-calendar__cell--marked {
+/* Four shades cut from the month's own busiest day, so "a lot" is relative to how this
+ * particular tracker is actually used rather than a number picked here. */
+.month-calendar__cell[data-heat='1'] {
+  background: var(--heat-fill-2);
+  color: var(--ink);
+}
+
+.month-calendar__cell[data-heat='2'] {
+  background: var(--heat-1);
+  color: var(--ink-on-solid);
+}
+
+.month-calendar__cell[data-heat='3'] {
   background: var(--heat-2);
   color: var(--ink-on-solid);
 }
 
-.month-calendar--done-tone .month-calendar__cell--marked {
-  background: var(--done);
+.month-calendar__cell[data-heat='4'] {
+  background: var(--heat-3);
   color: var(--ink-on-solid);
 }
 
-.month-calendar__glyph {
-  position: absolute;
-  bottom: 2px;
-  right: 2px;
+/* Habit completion is the one place tokens.css lets green stand in for earned heat. */
+.month-calendar--done-tone .month-calendar__cell[data-heat='1'] {
+  background: var(--done-wash);
+  color: var(--ink);
+}
+
+.month-calendar--done-tone .month-calendar__cell[data-heat='2'] {
+  background: color-mix(in oklab, var(--done) 55%, var(--surface-sunken));
+  color: var(--ink-on-solid);
+}
+
+.month-calendar--done-tone .month-calendar__cell[data-heat='3'] {
+  background: color-mix(in oklab, var(--done) 80%, var(--surface-sunken));
+  color: var(--ink-on-solid);
+}
+
+.month-calendar--done-tone .month-calendar__cell[data-heat='4'] {
+  background: var(--done);
+  color: var(--ink-on-solid);
 }

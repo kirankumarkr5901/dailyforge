@@ -1,0 +1,30 @@
+<df-sheet [open]="isOpen()" (openChange)="$event ? null : close()" [heading]="date() ? formatLong(date()!) : 'Day'">
+  @if (loading()) {
+    <df-skeleton height="4rem" />
+  } @else if (hasDetail()) {
+    <div class="day-detail">
+      @if (groups().length > 0) {
+        <p class="day-detail__total">{{ total() }} {{ totalNoun() }} that day</p>
+
+        @for (group of groups(); track group.category) {
+          <div class="day-detail__group">
+            @if (only().length !== 1) {
+              <div class="day-detail__group-header">
+                <span>{{ categoryLabels[group.category] }}</span>
+                <span>{{ group.total >= 0 ? '+' : '' }}{{ group.total }}</span>
+              </div>
+            }
+            @for (entry of group.entries; track entry.id) {
+              <p class="day-detail__entry">
+                <span>{{ entry.description }}</span>
+                <span>{{ entry.amount >= 0 ? '+' : '' }}{{ entry.amount }}</span>
+              </p>
+            }
+          </div>
+        }
+      } @else {
+        <p class="day-detail__empty">Nothing that earned points this day.</p>
+      }
+    </div>
+  }
+</df-sheet>

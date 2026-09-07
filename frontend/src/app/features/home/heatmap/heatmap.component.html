@@ -35,6 +35,7 @@
                 class="heatmap__cell"
                 [attr.data-heat]="heatStep(summaryFor(date))"
                 [attr.aria-label]="ariaLabel(date)"
+                [disabled]="!hasScoringActivity(date)"
                 (click)="select(date)"
               >
                 <span class="heatmap__day-number" aria-hidden="true">{{ dayNumber(date) }}</span>

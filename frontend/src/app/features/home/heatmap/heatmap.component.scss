@@ -77,8 +77,15 @@
   transition: transform var(--duration-fast) var(--ease-out);
 }
 
-.heatmap__cell:hover {
+.heatmap__cell:hover:not(:disabled) {
   transform: scale(1.06);
+}
+
+/* A day that earned nothing has no detail sheet worth opening (owner feedback), so it
+ * reads as a plain surface rather than a control: no pointer, no lift, but the same
+ * colour — it is still part of the month, not greyed out of it. */
+.heatmap__cell:disabled {
+  cursor: default;
 }
 
 .heatmap__cell--pad {

@@ -14,7 +14,7 @@ import { DfButtonComponent } from '../../../shared/ui/df-button/df-button.compon
 import { DfCardComponent } from '../../../shared/ui/df-card/df-card.component';
 import { DfEmptyStateComponent } from '../../../shared/ui/df-empty-state/df-empty-state.component';
 import { DfSkeletonComponent } from '../../../shared/ui/df-skeleton/df-skeleton.component';
-import { DayDetailSheetComponent } from '../day-detail-sheet/day-detail-sheet.component';
+import { DayDetailSheetComponent } from '../../../shared/day-detail-sheet/day-detail-sheet.component';
 import { HeatmapComponent } from '../heatmap/heatmap.component';
 
 type Period = 'today' | 'thisWeek' | 'thisMonth';

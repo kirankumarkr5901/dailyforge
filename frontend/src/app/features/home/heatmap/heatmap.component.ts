@@ -142,8 +142,25 @@ export class HeatmapComponent {
     return `${formatCellDate(date)}, ${summary.pointsTotal} points, ${this.stateLabel(summary.state)}`;
   }
 
+  /**
+   * Whether this day has anything the detail sheet could show (owner feedback: the
+   * sheet is for point-contributing activity, so a day with none of it should not open
+   * one at all rather than opening an empty sheet).
+   *
+   * Not simply `pointsTotal !== 0`: a day that earns 50 and spends 50 on a reward nets
+   * zero and still has two real lines to show, which the per-category amounts catch
+   * because earning and spending land in different categories.
+   */
+  protected hasScoringActivity(date: LogicalDate): boolean {
+    const summary = this.summaryFor(date);
+    if (!summary) {
+      return false;
+    }
+    return summary.pointsTotal !== 0 || Object.values(summary.pointsByCategory).some((amount) => amount !== 0);
+  }
+
   protected select(date: LogicalDate | null): void {
-    if (date) {
+    if (date && this.hasScoringActivity(date)) {
       this.cellSelected.emit(date);
     }
   }
