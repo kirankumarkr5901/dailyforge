@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="DailyForge">
+  <title>DailyForge</title>
+  <!-- Cold steel, earned heat (spec §9): the tile is the app's own dark surface, and the
+       only warm colour is the spark — the same heat ramp the heatmap earns its way up. -->
+  <defs>
+    <linearGradient id="steel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1b2129" />
+      <stop offset="1" stop-color="#0f1216" />
+    </linearGradient>
+    <linearGradient id="heat" x1="0.2" y1="0" x2="0.8" y2="1">
+      <stop offset="0" stop-color="#ffc24a" />
+      <stop offset="0.55" stop-color="#f5811f" />
+      <stop offset="1" stop-color="#e0521b" />
+    </linearGradient>
+  </defs>
+
+  <rect width="64" height="64" rx="14" fill="url(#steel)" />
+
+  <!-- The anvil face: a single hard horizontal, the forge the spark is struck from. -->
+  <rect x="14" y="47" width="36" height="4" rx="2" fill="#39414b" />
+
+  <path
+    d="M38 7 L17 37 L29 37 L25.5 58 L47 27 L34.5 27 Z"
+    fill="url(#heat)"
+  />
+</svg>

@@ -46,27 +46,49 @@
   }
 }
 
+/* The first thing on the page, and it used to read as the least important thing on it —
+ * small grey italics in a flat card (owner feedback: the quote should be highlighted).
+ * It gets weight from typography and a steel accent rather than colour: the quote is
+ * not something the user earned, and warm tone in this system means earned (spec §9). */
 .home-page__quote {
+  position: relative;
+  overflow: hidden;
   margin-bottom: var(--space-4);
-  text-align: center;
+  padding-left: var(--space-5);
+  background: linear-gradient(135deg, var(--surface-raised), var(--surface-sunken));
+  border-left: 3px solid var(--ink);
 }
 
+/* An oversized glyph sunk into the corner as texture, not as an icon to read. */
 .home-page__quote-icon {
-  color: var(--ink-faint);
-  margin-bottom: var(--space-2);
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-3);
+  width: 44px;
+  height: 44px;
+  color: var(--ink);
+  opacity: 0.08;
 }
 
 .home-page__quote-text {
+  position: relative;
   margin: 0 0 var(--space-2);
   color: var(--ink);
-  font-size: var(--text-base);
+  font-size: var(--text-lg);
   font-style: italic;
+  font-weight: 500;
+  line-height: 1.45;
+  text-wrap: balance;
 }
 
 .home-page__quote-author {
+  position: relative;
   margin: 0;
   color: var(--ink-muted);
   font-size: var(--text-sm);
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
+  text-transform: uppercase;
 }
 
 .home-page__score {
