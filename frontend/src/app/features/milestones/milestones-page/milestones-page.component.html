@@ -1,0 +1,101 @@
+<div class="milestones-page">
+  <header class="milestones-page__header">
+    <h1 class="milestones-page__title">Milestones</h1>
+    <p class="milestones-page__subtitle">A recap of what you earned, month by month or year by year.</p>
+  </header>
+
+  <div class="milestones-page__period-toggle" role="tablist">
+    <button
+      type="button"
+      role="tab"
+      class="milestones-page__period-tab"
+      [class.milestones-page__period-tab--selected]="period() === 'MONTH'"
+      [attr.aria-selected]="period() === 'MONTH'"
+      (click)="setPeriod('MONTH')"
+    >
+      Monthly
+    </button>
+    <button
+      type="button"
+      role="tab"
+      class="milestones-page__period-tab"
+      [class.milestones-page__period-tab--selected]="period() === 'YEAR'"
+      [attr.aria-selected]="period() === 'YEAR'"
+      (click)="setPeriod('YEAR')"
+    >
+      Yearly
+    </button>
+  </div>
+
+  @if (loading() && !recap()) {
+    <df-card>
+      <df-skeleton height="2rem" width="60%" />
+      <df-skeleton height="4rem" />
+      <df-skeleton height="8rem" />
+    </df-card>
+  } @else if (recap(); as r) {
+    <div class="milestones-page__period-nav">
+      <button dfIconButton [icon]="icons.ChevronLeft" label="Earlier period" (click)="older()"></button>
+      <span class="milestones-page__period-label">{{ periodLabel() }}</span>
+      <button
+        dfIconButton
+        [icon]="icons.ChevronRight"
+        label="Later period"
+        [disabled]="!canGoNewer()"
+        (click)="newer()"
+      ></button>
+    </div>
+
+    @if (isEmpty()) {
+      <df-empty-state
+        [icon]="icons.PartyPopper"
+        title="Nothing logged yet"
+        body="Log a workout, a run, a habit, or complete a goal, and this recap will fill in as you go."
+      />
+    } @else {
+      <df-card class="milestones-page__hero">
+        <p class="milestones-page__hero-label">Total points earned</p>
+        <p class="milestones-page__hero-value">{{ r.totalPoints }}</p>
+      </df-card>
+
+      @if (categoryBreakdown().length > 0) {
+        <df-card>
+          <h2 class="milestones-page__section-title">By category</h2>
+          <ul class="milestones-page__category-list">
+            @for (pair of categoryBreakdown(); track pair[0]) {
+              <li class="milestones-page__category-row">
+                <span>{{ categoryLabels[pair[0]] }}</span>
+                <span class="milestones-page__category-amount">+{{ pair[1] }}</span>
+              </li>
+            }
+          </ul>
+        </df-card>
+      }
+
+      <div class="milestones-page__stat-grid">
+        <df-card class="milestones-page__stat">
+          <lucide-icon [img]="icons.Dumbbell" [size]="20" aria-hidden="true" />
+          <p class="milestones-page__stat-value">{{ r.workoutDays }}</p>
+          <p class="milestones-page__stat-label">workout {{ r.workoutDays === 1 ? 'day' : 'days' }}</p>
+        </df-card>
+        <df-card class="milestones-page__stat">
+          <lucide-icon [img]="icons.Footprints" [size]="20" aria-hidden="true" />
+          <p class="milestones-page__stat-value">{{ r.runDays }}</p>
+          <p class="milestones-page__stat-label">
+            run {{ r.runDays === 1 ? 'day' : 'days' }} · {{ distanceLabel(r.runDistanceMeters) }}
+          </p>
+        </df-card>
+        <df-card class="milestones-page__stat">
+          <lucide-icon [img]="icons.Target" [size]="20" aria-hidden="true" />
+          <p class="milestones-page__stat-value">{{ r.habitsCompleted }}</p>
+          <p class="milestones-page__stat-label">{{ r.habitsCompleted === 1 ? 'habit tick' : 'habit ticks' }}</p>
+        </df-card>
+        <df-card class="milestones-page__stat">
+          <lucide-icon [img]="icons.Award" [size]="20" aria-hidden="true" />
+          <p class="milestones-page__stat-value">{{ r.goalsCompleted }}</p>
+          <p class="milestones-page__stat-label">{{ r.goalsCompleted === 1 ? 'goal' : 'goals' }} completed</p>
+        </df-card>
+      </div>
+    }
+  }
+</div>

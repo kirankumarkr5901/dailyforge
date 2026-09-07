@@ -93,6 +93,15 @@ export const routes: Routes = [
       },
 
       {
+        path: 'milestones',
+        title: 'Milestones — DailyForge',
+        loadComponent: () =>
+          import('./features/milestones/milestones-page/milestones-page.component').then(
+            (m) => m.MilestonesPageComponent,
+          ),
+      },
+
+      {
         path: 'settings',
         title: 'Settings — DailyForge',
         loadComponent: () =>

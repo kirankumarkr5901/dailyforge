@@ -3,7 +3,7 @@
 import { LogicalDate } from '../time/logical-date';
 
 export type GoalKind = 'HABIT_ADHERENCE' | 'EXERCISE_TARGET' | 'RUN_DISTANCE' | 'BODY_METRIC' | 'CUSTOM';
-export type GoalPeriodType = 'WEEK' | 'MONTH' | 'TARGET_DATE';
+export type GoalPeriodType = 'WEEK' | 'MONTH' | 'YEAR' | 'TARGET_DATE';
 export type GoalStatus = 'ACTIVE' | 'COMPLETED' | 'FAILED' | 'ARCHIVED';
 
 export interface Goal {

@@ -61,6 +61,7 @@ export const STRINGS = {
   'nav.jobs': 'Jobs',
   'nav.body': 'Body',
   'nav.rewards': 'Rewards',
+  'nav.milestones': 'Milestones',
   'nav.settings': 'Settings',
   'nav.menu': 'Menu',
   'nav.close': 'Close menu',

@@ -27,6 +27,18 @@ export function monthsAgoStart(date: LogicalDate, monthsBack: number): LogicalDa
   return `${y.toString().padStart(4, '0')}-${(m + 1).toString().padStart(2, '0')}-01`;
 }
 
+/** January 1st of `date`'s own year — the anchor a monthly recap steps by, a yearly one by twelve. */
+export function yearStart(date: LogicalDate): LogicalDate {
+  const [year] = date.split('-').map(Number);
+  return `${year.toString().padStart(4, '0')}-01-01`;
+}
+
+/** `date`'s calendar year, `yearsBack` years earlier — the milestones page's own "prev year" step. */
+export function yearsAgoStart(date: LogicalDate, yearsBack: number): LogicalDate {
+  const [year] = date.split('-').map(Number);
+  return `${(year - yearsBack).toString().padStart(4, '0')}-01-01`;
+}
+
 /** `monthCount` months ending at (and including) `today`'s month, oldest first. */
 export function buildMonths(today: LogicalDate, monthCount = 12): MonthGrid[] {
   const [todayYear, todayMonth] = today.split('-').map(Number);
