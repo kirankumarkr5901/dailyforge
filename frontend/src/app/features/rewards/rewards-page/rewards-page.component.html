@@ -25,7 +25,7 @@
 
   <df-card class="rewards-page__score">
     <span class="rewards-page__score-label">Your score</span>
-    <df-score-pill [total]="total()" />
+    <df-score-pill [total]="points.total()" />
   </df-card>
 
   @if (rewards().length === 0) {

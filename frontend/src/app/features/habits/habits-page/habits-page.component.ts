@@ -5,6 +5,7 @@ import { LucideAngularModule, Plus, Target } from 'lucide-angular';
 import { AuthSheetService } from '../../../core/auth/auth-sheet.service';
 import { SessionStore } from '../../../core/auth/session.store';
 import { HabitsApi } from '../../../core/habits/habits.api';
+import { PointsStore } from '../../../core/points/points.store';
 import { Celebration } from '../../../core/points/points.types';
 import { Habit, HabitBoard } from '../../../core/habits/habits.types';
 import { LogicalDate } from '../../../core/time/logical-date';
@@ -46,6 +47,7 @@ import { HabitRowComponent, HabitToggled } from '../habit-row/habit-row.componen
 export class HabitsPageComponent {
   private readonly api = inject(HabitsApi);
   private readonly toasts = inject(ToastService);
+  private readonly points = inject(PointsStore);
 
   protected readonly session = inject(SessionStore);
   protected readonly authSheet = inject(AuthSheetService);
@@ -160,6 +162,7 @@ export class HabitsPageComponent {
   }
 
   protected async onToggled({ entry, checked, response }: HabitToggled): Promise<void> {
+    this.points.applyEnvelope(response.points);
     const delta = response.points.delta;
     const note = this.celebrationNote(response.points.celebrations);
     const sign = delta > 0 ? '+' : '';
@@ -184,11 +187,10 @@ export class HabitsPageComponent {
       return;
     }
     try {
-      if (checked) {
-        await firstValueFrom(this.api.log(habitId, date));
-      } else {
-        await firstValueFrom(this.api.unlog(habitId, date));
-      }
+      const response = checked
+        ? await firstValueFrom(this.api.log(habitId, date))
+        : await firstValueFrom(this.api.unlog(habitId, date));
+      this.points.applyEnvelope(response.points);
       await this.refreshBoard();
     } catch {
       this.toasts.show('Could not undo that. Try again.', { tone: 'penalty' });

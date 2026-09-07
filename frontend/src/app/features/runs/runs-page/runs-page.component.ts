@@ -6,6 +6,7 @@ import { AuthApi } from '../../../core/auth/auth.api';
 import { AuthSheetService } from '../../../core/auth/auth-sheet.service';
 import { PendingActionService } from '../../../core/auth/pending-action.service';
 import { SessionStore } from '../../../core/auth/session.store';
+import { PointsStore } from '../../../core/points/points.store';
 import { Celebration } from '../../../core/points/points.types';
 import { Bracket, Run, RunRecords, RunWriteResponse } from '../../../core/runs/runs.types';
 import { RunsApi } from '../../../core/runs/runs.api';
@@ -54,6 +55,7 @@ const BRACKET_LABELS: Record<Bracket, string> = {
 })
 export class RunsPageComponent {
   private readonly api = inject(RunsApi);
+  private readonly points = inject(PointsStore);
   private readonly authApi = inject(AuthApi);
   private readonly toasts = inject(ToastService);
   private readonly pendingAction = inject(PendingActionService);
@@ -144,6 +146,7 @@ export class RunsPageComponent {
   }
 
   protected async onRunSaved(response: RunWriteResponse): Promise<void> {
+    this.points.applyEnvelope(response.points);
     this.closeForm();
     await this.refresh();
 
@@ -162,6 +165,7 @@ export class RunsPageComponent {
   protected async deleteRun(run: Run): Promise<void> {
     try {
       const response = await firstValueFrom(this.api.delete(run.id));
+      this.points.applyEnvelope(response.points);
       await this.refresh();
       this.toasts.show(`Run removed. ${response.points.delta} pts`, {
         tone: response.points.delta < 0 ? 'penalty' : 'neutral',
