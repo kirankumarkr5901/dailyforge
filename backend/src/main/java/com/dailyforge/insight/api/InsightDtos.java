@@ -4,6 +4,7 @@ import com.dailyforge.insight.domain.DailySummary;
 import com.dailyforge.insight.domain.DailySummaryService.CategoryGroup;
 import com.dailyforge.insight.domain.DayState;
 import com.dailyforge.insight.domain.HomeSummaryService.HomeSummary;
+import com.dailyforge.insight.domain.MilestoneService.Recap;
 import com.dailyforge.insight.domain.Quote;
 import com.dailyforge.goal.api.GoalDtos.GoalResponse;
 import com.dailyforge.points.api.PointsDtos.LedgerEntryResponse;
@@ -71,4 +72,28 @@ public final class InsightDtos {
     }
 
     public record DayDetailResponse(LocalDate date, int total, List<CategoryGroupResponse> groups) {}
+
+    public record MilestoneRecapResponse(
+            LocalDate startDate,
+            LocalDate endDate,
+            int totalPoints,
+            Map<PointsCategory, Integer> byCategory,
+            int workoutDays,
+            int runDays,
+            int runDistanceMeters,
+            long habitsCompleted,
+            long goalsCompleted) {
+        public static MilestoneRecapResponse of(Recap recap) {
+            return new MilestoneRecapResponse(
+                    recap.startDate(),
+                    recap.endDate(),
+                    recap.totalPoints(),
+                    recap.byCategory(),
+                    recap.workoutDays(),
+                    recap.runDays(),
+                    recap.runDistanceMeters(),
+                    recap.habitsCompleted(),
+                    recap.goalsCompleted());
+        }
+    }
 }

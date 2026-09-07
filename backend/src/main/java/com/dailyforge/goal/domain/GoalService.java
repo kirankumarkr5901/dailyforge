@@ -106,6 +106,7 @@ public class GoalService {
         return switch (periodType) {
             case WEEK -> startDate.plusDays(6);
             case MONTH -> startDate.with(TemporalAdjusters.lastDayOfMonth());
+            case YEAR -> startDate.with(TemporalAdjusters.lastDayOfYear());
             case TARGET_DATE -> {
                 if (targetDate == null) {
                     throw ApiException.outOfRange("targetDate", "A target-date goal needs a target date.");
