@@ -1,0 +1,76 @@
+.heatmap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  max-height: 420px;
+  overflow-y: auto;
+  padding-right: var(--space-1);
+}
+
+.heatmap__month-title {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--ink-muted);
+}
+
+.heatmap__weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+  margin-bottom: 3px;
+  color: var(--ink-faint);
+  font-size: 10px;
+  text-align: center;
+}
+
+.heatmap__week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+  margin-bottom: 3px;
+}
+
+.heatmap__cell {
+  position: relative;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 4px;
+  background: var(--earned-0);
+  color: var(--ink-muted);
+  font-size: 9px;
+  cursor: pointer;
+}
+
+.heatmap__cell--pad {
+  background: transparent;
+  cursor: default;
+}
+
+.heatmap__cell:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+.heatmap__cell[data-heat='1'] {
+  background: var(--earned-1);
+}
+.heatmap__cell[data-heat='2'] {
+  background: var(--earned-2);
+  color: var(--ink-on-solid);
+}
+.heatmap__cell[data-heat='3'] {
+  background: var(--earned-3);
+  color: var(--ink-on-solid);
+}
+.heatmap__cell[data-heat='4'] {
+  background: var(--earned-4);
+  color: var(--ink-on-solid);
+}
+
+.heatmap__glyph {
+  position: absolute;
+  bottom: 1px;
+  right: 1px;
+}

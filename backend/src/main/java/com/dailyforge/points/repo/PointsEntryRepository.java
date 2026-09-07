@@ -67,6 +67,14 @@ public interface PointsEntryRepository extends JpaRepository<PointsEntry, UUID> 
      */
     long countBySourceTypeAndSourceIdAndRuleCode(String sourceType, UUID sourceId, String ruleCode);
 
+    /**
+     * Every active entry in a date range, ungrouped — the heatmap and home summary
+     * (spec §8.1, §8.1.1) group this in Java rather than issuing one query per day per
+     * category, since the whole range fits comfortably in memory at personal-app scale.
+     */
+    List<PointsEntry> findAllByUserIdAndOccurredOnBetweenAndReversedFalseAndReversesIdIsNull(
+            UUID userId, LocalDate from, LocalDate to);
+
     Page<PointsEntry> findAllByUserIdOrderByOccurredOnDescCreatedAtDesc(UUID userId, Pageable pageable);
 
     Page<PointsEntry> findAllByUserIdAndCategoryOrderByOccurredOnDescCreatedAtDesc(

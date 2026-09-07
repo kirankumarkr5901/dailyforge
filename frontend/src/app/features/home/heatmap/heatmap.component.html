@@ -1,0 +1,32 @@
+<div class="heatmap" role="group" aria-label="Activity heatmap, last 12 months">
+  @for (month of months(); track month.label) {
+    <div class="heatmap__month">
+      <h3 class="heatmap__month-title">{{ month.label }}</h3>
+      <div class="heatmap__weekdays" aria-hidden="true">
+        <span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span>
+      </div>
+      @for (week of month.weeks; track $index) {
+        <div class="heatmap__week">
+          @for (date of week; track date ?? $index) {
+            @if (date) {
+              <button
+                type="button"
+                class="heatmap__cell"
+                [attr.data-heat]="heatStep(summaryFor(date))"
+                [attr.aria-label]="ariaLabel(date)"
+                (click)="select(date)"
+              >
+                <span class="heatmap__day-number" aria-hidden="true">{{ dayNumber(date) }}</span>
+                @if (iconFor(summaryFor(date)?.state); as icon) {
+                  <lucide-icon class="heatmap__glyph" [img]="icon" [size]="10" aria-hidden="true" />
+                }
+              </button>
+            } @else {
+              <span class="heatmap__cell heatmap__cell--pad" aria-hidden="true"></span>
+            }
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

@@ -1,0 +1,48 @@
+.day-detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.day-detail__total {
+  margin: 0;
+  color: var(--ink);
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+
+.day-detail__group {
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--line);
+}
+
+.day-detail__group-header {
+  display: flex;
+  justify-content: space-between;
+  color: var(--ink-muted);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-tight);
+  margin-bottom: var(--space-2);
+}
+
+.day-detail__entry {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin: 0;
+  padding-block: var(--space-1);
+  color: var(--ink);
+  font-size: var(--text-sm);
+}
+
+.day-detail__entry--reversed {
+  color: var(--ink-faint);
+  text-decoration: line-through;
+}
+
+.day-detail__empty {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+}
