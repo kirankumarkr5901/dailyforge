@@ -135,4 +135,38 @@ class RewardServiceTest {
 
         assertThatThrownBy(() -> rewardService.requireOwned(reward.getId(), userB)).isInstanceOf(ApiException.class);
     }
+
+    /** Owner feedback: "Rewards also should be editable". */
+    @Test
+    void editingARewardChangesTheNextRedemptionButNotThePastOne() {
+        setToday(TODAY);
+        UUID user = TestUsers.create(users, settings);
+        grant(user, 1000);
+        Reward reward = rewardService.create(user, "Snack", 50, "cookie", RewardTier.MICRO, true, null);
+
+        var firstRedemption = rewardService.redeem(reward.getId(), user);
+        assertThat(firstRedemption.redemption().getPointsSpent()).isEqualTo(50);
+
+        rewardService.update(reward.getId(), user, "Bigger snack", 80, "cookie", RewardTier.WEEKLY, true, null);
+
+        Reward reloaded = rewardService.requireOwned(reward.getId(), user);
+        assertThat(reloaded.getName()).isEqualTo("Bigger snack");
+        assertThat(reloaded.getCost()).isEqualTo(80);
+        assertThat(reloaded.getTier()).isEqualTo(RewardTier.WEEKLY);
+
+        // The ledger is append-only: what was already charged stays charged at the old
+        // price, and only the next redemption pays the new one.
+        assertThat(firstRedemption.redemption().getPointsSpent()).isEqualTo(50);
+        assertThat(rewardService.redeem(reward.getId(), user).redemption().getPointsSpent()).isEqualTo(80);
+    }
+
+    @Test
+    void oneUserCannotEditAnotherUsersReward() {
+        UUID userA = TestUsers.create(users, settings);
+        UUID userB = TestUsers.create(users, settings);
+        Reward reward = rewardService.create(userA, "A's reward", 10, "star", RewardTier.MICRO, true, null);
+
+        assertThatThrownBy(() -> rewardService.update(reward.getId(), userB, "Stolen", 1, "star", RewardTier.MICRO, true, null))
+                .isInstanceOf(ApiException.class);
+    }
 }

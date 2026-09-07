@@ -67,14 +67,24 @@
                   <span class="rewards-page__reward-stock">{{ reward.stock }} left</span>
                 }
               </div>
-              <button
-                dfIconButton
-                type="button"
-                label="Remove this reward"
-                variant="ghost"
-                [icon]="deleteIcon"
-                (click)="archive(reward)"
-              ></button>
+              <div class="rewards-page__reward-actions">
+                <button
+                  dfIconButton
+                  type="button"
+                  label="Edit this reward"
+                  variant="ghost"
+                  [icon]="editIcon"
+                  (click)="openEdit(reward)"
+                ></button>
+                <button
+                  dfIconButton
+                  type="button"
+                  label="Remove this reward"
+                  variant="ghost"
+                  [icon]="deleteIcon"
+                  (click)="archive(reward)"
+                ></button>
+              </div>
             </div>
 
             <button
@@ -100,4 +110,4 @@
   }
 }
 
-<df-reward-form-sheet [open]="formOpen()" (closed)="closeForm()" (saved)="onCreated()" />
+<df-reward-form-sheet [open]="formOpen()" [reward]="editingReward()" (closed)="closeForm()" (saved)="onSaved()" />

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
@@ -19,7 +19,12 @@ const TIER_OPTIONS: readonly DfSelectOption[] = [
   { value: 'MONTHLY', label: 'Monthly' },
 ];
 
-/** A new reward — something points can be spent on (spec §8.9). */
+/**
+ * A reward — something points can be spent on (spec §8.9). Creates one, or edits an
+ * existing one when `reward` is set (owner feedback: "Rewards also should be editable"),
+ * because the alternative for a mistyped cost was archive-and-retype, which also buried
+ * the redemption history under a second reward with the same name.
+ */
 @Component({
   selector: 'df-reward-form-sheet',
   imports: [
@@ -39,11 +44,14 @@ export class RewardFormSheetComponent {
   private readonly api = inject(RewardApi);
 
   readonly open = input.required<boolean>();
+  /** Null creates; set edits that reward in place. */
+  readonly reward = input<Reward | null>(null);
 
   readonly closed = output<void>();
   readonly saved = output<Reward>();
 
   protected readonly tierOptions = TIER_OPTIONS;
+  protected readonly isEditing = computed(() => this.reward() !== null);
 
   protected readonly name = signal('');
   protected readonly cost = signal(100);
@@ -54,6 +62,28 @@ export class RewardFormSheetComponent {
   protected readonly saving = signal(false);
   protected readonly error = signal<string | null>(null);
 
+  constructor() {
+    // Opening the sheet loads whatever it was opened for — an existing reward's own
+    // values when editing, a clean form when creating.
+    effect(() => {
+      if (!this.open()) {
+        return;
+      }
+      const existing = this.reward();
+      if (existing) {
+        this.name.set(existing.name);
+        this.cost.set(existing.cost);
+        this.tier.set(existing.tier);
+        this.isRepeatable.set(existing.isRepeatable);
+        this.hasStock.set(existing.stock !== null);
+        this.stock.set(existing.stock ?? 1);
+        this.error.set(null);
+      } else {
+        this.reset();
+      }
+    });
+  }
+
   protected async save(): Promise<void> {
     if (this.saving() || !this.name().trim()) {
       return;
@@ -61,15 +91,17 @@ export class RewardFormSheetComponent {
     this.saving.set(true);
     this.error.set(null);
     try {
+      const payload = {
+        name: this.name().trim(),
+        cost: this.cost(),
+        icon: this.reward()?.icon ?? 'gift',
+        tier: this.tier(),
+        isRepeatable: this.isRepeatable(),
+        stock: this.hasStock() ? this.stock() : undefined,
+      };
+      const existing = this.reward();
       const reward = await firstValueFrom(
-        this.api.create({
-          name: this.name().trim(),
-          cost: this.cost(),
-          icon: 'gift',
-          tier: this.tier(),
-          isRepeatable: this.isRepeatable(),
-          stock: this.hasStock() ? this.stock() : undefined,
-        }),
+        existing ? this.api.update(existing.id, payload) : this.api.create(payload),
       );
       this.saved.emit(reward);
       this.reset();

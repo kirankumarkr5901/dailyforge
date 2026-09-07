@@ -69,6 +69,21 @@ public class Reward {
         return reward;
     }
 
+    /**
+     * Edits the definition, never the history (owner feedback: "Rewards also should be
+     * editable"). Past redemptions keep the cost they were actually charged — that is a
+     * ledger fact, and the ledger is append-only (non-negotiable #2) — so changing the
+     * price here only ever affects the next redemption, not one already made.
+     */
+    public void update(String name, int cost, String icon, RewardTier tier, boolean repeatable, Integer stock) {
+        this.name = name;
+        this.cost = cost;
+        this.icon = icon;
+        this.tier = tier;
+        this.repeatable = repeatable;
+        this.stock = stock;
+    }
+
     public void decrementStock() {
         if (stock != null) {
             stock = Math.max(0, stock - 1);

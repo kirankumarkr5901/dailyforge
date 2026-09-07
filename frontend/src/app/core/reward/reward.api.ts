@@ -17,6 +17,11 @@ export class RewardApi {
     return this.http.post<Reward>(`${this.base}/rewards`, payload);
   }
 
+  /** A full replace, same body as create — past redemptions keep what they were charged. */
+  update(id: string, payload: CreateRewardPayload): Observable<Reward> {
+    return this.http.put<Reward>(`${this.base}/rewards/${id}`, payload);
+  }
+
   archive(id: string): Observable<void> {
     return this.http.delete<void>(`${this.base}/rewards/${id}`);
   }
