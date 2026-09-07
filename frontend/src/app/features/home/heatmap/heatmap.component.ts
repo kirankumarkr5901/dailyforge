@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { Dumbbell, Footprints, LucideAngularModule, Moon, X } from 'lucide-angular';
+import { ChevronLeft, ChevronRight, Dumbbell, Footprints, LucideAngularModule, Moon, X } from 'lucide-angular';
 
 import { HomeApi } from '../../../core/home/home.api';
 import { DailySummary, DayState } from '../../../core/home/home.types';
@@ -18,9 +18,12 @@ const MONTH_NAMES = [
 ];
 
 /**
- * 12 months, scrollable, current month in view (spec §8.1.1). Colour encodes points
- * earned (5 steps); the glyph in the corner encodes state — never the only carrier of
- * meaning, since every cell also carries a full `aria-label`.
+ * One month in view at a time, current month by default, with Prev/Next arrows to page
+ * back through the loaded 12-month window (spec §8.1.1). A full year of grids at once
+ * read as a wall of noise rather than "what did I do this month" — the question this
+ * screen actually answers most days. Colour encodes points earned (5 steps); the glyph
+ * in the corner encodes state — never the only carrier of meaning, since every cell also
+ * carries a full `aria-label`.
  */
 @Component({
   selector: 'df-heatmap',
@@ -39,11 +42,25 @@ export class HeatmapComponent {
   protected readonly runIcon = Footprints;
   protected readonly restIcon = Moon;
   protected readonly missedIcon = X;
+  protected readonly prevIcon = ChevronLeft;
+  protected readonly nextIcon = ChevronRight;
 
   protected readonly loading = signal(true);
   private readonly summaries = signal<Map<LogicalDate, DailySummary>>(new Map());
 
-  protected readonly months = computed<MonthGrid[]>(() => buildMonths(this.today()));
+  protected readonly monthsBack = signal(0);
+
+  private readonly allMonths = computed<MonthGrid[]>(() => buildMonths(this.today()));
+
+  /** The single month currently in view — the last entry (this month) minus `monthsBack`. */
+  protected readonly viewedMonth = computed<MonthGrid>(() => {
+    const months = this.allMonths();
+    const index = months.length - 1 - this.monthsBack();
+    return months[index];
+  });
+
+  protected readonly canGoNewer = computed(() => this.monthsBack() > 0);
+  protected readonly canGoOlder = computed(() => this.monthsBack() < this.allMonths().length - 1);
 
   constructor() {
     effect(() => {
@@ -51,8 +68,21 @@ export class HeatmapComponent {
     });
   }
 
+  protected olderMonth(): void {
+    if (this.canGoOlder()) {
+      this.monthsBack.update((n) => n + 1);
+    }
+  }
+
+  protected newerMonth(): void {
+    if (this.canGoNewer()) {
+      this.monthsBack.update((n) => n - 1);
+    }
+  }
+
   private async load(today: LogicalDate): Promise<void> {
     this.loading.set(true);
+    this.monthsBack.set(0);
     try {
       const from = monthsAgoStart(today, 11);
       const summaries = await firstValueFrom(this.api.heatmap(from, today));
