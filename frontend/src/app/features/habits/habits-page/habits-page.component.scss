@@ -30,6 +30,15 @@
   font-size: var(--text-sm);
 }
 
+.habits-page__calendar-card {
+  margin-bottom: var(--space-4);
+}
+
+.habits-page__section-title {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-base);
+}
+
 .habits-page__error {
   margin: 0 0 var(--space-4);
   color: var(--penalty-ink);

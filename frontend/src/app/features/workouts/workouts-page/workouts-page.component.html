@@ -42,6 +42,13 @@
     </div>
   }
 
+  @if (todayDate()) {
+    <df-card class="workouts-page__calendar-card">
+      <h2 class="workouts-page__section-title">History</h2>
+      <df-month-calendar [today]="todayDate()!" [markedDates]="workoutDates()" markedLabel="workout logged" (cellSelected)="changeDate($event)" />
+    </df-card>
+  }
+
   @if (error(); as message) {
     <p class="workouts-page__error" role="alert">{{ message }}</p>
   }

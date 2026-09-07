@@ -4,18 +4,8 @@ import { ChevronLeft, ChevronRight, Dumbbell, Footprints, LucideAngularModule, M
 
 import { HomeApi } from '../../../core/home/home.api';
 import { DailySummary, DayState } from '../../../core/home/home.types';
+import { MonthGrid, buildMonths, formatCellDate, monthsAgoStart } from '../../../core/time/calendar-grid';
 import { LogicalDate } from '../../../core/time/logical-date';
-
-interface MonthGrid {
-  label: string;
-  /** Each week is 7 cells, Monday first; null holes pad the first/last week. */
-  weeks: (LogicalDate | null)[][];
-}
-
-const MONTH_NAMES = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
-];
 
 /**
  * One month in view at a time, current month by default, with Prev/Next arrows to page
@@ -157,54 +147,4 @@ export class HeatmapComponent {
       this.cellSelected.emit(date);
     }
   }
-}
-
-function formatCellDate(date: LogicalDate): string {
-  const [year, month, day] = date.split('-').map(Number);
-  return new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', timeZone: 'UTC' }).format(
-    new Date(Date.UTC(year, month - 1, day)),
-  );
-}
-
-/** The first day of the month `monthsBack` months before `date`'s month — presentation-only calendar math on an already-provided date. */
-function monthsAgoStart(date: LogicalDate, monthsBack: number): LogicalDate {
-  const [year, month] = date.split('-').map(Number);
-  const total = (year * 12 + (month - 1)) - monthsBack;
-  const y = Math.floor(total / 12);
-  const m = total % 12;
-  return `${y.toString().padStart(4, '0')}-${(m + 1).toString().padStart(2, '0')}-01`;
-}
-
-function buildMonths(today: LogicalDate): MonthGrid[] {
-  const [todayYear, todayMonth] = today.split('-').map(Number);
-  const months: MonthGrid[] = [];
-
-  for (let back = 11; back >= 0; back--) {
-    const total = todayYear * 12 + (todayMonth - 1) - back;
-    const year = Math.floor(total / 12);
-    const month = total % 12; // 0-indexed
-    months.push(buildMonth(year, month));
-  }
-  return months;
-}
-
-function buildMonth(year: number, month0: number): MonthGrid {
-  const daysInMonth = new Date(Date.UTC(year, month0 + 1, 0)).getUTCDate();
-  const firstWeekday = new Date(Date.UTC(year, month0, 1)).getUTCDay(); // 0=Sun..6=Sat
-  const mondayFirstOffset = (firstWeekday + 6) % 7; // 0=Mon..6=Sun
-
-  const dates: (LogicalDate | null)[] = new Array(mondayFirstOffset).fill(null);
-  for (let d = 1; d <= daysInMonth; d++) {
-    dates.push(`${year.toString().padStart(4, '0')}-${(month0 + 1).toString().padStart(2, '0')}-${d.toString().padStart(2, '0')}`);
-  }
-  while (dates.length % 7 !== 0) {
-    dates.push(null);
-  }
-
-  const weeks: (LogicalDate | null)[][] = [];
-  for (let i = 0; i < dates.length; i += 7) {
-    weeks.push(dates.slice(i, i + 7));
-  }
-
-  return { label: `${MONTH_NAMES[month0]} ${year}`, weeks };
 }

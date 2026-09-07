@@ -5,14 +5,17 @@ import { LucideAngularModule, Plus, Target } from 'lucide-angular';
 import { AuthSheetService } from '../../../core/auth/auth-sheet.service';
 import { SessionStore } from '../../../core/auth/session.store';
 import { HabitsApi } from '../../../core/habits/habits.api';
+import { HomeApi } from '../../../core/home/home.api';
 import { PointsStore } from '../../../core/points/points.store';
 import { Celebration } from '../../../core/points/points.types';
 import { Habit, HabitBoard } from '../../../core/habits/habits.types';
+import { monthsAgoStart } from '../../../core/time/calendar-grid';
 import { LogicalDate } from '../../../core/time/logical-date';
 import { DfButtonComponent } from '../../../shared/ui/df-button/df-button.component';
 import { DfCardComponent } from '../../../shared/ui/df-card/df-card.component';
 import { DfDateStepperComponent } from '../../../shared/ui/df-date-stepper/df-date-stepper.component';
 import { DfEmptyStateComponent } from '../../../shared/ui/df-empty-state/df-empty-state.component';
+import { DfMonthCalendarComponent } from '../../../shared/ui/df-month-calendar/df-month-calendar.component';
 import { DfSkeletonComponent } from '../../../shared/ui/df-skeleton/df-skeleton.component';
 import { ToastService } from '../../../shared/ui/df-toast/toast.service';
 import { CommitmentBonusSheetComponent } from '../commitment-bonus-sheet/commitment-bonus-sheet.component';
@@ -35,6 +38,7 @@ import { HabitRowComponent, HabitToggled } from '../habit-row/habit-row.componen
     DfCardComponent,
     DfDateStepperComponent,
     DfEmptyStateComponent,
+    DfMonthCalendarComponent,
     DfSkeletonComponent,
     CommitmentBonusSheetComponent,
     HabitFormSheetComponent,
@@ -46,6 +50,7 @@ import { HabitRowComponent, HabitToggled } from '../habit-row/habit-row.componen
 })
 export class HabitsPageComponent {
   private readonly api = inject(HabitsApi);
+  private readonly homeApi = inject(HomeApi);
   private readonly toasts = inject(ToastService);
   private readonly points = inject(PointsStore);
 
@@ -65,6 +70,21 @@ export class HabitsPageComponent {
   protected readonly formOpen = signal(false);
   protected readonly editingHabit = signal<Habit | null>(null);
   protected readonly commitmentSheetOpen = signal(false);
+
+  /** Days with at least one habit completed, for the page's own history calendar
+   * (owner feedback: "Habit calender is not built in habit page"). Green tone —
+   * habit-adherence is the one state the design system itself carves out as an
+   * exception to "earned is always warm" (see habit-row's own note). */
+  protected readonly habitDates = signal<ReadonlySet<LogicalDate>>(new Set());
+
+  private async loadHabitDates(today: LogicalDate): Promise<void> {
+    try {
+      const summaries = await firstValueFrom(this.homeApi.heatmap(monthsAgoStart(today, 11), today));
+      this.habitDates.set(new Set(summaries.filter((s) => s.hasHabitCompletion).map((s) => s.date)));
+    } catch {
+      // The calendar just shows nothing marked; the rest of the page still works.
+    }
+  }
 
   constructor() {
     // Anonymous browsing is real elsewhere in the app, but a habit board is entirely
@@ -95,6 +115,9 @@ export class HabitsPageComponent {
       ]);
       this.applyBoard(board);
       this.habitsList.set(list);
+      if (this.todayDate()) {
+        void this.loadHabitDates(this.todayDate()!);
+      }
     } catch {
       this.error.set('Could not load your habits. Check your connection and try again.');
     } finally {
@@ -179,6 +202,9 @@ export class HabitsPageComponent {
     });
 
     await this.refreshBoard();
+    if (this.todayDate()) {
+      void this.loadHabitDates(this.todayDate()!);
+    }
   }
 
   private async undoToggle(habitId: string, checked: boolean): Promise<void> {

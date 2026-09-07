@@ -1,0 +1,51 @@
+<div class="month-calendar" [class.month-calendar--done-tone]="tone() === 'done'" role="group" aria-label="Calendar">
+  @if (viewedMonth(); as month) {
+    <div class="month-calendar__nav">
+      <button
+        type="button"
+        class="month-calendar__nav-arrow"
+        [disabled]="!canGoOlder()"
+        aria-label="Previous month"
+        (click)="olderMonth()"
+      >
+        <lucide-icon [img]="prevIcon" [size]="18" aria-hidden="true" />
+      </button>
+      <h3 class="month-calendar__title">{{ month.label }}</h3>
+      <button
+        type="button"
+        class="month-calendar__nav-arrow"
+        [disabled]="!canGoNewer()"
+        aria-label="Next month"
+        (click)="newerMonth()"
+      >
+        <lucide-icon [img]="nextIcon" [size]="18" aria-hidden="true" />
+      </button>
+    </div>
+
+    <div class="month-calendar__weekdays" aria-hidden="true">
+      <span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span>
+    </div>
+    @for (week of month.weeks; track $index) {
+      <div class="month-calendar__week">
+        @for (date of week; track date ?? $index) {
+          @if (date) {
+            <button
+              type="button"
+              class="month-calendar__cell"
+              [class.month-calendar__cell--marked]="isMarked(date)"
+              [attr.aria-label]="ariaLabel(date)"
+              (click)="select(date)"
+            >
+              <span class="month-calendar__day-number" aria-hidden="true">{{ dayNumber(date) }}</span>
+              @if (isMarked(date)) {
+                <lucide-icon class="month-calendar__glyph" [img]="checkIcon" [size]="12" aria-hidden="true" />
+              }
+            </button>
+          } @else {
+            <span class="month-calendar__cell month-calendar__cell--pad" aria-hidden="true"></span>
+          }
+        }
+      </div>
+    }
+  }
+</div>

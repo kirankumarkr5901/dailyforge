@@ -1,0 +1,103 @@
+.month-calendar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.month-calendar__nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.month-calendar__nav-arrow {
+  display: grid;
+  place-items: center;
+  min-width: var(--tap-min);
+  min-height: var(--tap-min);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-control);
+  background: var(--surface-raised);
+  color: var(--ink);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.month-calendar__nav-arrow:hover:not(:disabled) {
+  background: var(--surface-sunken);
+}
+
+.month-calendar__nav-arrow:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+.month-calendar__nav-arrow:disabled {
+  color: var(--ink-faint);
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.month-calendar__title {
+  margin: 0;
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.month-calendar__weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: var(--space-1);
+  color: var(--ink-faint);
+  font-size: var(--text-xs);
+  text-align: center;
+}
+
+.month-calendar__week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: var(--space-1);
+  margin-bottom: var(--space-1);
+}
+
+.month-calendar__cell {
+  position: relative;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: var(--radius-control);
+  background: var(--surface-sunken);
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.month-calendar__cell--pad {
+  background: transparent;
+  cursor: default;
+}
+
+.month-calendar__cell:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+.month-calendar__cell--marked {
+  background: var(--heat-2);
+  color: var(--ink-on-solid);
+}
+
+.month-calendar--done-tone .month-calendar__cell--marked {
+  background: var(--done);
+  color: var(--ink-on-solid);
+}
+
+.month-calendar__glyph {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+}

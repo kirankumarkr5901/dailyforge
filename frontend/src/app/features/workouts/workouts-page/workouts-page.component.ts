@@ -6,8 +6,10 @@ import { LucideAngularModule, Plus, Settings2, Target } from 'lucide-angular';
 import { AuthSheetService } from '../../../core/auth/auth-sheet.service';
 import { PendingActionService } from '../../../core/auth/pending-action.service';
 import { SessionStore } from '../../../core/auth/session.store';
+import { HomeApi } from '../../../core/home/home.api';
 import { PointsStore } from '../../../core/points/points.store';
 import { Celebration } from '../../../core/points/points.types';
+import { monthsAgoStart } from '../../../core/time/calendar-grid';
 import { LogicalDate } from '../../../core/time/logical-date';
 import { WorkoutsApi } from '../../../core/workouts/workouts.api';
 import {
@@ -25,6 +27,7 @@ import { DfSelectComponent, DfSelectOption } from '../../../shared/ui/df-select/
 import { DfSkeletonComponent } from '../../../shared/ui/df-skeleton/df-skeleton.component';
 import { DfCardComponent } from '../../../shared/ui/df-card/df-card.component';
 import { DfCelebrationComponent } from '../../../shared/ui/df-celebration/df-celebration.component';
+import { DfMonthCalendarComponent } from '../../../shared/ui/df-month-calendar/df-month-calendar.component';
 import { ToastService } from '../../../shared/ui/df-toast/toast.service';
 import { ExerciseCardComponent } from '../exercise-card/exercise-card.component';
 import { ExerciseHistorySheetComponent } from '../exercise-history-sheet/exercise-history-sheet.component';
@@ -49,6 +52,7 @@ import { RestTimerService } from '../rest-timer/rest-timer.service';
     DfCelebrationComponent,
     DfDateStepperComponent,
     DfEmptyStateComponent,
+    DfMonthCalendarComponent,
     DfSelectComponent,
     DfSkeletonComponent,
     ExerciseCardComponent,
@@ -64,6 +68,7 @@ import { RestTimerService } from '../rest-timer/rest-timer.service';
 })
 export class WorkoutsPageComponent {
   private readonly api = inject(WorkoutsApi);
+  private readonly homeApi = inject(HomeApi);
   private readonly points = inject(PointsStore);
   private readonly toasts = inject(ToastService);
   private readonly restTimer = inject(RestTimerService);
@@ -166,6 +171,21 @@ export class WorkoutsPageComponent {
     this.muscleFilter.set(group);
   }
 
+  /** Days with a logged workout, for the page's own history calendar (owner feedback:
+   * "Workout calendar is not built in the workout page") — the same daily-summary data
+   * the Home heatmap already reads, just filtered to hasWorkout and rendered as plain
+   * marked/unmarked instead of the heatmap's multi-state colouring. */
+  protected readonly workoutDates = signal<ReadonlySet<LogicalDate>>(new Set());
+
+  private async loadWorkoutDates(today: LogicalDate): Promise<void> {
+    try {
+      const summaries = await firstValueFrom(this.homeApi.heatmap(monthsAgoStart(today, 11), today));
+      this.workoutDates.set(new Set(summaries.filter((s) => s.hasWorkout).map((s) => s.date)));
+    } catch {
+      // The calendar just shows nothing marked; the rest of the page still works.
+    }
+  }
+
   constructor() {
     let wasAuthenticated = false;
     effect(() => {
@@ -191,6 +211,9 @@ export class WorkoutsPageComponent {
       const active = plans.find((p) => p.isActive) ?? plans[0] ?? null;
       this.selectedPlanId.set(active?.id ?? null);
       await this.refreshSession();
+      if (this.todayDate()) {
+        void this.loadWorkoutDates(this.todayDate()!);
+      }
     } catch {
       this.error.set('Could not load your workouts. Check your connection and try again.');
     } finally {
@@ -283,6 +306,9 @@ export class WorkoutsPageComponent {
     const wasEditing = this.editingSet() !== null;
     this.closeLogSheet();
     await this.refreshSession();
+    if (this.todayDate()) {
+      void this.loadWorkoutDates(this.todayDate()!);
+    }
 
     if (!wasEditing) {
       this.restTimer.start();

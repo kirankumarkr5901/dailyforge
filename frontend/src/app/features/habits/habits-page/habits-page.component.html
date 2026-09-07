@@ -37,6 +37,19 @@
     <p class="habits-page__error" role="alert">{{ message }}</p>
   }
 
+  @if (todayDate()) {
+    <df-card class="habits-page__calendar-card">
+      <h2 class="habits-page__section-title">History</h2>
+      <df-month-calendar
+        [today]="todayDate()!"
+        [markedDates]="habitDates()"
+        markedLabel="habit completed"
+        tone="done"
+        (cellSelected)="changeDate($event)"
+      />
+    </df-card>
+  }
+
   @if (board(); as current) {
     @if (current.bonusHint && viewedDate() === todayDate()) {
       <df-card class="habits-page__hint" elevation="raised">{{ current.bonusHint }}</df-card>
