@@ -68,6 +68,9 @@
 :host(.df-chip--equip-machine) {
   --_ink: var(--equip-machine);
 }
+:host(.df-chip--equip-cable) {
+  --_ink: var(--equip-cable);
+}
 :host(.df-chip--equip-bodyweight) {
   --_ink: var(--equip-bodyweight);
 }

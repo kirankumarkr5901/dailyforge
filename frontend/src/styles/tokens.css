@@ -93,6 +93,7 @@
   --equip-machine: #6b5a78;
   --equip-bodyweight: #5e6b72;
   --equip-cardio: #3f6c7a;
+  --equip-cable: #55628f;
 
   /* Selection and caret: browser surfaces belong to the design system too. */
   --selection-bg: rgba(58 110 165 / 0.22);
@@ -162,6 +163,7 @@
     --equip-machine: #9e8dab;
     --equip-bodyweight: #919ea5;
     --equip-cardio: #729fad;
+    --equip-cable: #8d97c4;
 
     --selection-bg: rgba(76 154 255 / 0.3);
     --selection-ink: var(--ink);

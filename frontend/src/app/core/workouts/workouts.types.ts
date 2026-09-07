@@ -4,7 +4,7 @@ import { LogicalDate } from '../time/logical-date';
 import { PointsEnvelope } from '../points/points.types';
 
 export type ExerciseKind = 'STRENGTH' | 'CARDIO';
-export type Equipment = 'DUMBBELL' | 'BARBELL' | 'BODYWEIGHT' | 'MACHINE' | 'NONE';
+export type Equipment = 'DUMBBELL' | 'BARBELL' | 'BODYWEIGHT' | 'MACHINE' | 'CABLE' | 'NONE';
 export type WeightMode = 'SINGLE' | 'COMBINED';
 
 export interface Exercise {

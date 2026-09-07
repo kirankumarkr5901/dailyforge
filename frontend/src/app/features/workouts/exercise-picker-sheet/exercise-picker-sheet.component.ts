@@ -12,8 +12,28 @@ import { DfSelectComponent, DfSelectOption } from '../../../shared/ui/df-select/
 import { DfSheetComponent } from '../../../shared/ui/df-sheet/df-sheet.component';
 import { equipmentLabel, equipmentTone } from '../equipment-tone';
 
-/** Matches the catalog seed's own vocabulary (V6__seed_exercise_catalog.sql). */
-const MUSCLE_GROUPS = ['chest', 'back', 'shoulders', 'arms', 'legs', 'glutes', 'core'] as const;
+/**
+ * Every main muscle group a gym exercise typically targets — split out from the
+ * broader groupings the catalog seed still uses (V6__seed_exercise_catalog.sql: "arms"
+ * for a pull-up, "legs" for a squat) so a card can say "biceps" or "quads" specifically
+ * rather than only the broad limb it belongs to.
+ */
+const MUSCLE_GROUPS = [
+  'chest',
+  'back',
+  'lats',
+  'traps',
+  'shoulders',
+  'biceps',
+  'triceps',
+  'forearms',
+  'core',
+  'obliques',
+  'quads',
+  'hamstrings',
+  'glutes',
+  'calves',
+] as const;
 
 /**
  * "A search field that suggests from the shared catalog as the user types, with
@@ -69,6 +89,7 @@ export class ExercisePickerSheetComponent {
     { value: 'BARBELL', label: 'Barbell' },
     { value: 'DUMBBELL', label: 'Dumbbell' },
     { value: 'MACHINE', label: 'Machine' },
+    { value: 'CABLE', label: 'Cable' },
     { value: 'BODYWEIGHT', label: 'Bodyweight' },
     { value: 'NONE', label: 'None' },
   ];
