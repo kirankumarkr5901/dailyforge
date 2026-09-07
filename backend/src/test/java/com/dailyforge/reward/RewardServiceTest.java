@@ -11,6 +11,7 @@ import com.dailyforge.points.domain.PointsCategory;
 import com.dailyforge.points.domain.PointsService;
 import com.dailyforge.reward.domain.Reward;
 import com.dailyforge.reward.domain.RewardService;
+import com.dailyforge.reward.domain.RewardTier;
 import com.dailyforge.testsupport.TestUsers;
 import java.time.LocalDate;
 import java.util.UUID;
@@ -48,7 +49,7 @@ class RewardServiceTest {
         setToday(TODAY);
         UUID user = TestUsers.create(users, settings);
         grant(user, 500);
-        Reward reward = rewardService.create(user, "Movie night", 300, "clapperboard", true, null);
+        Reward reward = rewardService.create(user, "Movie night", 300, "clapperboard", RewardTier.MICRO, true, null);
 
         var result = rewardService.redeem(reward.getId(), user);
 
@@ -61,7 +62,7 @@ class RewardServiceTest {
         setToday(TODAY);
         UUID user = TestUsers.create(users, settings);
         grant(user, 340);
-        Reward reward = rewardService.create(user, "Expensive thing", 500, "gift", true, null);
+        Reward reward = rewardService.create(user, "Expensive thing", 500, "gift", RewardTier.MICRO, true, null);
 
         assertThatThrownBy(() -> rewardService.redeem(reward.getId(), user))
                 .isInstanceOf(ApiException.class)
@@ -74,7 +75,7 @@ class RewardServiceTest {
         setToday(TODAY);
         UUID user = TestUsers.create(users, settings);
         grant(user, 1000);
-        Reward reward = rewardService.create(user, "One-time treat", 100, "star", false, null);
+        Reward reward = rewardService.create(user, "One-time treat", 100, "star", RewardTier.MICRO, false, null);
 
         var first = rewardService.redeem(reward.getId(), user);
         assertThatThrownBy(() -> rewardService.redeem(reward.getId(), user)).isInstanceOf(ApiException.class);
@@ -89,7 +90,7 @@ class RewardServiceTest {
         setToday(TODAY);
         UUID user = TestUsers.create(users, settings);
         grant(user, 1000);
-        Reward reward = rewardService.create(user, "Limited edition", 50, "star", true, 1);
+        Reward reward = rewardService.create(user, "Limited edition", 50, "star", RewardTier.MICRO, true, 1);
 
         rewardService.redeem(reward.getId(), user);
 
@@ -101,7 +102,7 @@ class RewardServiceTest {
         setToday(TODAY);
         UUID user = TestUsers.create(users, settings);
         grant(user, 1000);
-        Reward reward = rewardService.create(user, "Snack", 50, "cookie", true, 3);
+        Reward reward = rewardService.create(user, "Snack", 50, "cookie", RewardTier.MICRO, true, 3);
 
         var redeemed = rewardService.redeem(reward.getId(), user);
         assertThat(redeemed.points().newTotal()).isEqualTo(950);
@@ -118,7 +119,7 @@ class RewardServiceTest {
         setToday(TODAY);
         UUID user = TestUsers.create(users, settings);
         grant(user, 1000);
-        Reward reward = rewardService.create(user, "Snack", 50, "cookie", true, null);
+        Reward reward = rewardService.create(user, "Snack", 50, "cookie", RewardTier.MICRO, true, null);
         var redeemed = rewardService.redeem(reward.getId(), user);
 
         setToday(TODAY.plusDays(1));
@@ -130,7 +131,7 @@ class RewardServiceTest {
     void oneUserCannotReachAnotherUsersReward() {
         UUID userA = TestUsers.create(users, settings);
         UUID userB = TestUsers.create(users, settings);
-        Reward reward = rewardService.create(userA, "A's reward", 10, "star", true, null);
+        Reward reward = rewardService.create(userA, "A's reward", 10, "star", RewardTier.MICRO, true, null);
 
         assertThatThrownBy(() -> rewardService.requireOwned(reward.getId(), userB)).isInstanceOf(ApiException.class);
     }

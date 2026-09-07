@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { Gift, LucideAngularModule, Plus, Trash2 } from 'lucide-angular';
 
@@ -6,7 +6,7 @@ import { AuthSheetService } from '../../../core/auth/auth-sheet.service';
 import { SessionStore } from '../../../core/auth/session.store';
 import { PointsStore } from '../../../core/points/points.store';
 import { RewardApi } from '../../../core/reward/reward.api';
-import { Reward } from '../../../core/reward/reward.types';
+import { Reward, RewardTier } from '../../../core/reward/reward.types';
 import { DfButtonComponent } from '../../../shared/ui/df-button/df-button.component';
 import { DfCardComponent } from '../../../shared/ui/df-card/df-card.component';
 import { DfEmptyStateComponent } from '../../../shared/ui/df-empty-state/df-empty-state.component';
@@ -56,6 +56,24 @@ export class RewardsPageComponent {
   protected readonly rewards = signal<Reward[]>([]);
   protected readonly formOpen = signal(false);
   protected readonly redeemingId = signal<string | null>(null);
+
+  private static readonly TIER_ORDER: readonly RewardTier[] = ['MICRO', 'WEEKLY', 'MONTHLY'];
+  private static readonly TIER_LABELS: Record<RewardTier, string> = {
+    MICRO: 'Micro — daily',
+    WEEKLY: 'Weekly',
+    MONTHLY: 'Monthly',
+  };
+
+  /** Three sections, owner feedback's own order — a small daily treat first, a monthly
+   * splurge last. A tier with nothing in it is skipped rather than shown empty. */
+  protected readonly tierSections = computed<{ tier: RewardTier; label: string; rewards: Reward[] }[]>(() => {
+    const all = this.rewards();
+    return RewardsPageComponent.TIER_ORDER.map((tier) => ({
+      tier,
+      label: RewardsPageComponent.TIER_LABELS[tier],
+      rewards: all.filter((r) => r.tier === tier),
+    })).filter((section) => section.rewards.length > 0);
+  });
 
   constructor() {
     let wasAuthenticated = false;

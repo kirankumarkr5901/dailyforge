@@ -74,7 +74,7 @@ class RewardControllerIntegrationTest {
                                         .header("Authorization", "Bearer " + access)
                                         .contentType(MediaType.APPLICATION_JSON)
                                         .content("""
-                                                {"name":"Big prize","cost":500,"icon":"gift","isRepeatable":true}
+                                                {"name":"Big prize","cost":500,"icon":"gift","tier":"WEEKLY","isRepeatable":true}
                                                 """))
                         .andExpect(status().isCreated())
                         .andReturn()
@@ -100,7 +100,7 @@ class RewardControllerIntegrationTest {
                                         .header("Authorization", "Bearer " + userA)
                                         .contentType(MediaType.APPLICATION_JSON)
                                         .content("""
-                                                {"name":"A's reward","cost":10,"icon":"star","isRepeatable":true}
+                                                {"name":"A's reward","cost":10,"icon":"star","tier":"MICRO","isRepeatable":true}
                                                 """))
                         .andReturn()
                         .getResponse()

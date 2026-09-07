@@ -42,7 +42,14 @@ public class RewardController {
     @ResponseStatus(HttpStatus.CREATED)
     public RewardResponse create(@Valid @RequestBody CreateRewardRequest request) {
         var reward =
-                rewardService.create(currentUser.require(), request.name().trim(), request.cost(), request.icon(), request.isRepeatable(), request.stock());
+                rewardService.create(
+                        currentUser.require(),
+                        request.name().trim(),
+                        request.cost(),
+                        request.icon(),
+                        request.tier(),
+                        !Boolean.FALSE.equals(request.isRepeatable()),
+                        request.stock());
         return RewardResponse.of(reward);
     }
 

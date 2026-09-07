@@ -2,11 +2,14 @@
 
 import { PointsEnvelope } from '../points/points.types';
 
+export type RewardTier = 'MICRO' | 'WEEKLY' | 'MONTHLY';
+
 export interface Reward {
   id: string;
   name: string;
   cost: number;
   icon: string;
+  tier: RewardTier;
   isRepeatable: boolean;
   stock: number | null;
 }
@@ -15,6 +18,7 @@ export interface CreateRewardPayload {
   name: string;
   cost: number;
   icon: string;
+  tier: RewardTier;
   isRepeatable: boolean;
   stock?: number;
 }

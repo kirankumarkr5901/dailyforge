@@ -33,42 +33,45 @@
       <button dfButton type="button" variant="primary" (click)="openForm()">New reward</button>
     </df-empty-state>
   } @else {
-    <div class="rewards-page__list">
-      @for (reward of rewards(); track reward.id) {
-        <df-card>
-          <div class="rewards-page__reward-header">
-            <div>
-              <h3 class="rewards-page__reward-name">{{ reward.name }}</h3>
-              <span class="rewards-page__reward-cost">{{ reward.cost }} pts</span>
-              @if (reward.stock !== null) {
-                <span class="rewards-page__reward-stock">{{ reward.stock }} left</span>
-              }
+    @for (section of tierSections(); track section.tier) {
+      <h2 class="rewards-page__tier-title">{{ section.label }}</h2>
+      <div class="rewards-page__list">
+        @for (reward of section.rewards; track reward.id) {
+          <df-card>
+            <div class="rewards-page__reward-header">
+              <div>
+                <h3 class="rewards-page__reward-name">{{ reward.name }}</h3>
+                <span class="rewards-page__reward-cost">{{ reward.cost }} pts</span>
+                @if (reward.stock !== null) {
+                  <span class="rewards-page__reward-stock">{{ reward.stock }} left</span>
+                }
+              </div>
+              <button
+                dfIconButton
+                type="button"
+                label="Remove this reward"
+                variant="ghost"
+                [icon]="deleteIcon"
+                (click)="archive(reward)"
+              ></button>
             </div>
-            <button
-              dfIconButton
-              type="button"
-              label="Remove this reward"
-              variant="ghost"
-              [icon]="deleteIcon"
-              (click)="archive(reward)"
-            ></button>
-          </div>
 
-          <button
-            dfButton
-            type="button"
-            variant="primary"
-            [fullWidth]="true"
-            [loading]="redeemingId() === reward.id"
-            [disabled]="!canAfford(reward) || redeemingId() === reward.id"
-            [attr.title]="!canAfford(reward) ? redeemReason(reward) : null"
-            (click)="redeem(reward)"
-          >
-            {{ canAfford(reward) ? 'Redeem' : redeemReason(reward) }}
-          </button>
-        </df-card>
-      }
-    </div>
+            <button
+              dfButton
+              type="button"
+              variant="primary"
+              [fullWidth]="true"
+              [loading]="redeemingId() === reward.id"
+              [disabled]="!canAfford(reward) || redeemingId() === reward.id"
+              [attr.title]="!canAfford(reward) ? redeemReason(reward) : null"
+              (click)="redeem(reward)"
+            >
+              {{ canAfford(reward) ? 'Redeem' : redeemReason(reward) }}
+            </button>
+          </df-card>
+        }
+      </div>
+    }
   }
 }
 
