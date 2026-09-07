@@ -48,4 +48,6 @@ export interface ScoreSnapshot {
   thisWeek: number;
   thisMonth: number;
   byCategory: Record<PointsCategory, number>;
+  byCategoryToday: Record<PointsCategory, number>;
+  byCategoryWeek: Record<PointsCategory, number>;
 }

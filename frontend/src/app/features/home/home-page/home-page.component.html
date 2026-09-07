@@ -29,28 +29,39 @@
         }
 
         <df-card class="home-page__score">
-          <div class="home-page__score-header">
-            <span class="home-page__score-label">Total score</span>
-            <df-score-pill [total]="points.total()" />
-          </div>
-
-          <div class="home-page__score-periods">
-            <div>
+          <div class="home-page__score-periods" role="group" aria-label="Score period">
+            <button
+              type="button"
+              class="home-page__period"
+              [class.home-page__period--selected]="selectedPeriod() === 'today'"
+              (click)="setPeriod('today')"
+            >
               <span class="home-page__period-label">Today</span>
               <span class="home-page__period-value">{{ home.score.today }}</span>
-            </div>
-            <div>
+            </button>
+            <button
+              type="button"
+              class="home-page__period"
+              [class.home-page__period--selected]="selectedPeriod() === 'thisWeek'"
+              (click)="setPeriod('thisWeek')"
+            >
               <span class="home-page__period-label">This week</span>
               <span class="home-page__period-value">{{ home.score.thisWeek }}</span>
-            </div>
-            <div>
+            </button>
+            <button
+              type="button"
+              class="home-page__period"
+              [class.home-page__period--selected]="selectedPeriod() === 'thisMonth'"
+              (click)="setPeriod('thisMonth')"
+            >
               <span class="home-page__period-label">This month</span>
               <span class="home-page__period-value">{{ home.score.thisMonth }}</span>
-            </div>
+            </button>
           </div>
 
           @if (categoryBreakdown().length > 0) {
             <div class="home-page__breakdown">
+              <span class="home-page__breakdown-title">{{ periodLabel() }} by category</span>
               <div class="home-page__bar">
                 @for (pair of categoryBreakdown(); track pair[0]) {
                   <span class="home-page__bar-segment" [style.width]="barWidth(pair[1])"></span>
@@ -67,6 +78,27 @@
             </div>
           }
         </df-card>
+
+        @if (activeGoals().length > 0) {
+          <df-card class="home-page__goals">
+            <h2 class="home-page__section-title">Active goals</h2>
+            <ul class="home-page__goal-list">
+              @for (goal of activeGoals(); track goal.id) {
+                <li class="home-page__goal">
+                  <div class="home-page__goal-header">
+                    <span class="home-page__goal-title">{{ goal.title }}</span>
+                    <span class="home-page__goal-reward">+{{ goal.rewardPoints }} pts</span>
+                  </div>
+                  @if (goal.kind !== 'CUSTOM') {
+                    <div class="home-page__goal-track">
+                      <div class="home-page__goal-fill" [style.width.%]="goal.progressFraction * 100"></div>
+                    </div>
+                  }
+                </li>
+              }
+            </ul>
+          </df-card>
+        }
       </div>
 
       <div class="home-page__col-side">

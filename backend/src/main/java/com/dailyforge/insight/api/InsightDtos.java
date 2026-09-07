@@ -5,6 +5,7 @@ import com.dailyforge.insight.domain.DailySummaryService.CategoryGroup;
 import com.dailyforge.insight.domain.DayState;
 import com.dailyforge.insight.domain.HomeSummaryService.HomeSummary;
 import com.dailyforge.insight.domain.Quote;
+import com.dailyforge.goal.api.GoalDtos.GoalResponse;
 import com.dailyforge.points.api.PointsDtos.LedgerEntryResponse;
 import com.dailyforge.points.api.PointsDtos.SnapshotResponse;
 import com.dailyforge.points.domain.PointsCategory;
@@ -24,12 +25,17 @@ public final class InsightDtos {
     }
 
     public record HomeSummaryResponse(
-            LocalDate date, QuoteResponse quote, SnapshotResponse score, List<LedgerEntryResponse> recentLedger) {
+            LocalDate date,
+            QuoteResponse quote,
+            SnapshotResponse score,
+            List<GoalResponse> activeGoals,
+            List<LedgerEntryResponse> recentLedger) {
         public static HomeSummaryResponse of(HomeSummary summary) {
             return new HomeSummaryResponse(
                     summary.date(),
                     QuoteResponse.of(summary.quote()),
                     SnapshotResponse.of(summary.score()),
+                    summary.activeGoals().stream().map(GoalResponse::of).toList(),
                     summary.recentLedger().stream().map(LedgerEntryResponse::of).toList());
         }
     }

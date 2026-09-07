@@ -306,11 +306,15 @@ public class PointsServiceImpl implements PointsService {
         int monthTotal = entries.sumAmountBetween(userId, monthStart, today);
 
         Map<PointsCategory, Integer> byCategory = new EnumMap<>(PointsCategory.class);
+        Map<PointsCategory, Integer> byCategoryToday = new EnumMap<>(PointsCategory.class);
+        Map<PointsCategory, Integer> byCategoryWeek = new EnumMap<>(PointsCategory.class);
         for (PointsCategory category : PointsCategory.values()) {
             byCategory.put(category, entries.sumAmountByCategoryBetween(userId, category, monthStart, today));
+            byCategoryToday.put(category, entries.sumAmountByCategoryBetween(userId, category, today, today));
+            byCategoryWeek.put(category, entries.sumAmountByCategoryBetween(userId, category, weekStart, today));
         }
 
-        return new ScoreSnapshot(total, todayTotal, weekTotal, monthTotal, byCategory);
+        return new ScoreSnapshot(total, todayTotal, weekTotal, monthTotal, byCategory, byCategoryToday, byCategoryWeek);
     }
 
     @Override

@@ -107,8 +107,16 @@
   color: var(--ink-on-solid);
 }
 
+/* A 10px glyph tucked into a 1px corner inset was effectively invisible at a glance —
+ * bumped in the template to 14px, and a small solid backdrop guarantees contrast here
+ * regardless of the cell's own heat colour, rather than relying on `currentColor`
+ * happening to read against whatever background that heat step painted. */
 .heatmap__glyph {
   position: absolute;
-  bottom: 1px;
-  right: 1px;
+  bottom: 2px;
+  right: 2px;
+  padding: 1px;
+  border-radius: 3px;
+  background: color-mix(in oklab, var(--surface) 55%, transparent);
+  color: var(--ink-on-solid);
 }
