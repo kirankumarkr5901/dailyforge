@@ -1,0 +1,6 @@
+# Angular owns the routing, so every path has to reach index.html or a hard refresh on
+# /habits is a 404 from the CDN.
+#
+# Read by Cloudflare Pages and by Netlify alike (netlify.toml's own rule takes
+# precedence there), so this file works on either host without a change.
+/*    /index.html   200
