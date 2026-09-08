@@ -57,3 +57,12 @@
   text-decoration: underline;
   text-underline-offset: 0.18em;
 }
+
+/* Attribution, not a control: it sits below the mode switch and stays out of the way of
+   the task, which is signing in. */
+.auth__credit {
+  margin: var(--space-4) 0 0;
+  color: var(--ink-faint);
+  font-size: var(--text-xs);
+  text-align: center;
+}
