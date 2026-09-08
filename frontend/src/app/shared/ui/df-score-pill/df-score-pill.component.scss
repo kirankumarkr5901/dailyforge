@@ -28,6 +28,13 @@
     color var(--duration-base) var(--ease-out);
 }
 
+/* Nothing earned yet. The pill sits in the cold system with everything else, which is
+ * what makes the first award visible as a change rather than a shade. */
+:host([data-heat='0']) {
+  --_heat-ink: var(--ink);
+  --_heat-solid: var(--line-strong);
+}
+
 :host([data-heat='1']) {
   --_heat-ink: var(--heat-ink-1);
   --_heat-solid: var(--heat-1);

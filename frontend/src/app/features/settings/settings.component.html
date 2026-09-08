@@ -1,0 +1,74 @@
+<h1 class="page__title">{{ 'settings.title' | t }}</h1>
+
+<section class="page__section">
+  <h2 class="page__heading">{{ 'settings.appearance' | t }}</h2>
+  <df-card>
+    <div class="stack">
+      <df-select
+        [label]="'settings.theme' | t"
+        [options]="themeOptions"
+        [ngModel]="theme.choice()"
+        (ngModelChange)="setTheme($event)"
+      />
+
+      <df-select
+        [label]="'settings.motion' | t"
+        [options]="motionOptions"
+        hint="Reduced removes every celebration animation. The points still change."
+        [ngModel]="motion.choice()"
+        (ngModelChange)="setMotion($event)"
+      />
+    </div>
+  </df-card>
+</section>
+
+@if (session.isAuthenticated()) {
+  <section class="page__section">
+    <h2 class="page__heading">{{ 'settings.account' | t }}</h2>
+    <df-card>
+      <div class="stack">
+        <df-select
+          [label]="'settings.timeZone' | t"
+          [options]="timeZoneOptions()"
+          [hint]="'settings.timeZoneHint' | t"
+          [ngModel]="currentTimeZone()"
+          (ngModelChange)="setTimeZone($event)"
+        />
+
+        <df-select
+          [label]="'settings.units' | t"
+          [options]="unitOptions"
+          [ngModel]="currentUnits()"
+          (ngModelChange)="setUnits($event)"
+        />
+
+        <dl class="account">
+          <dt>Signed in as</dt>
+          <dd>{{ session.user()?.email }}</dd>
+          <dt>Sign-in methods</dt>
+          <dd>
+            {{ session.user()?.hasPassword ? 'Password' : '' }}
+            {{ session.user()?.hasPassword && session.user()?.googleLinked ? ' · ' : '' }}
+            {{ session.user()?.googleLinked ? 'Google' : '' }}
+          </dd>
+        </dl>
+
+        <button dfButton type="button" variant="secondary" (click)="signOut()">
+          {{ 'auth.signOut' | t }}
+        </button>
+      </div>
+    </df-card>
+  </section>
+} @else {
+  <section class="page__section">
+    <df-empty-state
+      [icon]="settingsIcon"
+      [title]="'auth.anonymous.title' | t"
+      [body]="'auth.anonymous.body' | t"
+    >
+      <button dfButton type="button" variant="primary" (click)="signIn()">
+        {{ 'auth.signIn' | t }}
+      </button>
+    </df-empty-state>
+  </section>
+}

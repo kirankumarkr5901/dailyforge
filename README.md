@@ -10,11 +10,15 @@ A manual-logging fitness and habit tracker where every logged action becomes poi
 
 ## Status
 
-**M0 — Foundations. Complete.**
+**M0 — Foundations. Complete.** Monorepo, both scaffolds, the Flyway baseline for the points ledger, the design token system with theme and motion switching, fifteen UI primitives, and the gallery that proves them.
 
-Monorepo, both scaffolds, the Flyway baseline for the points ledger, the design token system with theme and motion switching, fifteen UI primitives, and the gallery that proves them. Nothing talks to a server yet; M1 brings identity.
+**M1 — Identity and shell. Complete.** Signup, login, refresh with token rotation, logout and settings. The app shell with header, bottom navigation, drawer and a desktop rail. Anonymous browsing, with any write answering `AUTH_REQUIRED` so the sign-in sheet can open and replay the action afterwards.
 
-Milestones M1–M9 are listed in spec §11.
+Google sign-in is built but **dark by default**: it appears only when `GOOGLE_CLIENT_ID` is set, and the API says so at `/api/v1/auth/capabilities`. No code change is needed to switch it on — see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) §1d.
+
+Screens for M3–M7 are routed to a placeholder naming the milestone that builds them, so the navigation is real and testable now.
+
+Milestones M2–M9 are listed in spec §11. **M2 is the points engine — the project's spine.**
 
 ## Requirements
 
@@ -38,6 +42,15 @@ npm start
 ```
 
 The frontend proxies `/api` to the backend, so there is no CORS in development and no hostname is hardcoded anywhere.
+
+### Environment variables
+
+| Variable | Needed | Notes |
+|---|---|---|
+| `DAILYFORGE_AUTH_JWT_SECRET` | Deployed environments | At least 32 bytes. The app refuses to start on anything shorter, because a short HMAC key is a forgeable one. Local dev has a throwaway default. |
+| `GOOGLE_CLIENT_ID` | Only for Google sign-in | Blank disables the feature cleanly rather than half-enabling a broken button. |
+| `DATABASE_URL`, `DATABASE_USERNAME`, `DATABASE_PASSWORD` | Staging and production | PostgreSQL. Unused locally. |
+| `CORS_ALLOWED_ORIGINS` | Staging and production | Exact origins, never a wildcard. |
 
 Open **http://localhost:4200/dev/ui** for the design gallery: every primitive, every state, with theme, motion and width switches in the bar at the top.
 

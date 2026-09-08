@@ -1,0 +1,130 @@
+import {
+  HttpErrorResponse,
+  HttpEvent,
+  HttpHandlerFn,
+  HttpInterceptorFn,
+  HttpRequest,
+} from '@angular/common/http';
+import { inject } from '@angular/core';
+import { Observable, catchError, filter, from, switchMap, take, throwError } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
+import { environment } from '../../../environments/environment';
+import { ApiError, ApiErrorCode } from '../api/api.types';
+import { AuthApi, SKIP_AUTH_REFRESH } from './auth.api';
+import { AuthSheetService } from './auth-sheet.service';
+import { TokenStorage } from './token-storage';
+
+/**
+ * One refresh at a time, shared by every request that hits a 401 while it runs.
+ *
+ * Module scope rather than a service field so the state is genuinely global: five
+ * parallel requests expiring together must produce one refresh and four waiters, not
+ * five refreshes that invalidate each other through token rotation.
+ */
+let refreshing = false;
+const refreshed = new BehaviorSubject<string | null>(null);
+
+export const authInterceptor: HttpInterceptorFn = (request, next) => {
+  const storage = inject(TokenStorage);
+  const api = inject(AuthApi);
+  const sheet = inject(AuthSheetService);
+
+  const isOurApi = request.url.startsWith(environment.apiBaseUrl);
+  const skipRefresh = request.context.get(SKIP_AUTH_REFRESH);
+
+  const authed = isOurApi ? withToken(request, storage.read()?.accessToken) : request;
+
+  return next(authed).pipe(
+    catchError((error: unknown) => {
+      if (!(error instanceof HttpErrorResponse) || !isOurApi) {
+        return throwError(() => error);
+      }
+
+      const code = errorCodeOf(error);
+
+      // An expired access token is recoverable without involving the user at all.
+      if (error.status === 401 && !skipRefresh && storage.read() && code !== 'AUTH_REQUIRED') {
+        return retryAfterRefresh(request, next, storage, api, sheet);
+      }
+
+      // AUTH_REQUIRED means the visitor is genuinely anonymous and tried to write. This
+      // is the moment the login sheet opens and the action is held for replay.
+      if (error.status === 401 && code === 'AUTH_REQUIRED') {
+        sheet.open('write');
+      }
+
+      return throwError(() => error);
+    }),
+  );
+};
+
+function retryAfterRefresh(
+  request: HttpRequest<unknown>,
+  next: HttpHandlerFn,
+  storage: TokenStorage,
+  api: AuthApi,
+  sheet: AuthSheetService,
+): Observable<HttpEvent<unknown>> {
+  if (refreshing) {
+    // Wait for the in-flight refresh, then go again with whatever it produced.
+    return refreshed.pipe(
+      filter((token): token is string => token !== null),
+      take(1),
+      switchMap((token) => next(withToken(request, token))),
+    );
+  }
+
+  const tokens = storage.read();
+  if (!tokens) {
+    return throwError(() => new Error('No session to refresh'));
+  }
+
+  refreshing = true;
+  refreshed.next(null);
+
+  return from(
+    (async () => {
+      try {
+        const response = await firstValue(api.refresh(tokens.refreshToken));
+        storage.write({
+          accessToken: response.accessToken,
+          refreshToken: response.refreshToken,
+        });
+        refreshed.next(response.accessToken);
+        return response.accessToken;
+      } catch (error) {
+        // The refresh token is dead. Clear the session and ask for a sign-in rather than
+        // retrying forever against a session that no longer exists.
+        storage.clear();
+        sheet.open('expired');
+        throw error;
+      } finally {
+        refreshing = false;
+      }
+    })(),
+  ).pipe(switchMap((token) => next(withToken(request, token))));
+}
+
+function withToken(request: HttpRequest<unknown>, token: string | undefined): HttpRequest<unknown> {
+  return token
+    ? request.clone({ setHeaders: { Authorization: `Bearer ${token}` } })
+    : request;
+}
+
+function errorCodeOf(error: HttpErrorResponse): ApiErrorCode | null {
+  const body = error.error as ApiError | null;
+  return body && typeof body.code === 'string' ? body.code : null;
+}
+
+/** Local helper so this file does not depend on rxjs/firstValueFrom import ordering. */
+function firstValue<T>(source: Observable<T>): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const subscription = source.subscribe({
+      next: (value) => {
+        resolve(value);
+        subscription.unsubscribe();
+      },
+      error: reject,
+    });
+  });
+}

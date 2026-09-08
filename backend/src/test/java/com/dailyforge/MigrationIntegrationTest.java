@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Boots the application against in-memory H2 in PostgreSQL mode and proves the Flyway
@@ -55,17 +56,27 @@ class MigrationIntegrationTest {
         assertThat(rules).isGreaterThanOrEqualTo(17);
     }
 
+    /**
+     * Rolled back, and asserted on the specific row rather than a global count: the test
+     * profile shares one in-memory database across test classes, so any assertion about
+     * how many rows exist in total is really an assertion about test ordering.
+     */
     @Test
+    @Transactional
     void aUserMustHaveAtLeastOneCredential() {
         JdbcTemplate jdbc = new JdbcTemplate(dataSource);
+        String id = "11111111-1111-4111-8111-111111111111";
 
-        // Google-only and password-only are both valid; neither is not.
+        // Google-only is valid, as is password-only. Neither is not.
         jdbc.update(
                 "INSERT INTO app_user (id, email, password_hash, google_sub, display_name, status, created_at, updated_at)"
-                        + " VALUES ('11111111-1111-4111-8111-111111111111', 'a@example.com', NULL, 'google-123', 'A',"
-                        + " 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)");
+                        + " VALUES (?, 'migration-test@example.com', NULL, 'google-123', 'A',"
+                        + " 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
+                java.util.UUID.fromString(id));
 
-        Integer users = jdbc.queryForObject("SELECT COUNT(*) FROM app_user", Integer.class);
-        assertThat(users).isEqualTo(1);
+        Integer found =
+                jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM app_user WHERE google_sub = 'google-123'", Integer.class);
+        assertThat(found).isEqualTo(1);
     }
 }

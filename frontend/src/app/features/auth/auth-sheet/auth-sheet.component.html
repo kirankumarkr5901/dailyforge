@@ -1,0 +1,80 @@
+@let open = sheet.isOpen();
+
+<df-sheet
+  [open]="open"
+  (openChange)="$event ? null : sheet.close()"
+  [heading]="(isSignup() ? 'auth.createAccount' : 'auth.signIn') | t"
+>
+  <p class="auth__reason">{{ reasonKey() | t }}</p>
+
+  @if (capabilities().googleEnabled) {
+    <div class="auth__google" #googleSlot></div>
+
+    <div class="auth__divider">
+      <span>{{ 'auth.or' | t }}</span>
+    </div>
+  }
+
+  <form class="auth__form" [formGroup]="form" (ngSubmit)="submit()">
+    @if (isSignup()) {
+      <df-input
+        [label]="'auth.displayName' | t"
+        autocomplete="name"
+        formControlName="displayName"
+        [error]="
+          form.controls.displayName.touched && !form.controls.displayName.value.trim()
+            ? ('error.required' | t)
+            : null
+        "
+      />
+    }
+
+    <df-input
+      [label]="'auth.email' | t"
+      type="email"
+      autocomplete="email"
+      placeholder="you@example.com"
+      formControlName="email"
+      [error]="
+        form.controls.email.touched && form.controls.email.invalid
+          ? 'Enter a valid email address.'
+          : null
+      "
+    />
+
+    <df-input
+      [label]="'auth.password' | t"
+      type="password"
+      [autocomplete]="isSignup() ? 'new-password' : 'current-password'"
+      formControlName="password"
+      [hint]="isSignup() ? ('auth.passwordHint' | t) : null"
+      [error]="
+        form.controls.password.touched && form.controls.password.invalid
+          ? ('auth.passwordHint' | t)
+          : null
+      "
+    />
+
+    @if (formError(); as message) {
+      <!-- Announced, not just coloured: a failed sign-in a screen reader misses is a
+           dead end with no explanation. -->
+      <p class="auth__error" role="alert">{{ message }}</p>
+    }
+
+    <button
+      dfButton
+      type="submit"
+      variant="primary"
+      size="lg"
+      [fullWidth]="true"
+      [loading]="submitting()"
+      [disabled]="submitting()"
+    >
+      {{ (isSignup() ? 'auth.createAccount' : 'auth.signIn') | t }}
+    </button>
+  </form>
+
+  <button type="button" class="auth__switch" (click)="toggleMode()">
+    {{ (isSignup() ? 'auth.haveAccount' : 'auth.noAccount') | t }}
+  </button>
+</df-sheet>
