@@ -195,7 +195,11 @@ public final class WorkoutDtos {
             boolean isElite,
             PrResponse recentPr,
             PrResponse lifetimePr,
-            List<SetResponse> sets) {}
+            List<SetResponse> sets,
+            /** Only an exercise the viewer owns can be edited; the shared catalogue cannot. */
+            boolean ownedByMe,
+            /** Echoed back as If-Match when editing, so a stale device cannot overwrite. */
+            long version) {}
 
     public record SessionResponse(
             UUID id, LocalDate date, UUID planId, Integer dayIndex, boolean completed, List<ExerciseBoardEntry> exercises) {}

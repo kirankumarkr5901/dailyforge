@@ -41,7 +41,15 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
   const isOurApi = request.url.startsWith(environment.apiBaseUrl);
   const skipRefresh = request.context.get(SKIP_AUTH_REFRESH);
 
-  const authed = isOurApi ? withToken(request, storage.read()?.accessToken) : request;
+  // Never send a token to the endpoints whose whole job is issuing one.
+  //
+  // The token was attached to every call to our API, /auth/login included. Once an
+  // access token expired, Spring's resource server rejected it before the login handler
+  // ever ran — so signing in again failed with the same 401 that caused the problem,
+  // and the only escape was clearing site data. Locked out by the credential you were
+  // trying to replace.
+  const isAuthEndpoint = /\/auth\/(login|signup|refresh|google)/.test(request.url);
+  const authed = isOurApi && !isAuthEndpoint ? withToken(request, storage.read()?.accessToken) : request;
 
   return next(authed).pipe(
     catchError((error: unknown) => {
@@ -52,11 +60,17 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
       const code = errorCodeOf(error);
 
       // An expired access token is recoverable without involving the user at all.
-      if (error.status === 401 && !skipRefresh && storage.read() && code !== 'AUTH_REQUIRED') {
+      //
+      // The test is "do we hold a session?", not "which code came back". It used to
+      // exclude AUTH_REQUIRED, which the server returned for an expired token as well
+      // as for an anonymous one — so the refresh never ran and every session ended
+      // after fifteen minutes. The server now distinguishes the two, and this no longer
+      // depends on it getting that right.
+      if (error.status === 401 && !skipRefresh && !isAuthEndpoint && storage.read()) {
         return retryAfterRefresh(request, next, storage, api, sheet, session);
       }
 
-      // AUTH_REQUIRED means the visitor is genuinely anonymous and tried to write. This
+      // No stored session and a write was refused: a genuinely anonymous visitor. This
       // is the moment the login sheet opens and the action is held for replay.
       if (error.status === 401 && code === 'AUTH_REQUIRED') {
         sheet.open('write');

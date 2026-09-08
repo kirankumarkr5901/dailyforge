@@ -2,10 +2,27 @@
   <h1 class="workouts-page__title">Workout</h1>
 
   @if (session.isAuthenticated()) {
-    <button dfButton type="button" variant="ghost" (click)="openPlanManager()">
-      <lucide-icon [img]="settingsIcon" [size]="16" aria-hidden="true" />
-      Plans
-    </button>
+    <div class="workouts-page__header-actions">
+      <!-- Start a rest between sets you did not log through the app — a warm-up, a
+           superset's second half, or simply catching your breath. The timer used to
+           exist only as a consequence of logging a set, which meant no way to ask for
+           one. -->
+      <button
+        dfButton
+        type="button"
+        variant="ghost"
+        [attr.aria-label]="'Start a ' + restTimer.defaultSeconds() + ' second rest timer'"
+        (click)="startRest()"
+      >
+        <lucide-icon [img]="timerIcon" [size]="16" aria-hidden="true" />
+        {{ restTimer.defaultSeconds() }}s
+      </button>
+
+      <button dfButton type="button" variant="ghost" (click)="openPlanManager()">
+        <lucide-icon [img]="settingsIcon" [size]="16" aria-hidden="true" />
+        Plans
+      </button>
+    </div>
   }
 </div>
 

@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } 
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
-import { LucideAngularModule, Plus, Settings2, Target } from 'lucide-angular';
+import { LucideAngularModule, Plus, Settings2, Target, TimerReset } from 'lucide-angular';
 
 import { AuthSheetService } from '../../../core/auth/auth-sheet.service';
 import { PendingActionService } from '../../../core/auth/pending-action.service';
@@ -75,7 +75,7 @@ export class WorkoutsPageComponent {
   private readonly homeApi = inject(HomeApi);
   private readonly points = inject(PointsStore);
   private readonly toasts = inject(ToastService);
-  private readonly restTimer = inject(RestTimerService);
+  protected readonly restTimer = inject(RestTimerService);
   private readonly pendingAction = inject(PendingActionService);
 
   private readonly sync = inject(SyncStore);
@@ -84,6 +84,7 @@ export class WorkoutsPageComponent {
 
   protected readonly plusIcon = Plus;
   protected readonly settingsIcon = Settings2;
+  protected readonly timerIcon = TimerReset;
   protected readonly targetIcon = Target;
   /** Templates cannot call the global String() directly. */
   protected readonly String = String;
@@ -377,6 +378,26 @@ export class WorkoutsPageComponent {
       });
     } catch {
       this.toasts.show('Could not remove that set. Try again.', { tone: 'penalty' });
+    }
+  }
+
+  /**
+   * A rest asked for rather than triggered by logging a set.
+   *
+   * The first press is also where notification permission is requested — a press is a
+   * real gesture and the intent is unmistakable ("tell me when this ends"), which is
+   * the moment a permission prompt is least likely to be dismissed out of hand. Asking
+   * on page load instead would get it denied permanently, and the denial cannot be
+   * reversed from script.
+   */
+  protected async startRest(): Promise<void> {
+    this.restTimer.start();
+
+    if (this.restTimer.notificationPermission() === 'default') {
+      const outcome = await this.restTimer.requestNotificationPermission();
+      if (outcome === 'granted') {
+        this.toasts.show('You will be notified when a rest ends.');
+      }
     }
   }
 

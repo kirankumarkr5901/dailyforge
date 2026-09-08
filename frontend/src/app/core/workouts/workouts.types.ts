@@ -26,6 +26,15 @@ export interface CreateExercisePayload {
   isElite?: boolean;
 }
 
+/** Every field optional: a PATCH changes only what it names. */
+export interface UpdateExercisePayload {
+  name?: string;
+  kind?: ExerciseKind;
+  equipment?: Equipment;
+  muscleGroups?: string[];
+  isElite?: boolean;
+}
+
 export interface PlanExercise {
   id: string;
   exerciseId: string;

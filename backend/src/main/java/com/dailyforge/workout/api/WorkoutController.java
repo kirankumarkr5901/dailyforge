@@ -81,7 +81,9 @@ public class WorkoutController {
                                                 be.exercise().isElite(),
                                                 PrResponse.of(be.recentPr()),
                                                 PrResponse.of(be.lifetimePr()),
-                                                be.sets().stream().map(SetResponse::of).toList()))
+                                                be.sets().stream().map(SetResponse::of).toList(),
+                                                be.exercise().isOwnedBy(userId),
+                                                be.exercise().getVersion()))
                         .toList();
         return new SessionResponse(session.getId(), session.getOccurredOn(), session.getPlanId(), session.getDayIndex(), session.isCompleted(), exercises);
     }

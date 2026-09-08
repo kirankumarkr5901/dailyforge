@@ -10,6 +10,19 @@
           <lucide-icon [img]="doneIcon" [size]="18" />
         </span>
       }
+      <!-- Only an exercise you own can be edited; the shared catalogue is not yours to
+           rename, and the server refuses it anyway. -->
+      @if (entry().ownedByMe) {
+        <button
+          dfIconButton
+          type="button"
+          label="Edit this exercise"
+          variant="ghost"
+          [icon]="editIcon"
+          [size]="16"
+          (click)="editRequested.emit()"
+        ></button>
+      }
       <button
         dfIconButton
         type="button"

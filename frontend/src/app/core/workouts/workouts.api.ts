@@ -12,6 +12,7 @@ import {
   LogSetPayload,
   PlanExercise,
   SetWriteResponse,
+  UpdateExercisePayload,
   UpdateSetPayload,
   WorkoutPlan,
   WorkoutSession,
@@ -32,6 +33,14 @@ export class WorkoutsApi {
 
   createExercise(payload: CreateExercisePayload): Observable<Exercise> {
     return this.http.post<Exercise>(`${this.base}/exercises`, payload);
+  }
+
+  /**
+   * Edits an exercise you own. `version` is the copy being edited — the server refuses
+   * the write if another device has changed it since (see StaleWrite on the backend).
+   */
+  updateExercise(id: string, payload: UpdateExercisePayload, version?: number): Observable<Exercise> {
+    return this.http.patch<Exercise>(`${this.base}/exercises/${id}`, payload, ifMatch(version));
   }
 
   deleteExercise(id: string): Observable<void> {
