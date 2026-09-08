@@ -1,10 +1,19 @@
 # Netlify build and headers for the DailyForge PWA.
 #
-# API_BASE_URL is set in Netlify's own environment (Site settings > Environment
-# variables) and baked into the bundle by scripts/set-api-url.mjs at build time, so
-# pointing the app at a different backend never needs a code change.
+# THIS FILE MUST STAY AT THE REPOSITORY ROOT. Netlify only looks for netlify.toml at the
+# root of the repo; it does not go hunting inside subdirectories. Living in frontend/ —
+# where it started, next to the app it configures — meant Netlify never read it at all,
+# silently fell back to its defaults, and deployed the bare repo root: a build that
+# "succeeded" in 7 seconds, uploaded 0 files, reported "Site is live", and 404'd on
+# every request including the favicon. The file has to be where the tool looks, not
+# where it reads most tidily.
+#
+# API_BASE_URL is set in Netlify's own environment (Site configuration > Environment
+# variables) and baked into the bundle by frontend/scripts/set-api-url.mjs at build
+# time, so pointing the app at a different backend never needs a code change.
 
 [build]
+  # Everything below is relative to this base, not to the repo root.
   base = "frontend"
   command = "npm run build:deploy"
   publish = "dist/frontend/browser"

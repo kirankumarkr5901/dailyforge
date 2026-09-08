@@ -84,7 +84,8 @@ Nothing else to do here. Flyway creates every table on the API's first boot.
 
 1. <https://netlify.com> → **Add new site** → **Import an existing project** → GitHub →
    this repo.
-2. Netlify reads `frontend/netlify.toml`, so leave the build settings alone. It will
+2. Netlify reads `netlify.toml` from the repository root, so leave the build settings
+   alone. It will
    show base `frontend`, command `npm run build:deploy`, publish `dist/frontend/browser`.
 3. Before the first deploy, add the environment variable (**Site configuration** →
    **Environment variables**):
@@ -138,7 +139,7 @@ CORS_ALLOWED_ORIGINS = https://<your-site>.netlify.app
 Exactly the origin, no trailing slash, no wildcard, and no `localhost` in the list.
 Save; Render redeploys.
 
-Optionally tighten the CSP: in `frontend/netlify.toml`, replace
+Optionally tighten the CSP: in `netlify.toml` (repository root), replace
 `https://*.onrender.com` in `connect-src` with your exact API origin, then push.
 
 ---
