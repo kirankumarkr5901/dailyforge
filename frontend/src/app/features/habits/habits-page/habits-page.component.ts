@@ -3,7 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
 import { Frown, LucideAngularModule, Plus, Sparkles, Target, Trash2 } from 'lucide-angular';
 
-import { CdkDrag, CdkDragDrop, CdkDropList, moveItemInArray } from '@angular/cdk/drag-drop';
+import { CdkDrag, CdkDragDrop, CdkDragPlaceholder, CdkDropList, moveItemInArray } from '@angular/cdk/drag-drop';
 
 import { AuthSheetService } from '../../../core/auth/auth-sheet.service';
 import { SessionStore } from '../../../core/auth/session.store';
@@ -43,6 +43,7 @@ import { HabitRowComponent, HabitToggled } from '../habit-row/habit-row.componen
   selector: 'df-habits-page',
   imports: [
     CdkDrag,
+    CdkDragPlaceholder,
     CdkDropList,
     LucideAngularModule,
     DayDetailSheetComponent,
