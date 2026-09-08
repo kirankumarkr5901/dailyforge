@@ -14,6 +14,8 @@ import { routes } from './app.routes';
 import { authInterceptor } from './core/auth/auth.interceptor';
 import { SessionStore } from './core/auth/session.store';
 import { AppUpdateService } from './core/sync/app-update.service';
+import { coldStartInterceptor } from './core/sync/cold-start.interceptor';
+import { InstallService } from './core/sync/install.service';
 import { staleWriteInterceptor } from './core/sync/stale-write.interceptor';
 import { SyncStore } from './core/sync/sync.store';
 
@@ -27,7 +29,7 @@ export const appConfig: ApplicationConfig = {
       // Returning to a list should return to where you were in it.
       withInMemoryScrolling({ scrollPositionRestoration: 'enabled', anchorScrolling: 'enabled' }),
     ),
-    provideHttpClient(withInterceptors([authInterceptor, staleWriteInterceptor])),
+    provideHttpClient(withInterceptors([authInterceptor, staleWriteInterceptor, coldStartInterceptor])),
 
     /**
      * Resolve the session before the first render.
@@ -52,6 +54,7 @@ export const appConfig: ApplicationConfig = {
     provideAppInitializer(() => {
       inject(SyncStore);
       inject(AppUpdateService).start();
+      inject(InstallService).start();
     }),
   ],
 };

@@ -6,5 +6,7 @@
 export const environment = {
   production: false,
   apiBaseUrl: '/api/v1',
+  /** Stamped at build time so a screenshot can say which build it came from. */
+  appVersion: 'dev',
   showDevRoutes: true,
 };

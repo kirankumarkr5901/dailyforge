@@ -1,0 +1,71 @@
+# Netlify build and headers for the DailyForge PWA.
+#
+# API_BASE_URL is set in Netlify's own environment (Site settings > Environment
+# variables) and baked into the bundle by scripts/set-api-url.mjs at build time, so
+# pointing the app at a different backend never needs a code change.
+
+[build]
+  base = "frontend"
+  command = "npm run build:deploy"
+  publish = "dist/frontend/browser"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# Angular owns the routing; every path has to reach index.html or a hard refresh on
+# /habits is a 404 from the CDN.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# ----------------------------------------------------------------- caching
+#
+# The rule that matters for an installed PWA: the files that decide *which build you
+# are running* must never be served from cache, or a device keeps loading last week's
+# app and never learns there is a new one. Everything content-hashed can be cached
+# forever, because a new build gives it a new name.
+
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+[[headers]]
+  for = "/ngsw.json"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+[[headers]]
+  for = "/ngsw-worker.js"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+[[headers]]
+  for = "/manifest.webmanifest"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# ----------------------------------------------------------------- security
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "geolocation=(), microphone=(), camera=(), payment=()"
+    # connect-src covers the API and Google's token endpoint; frame-src and script-src
+    # are what Google Identity Services needs to render and run the sign-in button.
+    # Tighten connect-src to the exact API origin once it is known (see docs/RUNBOOK.md).
+    Content-Security-Policy = "default-src 'self'; script-src 'self' https://accounts.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://*.onrender.com https://accounts.google.com; frame-src https://accounts.google.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"

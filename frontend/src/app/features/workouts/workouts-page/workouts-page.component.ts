@@ -226,7 +226,12 @@ export class WorkoutsPageComponent {
     // Re-read whenever this device may be behind: the tab came back after a while,
     // the network returned, a session was restored, or the server just refused a
     // write as stale (SyncStore).
-    this.sync.refreshes.pipe(takeUntilDestroyed()).subscribe(() => void this.loadAll());
+    this.sync.refreshes.pipe(takeUntilDestroyed()).subscribe((reason) => {
+      if (reason === 'conflict') {
+        this.closeLogSheet();
+      }
+      void this.loadAll();
+    });
   }
 
   private async loadAll(): Promise<void> {

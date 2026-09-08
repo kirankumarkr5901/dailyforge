@@ -1,10 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { environment } from '../../../environments/environment';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 
 import { AuthApi } from '../../core/auth/auth.api';
 import { AuthSheetService } from '../../core/auth/auth-sheet.service';
 import { SessionStore } from '../../core/auth/session.store';
+import { InstallService } from '../../core/sync/install.service';
 import { TPipe } from '../../core/i18n/i18n.service';
 import { MotionChoice, MotionService } from '../../core/motion/motion.service';
 import { OnboardingService } from '../../core/onboarding/onboarding.service';
@@ -52,6 +54,10 @@ export class SettingsComponent {
   protected readonly authSheet = inject(AuthSheetService);
   protected readonly onboarding = inject(OnboardingService);
   protected readonly restTimer = inject(RestTimerService);
+
+  protected readonly install = inject(InstallService);
+  /** Which build this device is actually running (see scripts/set-api-url.mjs). */
+  protected readonly appVersion = environment.appVersion;
 
   protected readonly settingsIcon = SettingsIcon;
   protected readonly saving = signal(false);
@@ -125,6 +131,14 @@ export class SettingsComponent {
 
   protected replayTour(): void {
     this.onboarding.replay();
+  }
+
+  protected async installApp(): Promise<void> {
+    const outcome = await this.install.install();
+    if (outcome === 'accepted') {
+      this.toasts.show('Installed. Look for DailyForge on your home screen.');
+    }
+    // A dismissal needs no comment: they said no, and saying so back is nagging.
   }
 
   protected signIn(): void {

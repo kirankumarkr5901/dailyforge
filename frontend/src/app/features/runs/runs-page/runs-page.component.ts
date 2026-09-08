@@ -101,7 +101,13 @@ export class RunsPageComponent {
     // Re-read whenever this device may be behind: the tab came back after a while,
     // the network returned, a session was restored, or the server just refused a
     // write as stale (SyncStore).
-    this.sync.refreshes.pipe(takeUntilDestroyed()).subscribe(() => void this.loadAll());
+    this.sync.refreshes.pipe(takeUntilDestroyed()).subscribe((reason) => {
+      if (reason === 'conflict') {
+        this.formOpen.set(false);
+        this.editingRun.set(null);
+      }
+      void this.loadAll();
+    });
   }
 
   private async loadAll(): Promise<void> {

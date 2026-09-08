@@ -42,3 +42,8 @@
   color: var(--ink);
   overflow-wrap: anywhere;
 }
+
+.page__hint--version {
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}

@@ -114,7 +114,16 @@ export class RewardsPageComponent {
     // Re-read whenever this device may be behind: the tab came back after a while,
     // the network returned, a session was restored, or the server just refused a
     // write as stale (SyncStore).
-    this.sync.refreshes.pipe(takeUntilDestroyed()).subscribe(() => void this.loadAll());
+    this.sync.refreshes.pipe(takeUntilDestroyed()).subscribe((reason) => {
+      // A refused write leaves the editor holding the copy that was just rejected;
+      // saving it again would fail forever. Close it so the next edit starts from what
+      // is actually on the server. Only on a conflict — closing a half-typed form just
+      // because the tab regained focus would lose work for no reason.
+      if (reason === 'conflict') {
+        this.closeForm();
+      }
+      void this.loadAll();
+    });
   }
 
   private async loadAll(): Promise<void> {

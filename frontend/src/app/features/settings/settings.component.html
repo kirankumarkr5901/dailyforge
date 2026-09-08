@@ -40,6 +40,29 @@
   </df-card>
 </section>
 
+@if (!install.isStandalone()) {
+  <section class="page__section">
+    <h2 class="page__heading">This app</h2>
+    <df-card>
+      <div class="stack">
+        @if (install.canInstall()) {
+          <p class="page__hint">
+            Install DailyForge to your home screen. It opens without browser chrome and updates itself
+            whenever a new version ships — there is nothing to reinstall.
+          </p>
+          <button dfButton type="button" variant="primary" (click)="installApp()">Install app</button>
+        } @else {
+          <p class="page__hint">
+            To install: open your browser menu and choose “Add to home screen”. It opens without
+            browser chrome and updates itself whenever a new version ships.
+          </p>
+        }
+        <p class="page__hint page__hint--version">Version {{ appVersion }}</p>
+      </div>
+    </df-card>
+  </section>
+}
+
 <section class="page__section">
   <h2 class="page__heading">Help</h2>
   <df-card>
