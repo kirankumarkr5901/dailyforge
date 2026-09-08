@@ -1,6 +1,13 @@
 {
   "name": "@dailyforge/frontend",
   "version": "0.0.0",
+  "description": "DailyForge — a manual-logging fitness and habit tracker where every action becomes points.",
+  "author": "Kirankumar K R <kirankumarkr5901@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kirankumarkr5901/daily-forge.git"
+  },
   "scripts": {
     "ng": "ng",
     "start": "ng serve",

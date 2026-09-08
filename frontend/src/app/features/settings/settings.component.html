@@ -40,11 +40,14 @@
   </df-card>
 </section>
 
-@if (!install.isStandalone()) {
-  <section class="page__section">
-    <h2 class="page__heading">This app</h2>
-    <df-card>
-      <div class="stack">
+<section class="page__section">
+  <h2 class="page__heading">This app</h2>
+  <df-card>
+    <div class="stack">
+      <!-- Only the install prompt is conditional. The version stays visible once
+           installed — that is precisely when you need to know which build you are on,
+           since an installed app updates itself and gives no other clue that it did. -->
+      @if (!install.isStandalone()) {
         @if (install.canInstall()) {
           <p class="page__hint">
             Install DailyForge to your home screen. It opens without browser chrome and updates itself
@@ -57,11 +60,13 @@
             browser chrome and updates itself whenever a new version ships.
           </p>
         }
-        <p class="page__hint page__hint--version">Version {{ appVersion }}</p>
-      </div>
-    </df-card>
-  </section>
-}
+      }
+      <p class="page__hint page__hint--version">
+        Version {{ appVersion }} · © 2026 Kirankumar K R · MIT
+      </p>
+    </div>
+  </df-card>
+</section>
 
 <section class="page__section">
   <h2 class="page__heading">Help</h2>
