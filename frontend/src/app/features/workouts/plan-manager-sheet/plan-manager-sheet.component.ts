@@ -2,7 +2,9 @@ import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
-import { ArchiveRestore, LucideAngularModule, Plus, Settings2, SquarePen, Star, Trash2 } from 'lucide-angular';
+import { ArchiveRestore, GripVertical, LucideAngularModule, Plus, Settings2, SquarePen, Star, Trash2 } from 'lucide-angular';
+
+import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList, moveItemInArray } from '@angular/cdk/drag-drop';
 
 import { WorkoutsApi } from '../../../core/workouts/workouts.api';
 import { Exercise, PlanExercise, WorkoutPlan } from '../../../core/workouts/workouts.types';
@@ -13,17 +15,29 @@ import { DfInputComponent } from '../../../shared/ui/df-input/df-input.component
 import { DfSelectComponent, DfSelectOption } from '../../../shared/ui/df-select/df-select.component';
 import { DfSheetComponent } from '../../../shared/ui/df-sheet/df-sheet.component';
 import { DfStepperInputComponent } from '../../../shared/ui/df-stepper-input/df-stepper-input.component';
+import { ToastService } from '../../../shared/ui/df-toast/toast.service';
 import { ExercisePickerSheetComponent } from '../exercise-picker-sheet/exercise-picker-sheet.component';
 
 /**
  * Plans and days (spec §8.2). Day 0 is rendered as "Extras" — the bucket for exercises
- * attached to a plan but not yet placed on a real day. Reordering is up/down rather
- * than drag-and-drop (spec's own keyboard-reachable fallback), the same trade the habit
- * planner made at M3.
+ * attached to a plan but not yet placed on a real day.
+ *
+ * Exercises within a day are drag-reordered by their handle, and that order is what the
+ * workout board then works through. This is the only place the order can be edited, and
+ * deliberately so: the board itself re-sorts as you log (finished exercises sink to the
+ * bottom), so dragging there would fight the list every time a set landed. Order is a
+ * property of the plan, so it is edited where the plan is.
+ *
+ * (An earlier version of this comment claimed reordering was up/down buttons "rather
+ * than drag-and-drop". Neither existed — the comment described a decision nobody had
+ * implemented.)
  */
 @Component({
   selector: 'df-plan-manager-sheet',
   imports: [
+    CdkDrag,
+    CdkDragHandle,
+    CdkDropList,
     FormsModule,
     NgTemplateOutlet,
     LucideAngularModule,
@@ -42,6 +56,7 @@ import { ExercisePickerSheetComponent } from '../exercise-picker-sheet/exercise-
 })
 export class PlanManagerSheetComponent {
   private readonly api = inject(WorkoutsApi);
+  private readonly toasts = inject(ToastService);
 
   readonly open = input.required<boolean>();
   readonly closed = output<void>();
@@ -56,6 +71,7 @@ export class PlanManagerSheetComponent {
   protected readonly eliteIcon = Star;
   protected readonly targetsIcon = Settings2;
 
+  protected readonly gripIcon = GripVertical;
   protected readonly plans = signal<WorkoutPlan[]>([]);
   protected readonly archivedPlans = signal<WorkoutPlan[]>([]);
   protected readonly showArchived = signal(false);
@@ -124,6 +140,36 @@ export class PlanManagerSheetComponent {
 
   protected exercisesForDay(plan: WorkoutPlan, dayIndex: number): PlanExercise[] {
     return plan.exercises.filter((e) => e.dayIndex === dayIndex);
+  }
+
+  /**
+   * Optimistic, like the habit board's own reorder: the row moves under the finger and
+   * the order is sent afterwards, because a drag that waits on a cold API feels broken.
+   * A failure reloads the plans, which puts the row back where it came from.
+   */
+  protected async onExerciseDropped(event: CdkDragDrop<{ plan: WorkoutPlan; dayIndex: number }>): Promise<void> {
+    const { plan, dayIndex } = event.container.data;
+    if (event.previousIndex === event.currentIndex) {
+      return;
+    }
+
+    const inDay = this.exercisesForDay(plan, dayIndex);
+    const reordered = [...inDay];
+    moveItemInArray(reordered, event.previousIndex, event.currentIndex);
+
+    // The plan holds every day in one array, so the moved day's slice is spliced back
+    // in place rather than the whole list being rebuilt.
+    const others = plan.exercises.filter((e) => e.dayIndex !== dayIndex);
+    const updated: WorkoutPlan = { ...plan, exercises: [...others, ...reordered] };
+    this.plans.update((plans) => plans.map((p) => (p.id === plan.id ? updated : p)));
+
+    try {
+      await firstValueFrom(this.api.reorderDay(plan.id, dayIndex, reordered.map((e) => e.id)));
+      this.changed.emit();
+    } catch {
+      this.toasts.show('Could not save that order. Putting it back.', { tone: 'penalty' });
+      await this.refresh();
+    }
   }
 
   protected async createPlan(): Promise<void> {

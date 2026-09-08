@@ -11,6 +11,22 @@
   (keydown.enter)="onToggle(!checked())"
   (keydown.space)="$event.preventDefault(); onToggle(!checked())"
 >
+  <!-- Dragging has its own handle rather than the whole row: the row's own tap toggles
+       the habit, and a list you reorder by pressing the same surface that marks things
+       done would cost you a wrongly-ticked habit every time a drag was misread. The
+       handle is only there when the list is actually reorderable. -->
+  @if (reorderable()) {
+    <button
+      type="button"
+      class="df-habit-row__grip"
+      cdkDragHandle
+      [attr.aria-label]="'Reorder ' + entry().name"
+      (click)="$event.stopPropagation()"
+    >
+      <lucide-icon [img]="gripIcon" [size]="16" aria-hidden="true" />
+    </button>
+  }
+
   <lucide-icon class="df-habit-row__icon" [img]="icon()" [size]="20" aria-hidden="true" />
 
   <div class="df-habit-row__body">

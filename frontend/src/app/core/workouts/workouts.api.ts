@@ -103,6 +103,14 @@ export class WorkoutsApi {
     return this.http.patch<PlanExercise>(`${this.base}/workout-plans/${planId}/exercises/${planExerciseId}`, patch);
   }
 
+  /** The order exercises are worked through on one day of a plan. */
+  reorderDay(planId: string, dayIndex: number, orderedPlanExerciseIds: string[]): Observable<PlanExercise[]> {
+    return this.http.patch<PlanExercise[]>(
+      `${this.base}/workout-plans/${planId}/days/${dayIndex}/exercises/order`,
+      { orderedPlanExerciseIds },
+    );
+  }
+
   session(date: LogicalDate, planId?: string | null, dayIndex?: number | null): Observable<WorkoutSession> {
     let params = new HttpParams().set('date', date);
     if (planId) {

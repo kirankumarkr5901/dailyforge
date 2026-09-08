@@ -173,3 +173,47 @@
   border-radius: var(--radius-card);
   font-size: var(--text-sm);
 }
+
+/* Drag handle. Its own target because the row carries a day-select and edit controls
+   that a drag started anywhere would fight. */
+.plan-manager__grip {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 24px;
+  align-self: stretch;
+  border: none;
+  background: none;
+  color: var(--ink-faint);
+  cursor: grab;
+  opacity: 0.55;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.plan-manager__exercise:hover .plan-manager__grip,
+.plan-manager__grip:focus-visible {
+  opacity: 1;
+}
+
+.plan-manager__grip:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+  border-radius: var(--radius-control);
+}
+
+.plan-manager__grip:active {
+  cursor: grabbing;
+}
+
+@media (hover: none) {
+  .plan-manager__grip {
+    opacity: 0.75;
+  }
+}
+
+.plan-manager__drag-placeholder {
+  height: 44px;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-control);
+  background: var(--surface-sunken);
+}

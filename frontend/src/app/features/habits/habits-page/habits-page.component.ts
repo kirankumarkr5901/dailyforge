@@ -3,6 +3,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
 import { Frown, LucideAngularModule, Plus, Sparkles, Target, Trash2 } from 'lucide-angular';
 
+import { CdkDrag, CdkDragDrop, CdkDropList, moveItemInArray } from '@angular/cdk/drag-drop';
+
 import { AuthSheetService } from '../../../core/auth/auth-sheet.service';
 import { SessionStore } from '../../../core/auth/session.store';
 import { SyncStore } from '../../../core/sync/sync.store';
@@ -40,6 +42,8 @@ import { HabitRowComponent, HabitToggled } from '../habit-row/habit-row.componen
 @Component({
   selector: 'df-habits-page',
   imports: [
+    CdkDrag,
+    CdkDropList,
     LucideAngularModule,
     DayDetailSheetComponent,
     DfButtonComponent,
@@ -107,6 +111,40 @@ export class HabitsPageComponent {
       );
     } catch {
       // The calendar just shows nothing marked; the rest of the page still works.
+    }
+  }
+
+  /** True while a reorder is in flight, so a second drag cannot race the first. */
+  protected readonly reordering = signal(false);
+
+  /**
+   * Reordering is optimistic: the list moves under the finger immediately and the new
+   * order is sent afterwards. A drag that only settled once the server agreed would
+   * feel broken on a cold free-tier API, and the cost of being wrong is small — on
+   * failure the board is reloaded and the row goes back where it was.
+   *
+   * Order is a property of the habit, not of the day being viewed, so this is sent for
+   * the whole list rather than per date.
+   */
+  protected async onHabitDropped(event: CdkDragDrop<unknown>): Promise<void> {
+    const board = this.board();
+    if (!board || event.previousIndex === event.currentIndex) {
+      return;
+    }
+
+    const reordered = [...board.habits];
+    moveItemInArray(reordered, event.previousIndex, event.currentIndex);
+    this.board.set({ ...board, habits: reordered });
+
+    this.reordering.set(true);
+    try {
+      await firstValueFrom(this.api.reorder(reordered.map((entry) => entry.id)));
+      this.habitsList.set(await firstValueFrom(this.api.list()));
+    } catch {
+      this.toasts.show('Could not save that order. Putting it back.', { tone: 'penalty' });
+      await this.refreshBoard();
+    } finally {
+      this.reordering.set(false);
     }
   }
 

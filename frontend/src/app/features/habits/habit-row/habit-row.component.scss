@@ -108,3 +108,43 @@
   height: 28px;
   color: var(--ink-faint);
 }
+
+/* The drag handle. Its own target, because the row itself ticks the habit — see the
+   template's note. Kept quiet until the row is hovered or the handle focused, so a
+   board you are only reading is not covered in grab affordances. */
+.df-habit-row__grip {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 28px;
+  min-height: var(--tap-min);
+  margin-left: calc(var(--space-2) * -1);
+  border: none;
+  background: none;
+  color: var(--ink-faint);
+  cursor: grab;
+  opacity: 0.5;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.df-habit-row__surface:hover .df-habit-row__grip,
+.df-habit-row__grip:focus-visible {
+  opacity: 1;
+}
+
+.df-habit-row__grip:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+  border-radius: var(--radius-control);
+}
+
+.df-habit-row__grip:active {
+  cursor: grabbing;
+}
+
+/* Touch needs the handle visible without a hover to reveal it. */
+@media (hover: none) {
+  .df-habit-row__grip {
+    opacity: 0.7;
+  }
+}

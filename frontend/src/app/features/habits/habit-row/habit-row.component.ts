@@ -1,7 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { Flame, Lock, LucideAngularModule, SquarePen } from 'lucide-angular';
+import { Flame, GripVertical, Lock, LucideAngularModule, SquarePen } from 'lucide-angular';
+
+import { CdkDragHandle } from '@angular/cdk/drag-drop';
 
 import { ApiError } from '../../../core/api/api.types';
 import { AuthSheetService } from '../../../core/auth/auth-sheet.service';
@@ -30,7 +32,7 @@ export interface HabitToggled {
  */
 @Component({
   selector: 'df-habit-row',
-  imports: [LucideAngularModule, DfChipComponent, DfIconButtonComponent],
+  imports: [CdkDragHandle, LucideAngularModule, DfChipComponent, DfIconButtonComponent],
   templateUrl: './habit-row.component.html',
   styleUrl: './habit-row.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -44,6 +46,10 @@ export class HabitRowComponent {
 
   readonly entry = input.required<BoardEntry>();
   readonly date = input.required<LogicalDate>();
+  /** Shows the drag handle. Off unless the containing list is actually a drop list. */
+  readonly reorderable = input(false);
+
+  protected readonly gripIcon = GripVertical;
 
   readonly toggled = output<HabitToggled>();
   readonly editRequested = output<string>();
