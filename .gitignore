@@ -10,11 +10,11 @@ node_modules/
 
 # Local database. File-mode H2 lives here so streaks survive a restart; it is local
 # state, never committed.
+.data/
+
 # Throwaway Playwright verification scripts and screenshots. They exist to check a
 # deploy or a fix once and are never part of the app.
 frontend/.pw-scratch/
-
-.data/
 
 # Environment and secrets. Nothing in here reaches the repository.
 .env
