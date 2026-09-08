@@ -9,6 +9,8 @@ export type Bracket = 'D5K' | 'D10K' | 'D15K' | 'D21K' | 'D25K' | 'D42K' | 'D50K
 
 export interface Run {
   id: string;
+  /** Echoed back on edit so a stale device cannot overwrite a newer one. */
+  version: number;
   date: LogicalDate;
   distanceMeters: number;
   durationSeconds: number;

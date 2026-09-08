@@ -1,5 +1,6 @@
 package com.dailyforge.run.api;
 
+import com.dailyforge.common.error.StaleWrite;
 import com.dailyforge.common.security.CurrentUser;
 import com.dailyforge.points.domain.PointsResult;
 import com.dailyforge.run.api.RunDtos.DeleteRunResponse;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -58,8 +60,12 @@ public class RunController {
     }
 
     @PatchMapping("/{id}")
-    public RunWriteResponse update(@PathVariable UUID id, @Valid @RequestBody LogRunRequest request) {
+    public RunWriteResponse update(
+            @PathVariable UUID id,
+            @RequestHeader(value = "If-Match", required = false) Long ifMatch,
+            @Valid @RequestBody LogRunRequest request) {
         UUID userId = currentUser.require();
+        StaleWrite.check(ifMatch, runService.requireOwned(id, userId).getVersion(), "That run");
         var write =
                 runService.update(userId, id, request.distanceMeters(), request.durationSeconds(), request.type(), request.note(), request.feltEffort());
         return RunWriteResponse.of(write.run(), write.points());

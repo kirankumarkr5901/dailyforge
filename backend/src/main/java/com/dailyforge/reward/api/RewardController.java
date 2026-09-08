@@ -1,5 +1,6 @@
 package com.dailyforge.reward.api;
 
+import com.dailyforge.common.error.StaleWrite;
 import com.dailyforge.common.security.CurrentUser;
 import com.dailyforge.reward.api.RewardDtos.CreateRewardRequest;
 import com.dailyforge.reward.api.RewardDtos.RedeemResponse;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -56,7 +58,11 @@ public class RewardController {
 
     /** Same body as create — a reward is small enough that a full replace beats a patch language. */
     @PutMapping("/rewards/{id}")
-    public RewardResponse update(@PathVariable UUID id, @Valid @RequestBody CreateRewardRequest request) {
+    public RewardResponse update(
+            @PathVariable UUID id,
+            @RequestHeader(value = "If-Match", required = false) Long ifMatch,
+            @Valid @RequestBody CreateRewardRequest request) {
+        StaleWrite.check(ifMatch, rewardService.requireOwned(id, currentUser.require()).getVersion(), "That reward");
         var reward =
                 rewardService.update(
                         id,

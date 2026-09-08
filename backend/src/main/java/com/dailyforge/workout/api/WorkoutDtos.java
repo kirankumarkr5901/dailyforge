@@ -51,7 +51,9 @@ public final class WorkoutDtos {
             List<String> muscleGroups,
             boolean isElite,
             boolean ownedByMe,
-            boolean archived) {
+            boolean archived,
+            /** Sent back on edit as If-Match so a stale device cannot overwrite a newer one. */
+            long version) {
 
         public static ExerciseResponse of(Exercise exercise, UUID viewerId) {
             return new ExerciseResponse(
@@ -62,7 +64,8 @@ public final class WorkoutDtos {
                     exercise.getMuscleGroups(),
                     exercise.isElite(),
                     exercise.isOwnedBy(viewerId),
-                    exercise.isArchived());
+                    exercise.isArchived(),
+                    exercise.getVersion());
         }
     }
 
@@ -111,14 +114,22 @@ public final class WorkoutDtos {
     }
 
     public record PlanResponse(
-            UUID id, String name, int dayCount, List<String> dayLabels, boolean isActive, List<PlanExerciseResponse> exercises) {
+            UUID id,
+            String name,
+            int dayCount,
+            List<String> dayLabels,
+            boolean isActive,
+            List<PlanExerciseResponse> exercises,
+            /** Sent back on edit as If-Match so a stale device cannot overwrite a newer one. */
+            long version) {
 
         public static PlanResponse of(WorkoutPlan plan, List<PlanExerciseResponse> exercises) {
             List<String> labels =
                     java.util.stream.IntStream.rangeClosed(1, plan.getDayCount())
                             .mapToObj(plan::labelFor)
                             .toList();
-            return new PlanResponse(plan.getId(), plan.getName(), plan.getDayCount(), labels, plan.isActive(), exercises);
+            return new PlanResponse(
+                    plan.getId(), plan.getName(), plan.getDayCount(), labels, plan.isActive(), exercises, plan.getVersion());
         }
     }
 
@@ -144,11 +155,28 @@ public final class WorkoutDtos {
     }
 
     public record SetResponse(
-            UUID id, UUID exerciseId, int setNumber, BigDecimal enteredWeight, WeightMode weightMode, BigDecimal addedWeight, int reps, BigDecimal totalWeightKg) {
+            UUID id,
+            UUID exerciseId,
+            int setNumber,
+            BigDecimal enteredWeight,
+            WeightMode weightMode,
+            BigDecimal addedWeight,
+            int reps,
+            BigDecimal totalWeightKg,
+            /** Sent back on edit as If-Match so a stale device cannot overwrite a newer one. */
+            long version) {
 
         public static SetResponse of(WorkoutSet set) {
             return new SetResponse(
-                    set.getId(), set.getExerciseId(), set.getSetNumber(), set.getEnteredWeight(), set.getWeightMode(), set.getAddedWeight(), set.getReps(), set.getTotalWeightKg());
+                    set.getId(),
+                    set.getExerciseId(),
+                    set.getSetNumber(),
+                    set.getEnteredWeight(),
+                    set.getWeightMode(),
+                    set.getAddedWeight(),
+                    set.getReps(),
+                    set.getTotalWeightKg(),
+                    set.getVersion());
         }
     }
 

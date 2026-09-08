@@ -1,5 +1,6 @@
 package com.dailyforge.habit.api;
 
+import com.dailyforge.common.error.StaleWrite;
 import com.dailyforge.common.error.ApiException;
 import com.dailyforge.common.security.CurrentUser;
 import com.dailyforge.common.time.DayService;
@@ -30,6 +31,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -98,8 +100,12 @@ public class HabitController {
     }
 
     @PatchMapping("/habits/{id}")
-    public HabitResponse update(@PathVariable UUID id, @Valid @RequestBody UpdateHabitRequest request) {
+    public HabitResponse update(
+            @PathVariable UUID id,
+            @RequestHeader(value = "If-Match", required = false) Long ifMatch,
+            @Valid @RequestBody UpdateHabitRequest request) {
         UUID userId = currentUser.require();
+        StaleWrite.check(ifMatch, habits.requireOwned(id, userId).getVersion(), "That habit");
         if (request.scheduleDays() != null) {
             validateScheduleDays(request.scheduleDays());
         }

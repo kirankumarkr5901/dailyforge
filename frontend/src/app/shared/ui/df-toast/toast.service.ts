@@ -81,6 +81,12 @@ export class ToastService {
 
   private arm(toast: DfToast): void {
     this.clearTimer(toast.id);
+    // A non-positive duration means "stays until acted on". The only thing that asks
+    // for this is the new-version prompt: a toast offering the reload is useless if it
+    // disappears before it is noticed, and unlike Undo it has no window to respect.
+    if (toast.durationMs <= 0) {
+      return;
+    }
     this.timers.set(
       toast.id,
       setTimeout(() => this.dismiss(toast.id), toast.durationMs),

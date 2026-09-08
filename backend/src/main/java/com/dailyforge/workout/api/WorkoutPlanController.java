@@ -1,5 +1,6 @@
 package com.dailyforge.workout.api;
 
+import com.dailyforge.common.error.StaleWrite;
 import com.dailyforge.common.error.ApiException;
 import com.dailyforge.common.security.CurrentUser;
 import com.dailyforge.workout.api.WorkoutDtos.AddPlanExerciseRequest;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -73,8 +75,12 @@ public class WorkoutPlanController {
     }
 
     @PatchMapping("/{id}")
-    public PlanResponse update(@PathVariable UUID id, @Valid @RequestBody UpdatePlanRequest request) {
+    public PlanResponse update(
+            @PathVariable UUID id,
+            @RequestHeader(value = "If-Match", required = false) Long ifMatch,
+            @Valid @RequestBody UpdatePlanRequest request) {
         UUID userId = currentUser.require();
+        StaleWrite.check(ifMatch, plans.requireOwned(id, userId).getVersion(), "That plan");
         WorkoutPlan plan = plans.update(id, userId, request.name(), request.isActive());
         return toResponse(plan);
     }

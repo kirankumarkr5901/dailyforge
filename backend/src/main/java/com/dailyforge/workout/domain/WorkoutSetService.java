@@ -237,7 +237,8 @@ public class WorkoutSetService {
         }
     }
 
-    private WorkoutSet requireOwned(UUID setId, UUID userId) {
+    /** Public so the controller can read the current version for the stale-write check. */
+    public WorkoutSet requireOwned(UUID setId, UUID userId) {
         return sets.findByIdAndUserId(setId, userId).orElseThrow(() -> ApiException.notFound("That set"));
     }
 

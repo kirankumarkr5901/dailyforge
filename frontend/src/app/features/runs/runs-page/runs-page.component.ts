@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
 import { LucideAngularModule, Footprints, Plus, SquarePen, Trash2 } from 'lucide-angular';
 
@@ -6,6 +7,7 @@ import { AuthApi } from '../../../core/auth/auth.api';
 import { AuthSheetService } from '../../../core/auth/auth-sheet.service';
 import { PendingActionService } from '../../../core/auth/pending-action.service';
 import { SessionStore } from '../../../core/auth/session.store';
+import { SyncStore } from '../../../core/sync/sync.store';
 import { PointsStore } from '../../../core/points/points.store';
 import { Celebration } from '../../../core/points/points.types';
 import { Bracket, Run, RunRecords, RunWriteResponse } from '../../../core/runs/runs.types';
@@ -60,6 +62,7 @@ export class RunsPageComponent {
   private readonly toasts = inject(ToastService);
   private readonly pendingAction = inject(PendingActionService);
 
+  private readonly sync = inject(SyncStore);
   protected readonly session = inject(SessionStore);
   protected readonly authSheet = inject(AuthSheetService);
 
@@ -94,6 +97,11 @@ export class RunsPageComponent {
       }
       wasAuthenticated = isAuthenticated;
     });
+
+    // Re-read whenever this device may be behind: the tab came back after a while,
+    // the network returned, a session was restored, or the server just refused a
+    // write as stale (SyncStore).
+    this.sync.refreshes.pipe(takeUntilDestroyed()).subscribe(() => void this.loadAll());
   }
 
   private async loadAll(): Promise<void> {

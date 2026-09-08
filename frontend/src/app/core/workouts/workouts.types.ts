@@ -56,6 +56,8 @@ export interface Pr {
 
 export interface WorkoutSet {
   id: string;
+  /** Echoed back on edit so a stale device cannot overwrite a newer one. */
+  version: number;
   exerciseId: string;
   setNumber: number;
   enteredWeight: number;

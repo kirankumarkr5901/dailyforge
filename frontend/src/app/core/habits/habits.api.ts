@@ -2,6 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { ifMatch } from '../sync/if-match';
 import { LogicalDate } from '../time/logical-date';
 import {
   BonusPreview,
@@ -25,8 +26,9 @@ export class HabitsApi {
     return this.http.post<Habit>(`${this.base}/habits`, payload);
   }
 
-  update(id: string, payload: UpdateHabitPayload): Observable<Habit> {
-    return this.http.patch<Habit>(`${this.base}/habits/${id}`, payload);
+  /** `version` is the copy being edited; the server refuses the write if it has moved on. */
+  update(id: string, payload: UpdateHabitPayload, version?: number): Observable<Habit> {
+    return this.http.patch<Habit>(`${this.base}/habits/${id}`, payload, ifMatch(version));
   }
 
   reorder(orderedIds: string[]): Observable<Habit[]> {

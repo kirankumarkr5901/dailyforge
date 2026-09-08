@@ -73,7 +73,9 @@ public final class JobDtos {
              * (owner feedback), never a status of its own. */
             JobStatus rejectedFromStatus,
             InterviewStage rejectedFromStage,
-            Integer rejectedFromRound) {
+            Integer rejectedFromRound,
+            /** Sent back on edit as If-Match so a stale device cannot overwrite a newer one. */
+            long version) {
 
         public static ApplicationResponse of(JobApplication app) {
             return of(app, null);
@@ -98,7 +100,8 @@ public final class JobDtos {
                     app.getInterviewStage(),
                     origin != null ? origin.fromStatus() : null,
                     origin != null ? origin.stage() : null,
-                    origin != null ? origin.round() : null);
+                    origin != null ? origin.round() : null,
+                    app.getVersion());
         }
     }
 

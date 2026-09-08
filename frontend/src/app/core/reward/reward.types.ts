@@ -6,6 +6,8 @@ export type RewardTier = 'MICRO' | 'WEEKLY' | 'MONTHLY';
 
 export interface Reward {
   id: string;
+  /** Echoed back on edit so a stale device cannot overwrite a newer one. */
+  version: number;
   name: string;
   cost: number;
   icon: string;

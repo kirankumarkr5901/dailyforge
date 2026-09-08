@@ -196,7 +196,7 @@ export class HabitFormSheetComponent {
           penaltyPoints: this.type() === 'STRICT' ? this.penaltyPoints() : 0,
           scheduleDays: this.scheduleDays(),
         };
-        result = await firstValueFrom(this.api.update(existing.id, payload));
+        result = await firstValueFrom(this.api.update(existing.id, payload, existing.version));
       } else {
         const payload: CreateHabitPayload = {
           name: this.name().trim(),

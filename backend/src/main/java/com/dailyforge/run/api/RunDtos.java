@@ -34,7 +34,9 @@ public final class RunDtos {
             RunType type,
             int paceSecPerKm,
             String note,
-            Integer feltEffort) {
+            Integer feltEffort,
+            /** Sent back on edit as If-Match so a stale device cannot overwrite a newer one. */
+            long version) {
 
         public static RunResponse of(Run run) {
             return new RunResponse(
@@ -45,7 +47,8 @@ public final class RunDtos {
                     run.getType(),
                     run.getPaceSecPerKm(),
                     run.getNote(),
-                    run.getFeltEffort());
+                    run.getFeltEffort(),
+                    run.getVersion());
         }
     }
 

@@ -2,6 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { ifMatch } from '../sync/if-match';
 import { LogicalDate } from '../time/logical-date';
 import { DeleteRunResponse, LogRunPayload, Run, RunRecords, RunWriteResponse } from './runs.types';
 
@@ -21,8 +22,8 @@ export class RunsApi {
     return this.http.post<RunWriteResponse>(`${this.base}/runs`, payload);
   }
 
-  update(id: string, payload: LogRunPayload): Observable<RunWriteResponse> {
-    return this.http.patch<RunWriteResponse>(`${this.base}/runs/${id}`, payload);
+  update(id: string, payload: LogRunPayload, version?: number): Observable<RunWriteResponse> {
+    return this.http.patch<RunWriteResponse>(`${this.base}/runs/${id}`, payload, ifMatch(version));
   }
 
   delete(id: string): Observable<DeleteRunResponse> {

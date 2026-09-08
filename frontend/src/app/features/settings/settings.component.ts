@@ -143,7 +143,9 @@ export class SettingsComponent {
 
     this.saving.set(true);
     try {
-      const settings = await firstValueFrom(this.api.updateSettings(patch));
+      const settings = await firstValueFrom(
+        this.api.updateSettings(patch, this.session.user()?.settings.version),
+      );
       const user = this.session.user();
       if (user) {
         this.session.patchUser({ ...user, settings });

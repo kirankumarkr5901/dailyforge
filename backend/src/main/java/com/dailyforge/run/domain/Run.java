@@ -8,6 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
@@ -60,6 +61,11 @@ public class Run {
 
     @Column(name = "deleted_at")
     private Instant deletedAt;
+
+    /** Optimistic-concurrency guard for multi-device editing (see StaleWrite). */
+    @Version
+    @Column(name = "version", nullable = false)
+    private long version;
 
     protected Run() {
         // for JPA
@@ -162,4 +168,8 @@ public class Run {
     public Instant getCreatedAt() {
         return createdAt;
     }
+    public long getVersion() {
+        return version;
+    }
+
 }

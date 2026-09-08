@@ -1,5 +1,6 @@
 package com.dailyforge.job.api;
 
+import com.dailyforge.common.error.StaleWrite;
 import com.dailyforge.common.security.CurrentUser;
 import com.dailyforge.job.api.JobDtos.ApplicationResponse;
 import com.dailyforge.job.api.JobDtos.CreateApplicationRequest;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -63,11 +65,16 @@ public class JobController {
     }
 
     @PatchMapping("/{id}")
-    public ApplicationResponse update(@PathVariable UUID id, @Valid @RequestBody UpdateApplicationRequest request) {
+    public ApplicationResponse update(
+            @PathVariable UUID id,
+            @RequestHeader(value = "If-Match", required = false) Long ifMatch,
+            @Valid @RequestBody UpdateApplicationRequest request) {
+        UUID userId = currentUser.require();
+        StaleWrite.check(ifMatch, jobs.requireOwned(id, userId).getVersion(), "That application");
         var app =
                 jobs.update(
                         id,
-                        currentUser.require(),
+                        userId,
                         request.company(),
                         request.role(),
                         request.roleId(),

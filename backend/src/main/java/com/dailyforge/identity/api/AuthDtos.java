@@ -81,7 +81,9 @@ public final class AuthDtos {
             int commitmentBonus,
             BigDecimal heightCm,
             LocalTime reminderTime,
-            Instant onboardingCompletedAt) {
+            Instant onboardingCompletedAt,
+            /** Sent back on edit as If-Match so a stale device cannot overwrite a newer one. */
+            long version) {
 
         public static SettingsResponse of(UserSettings settings) {
             return new SettingsResponse(
@@ -92,7 +94,8 @@ public final class AuthDtos {
                     settings.getCommitmentBonus(),
                     settings.getHeightCm(),
                     settings.getReminderTime(),
-                    settings.getOnboardingCompletedAt());
+                    settings.getOnboardingCompletedAt(),
+                    settings.getVersion());
         }
     }
 

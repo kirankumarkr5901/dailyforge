@@ -79,7 +79,8 @@ public class ExerciseService {
         return exercise;
     }
 
-    private Exercise requireOwned(UUID id, UUID userId) {
+    /** Public so the controller can read the current version for the stale-write check. */
+    public Exercise requireOwned(UUID id, UUID userId) {
         Exercise exercise = exercises.findByIdAndArchivedAtIsNull(id).orElseThrow(() -> ApiException.notFound("That exercise"));
         if (!exercise.isOwnedBy(userId)) {
             // A system catalog exercise (owner null) is visible to everyone but owned

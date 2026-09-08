@@ -1,9 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
 import { Gift, LucideAngularModule, Pencil, Plus, Trash2 } from 'lucide-angular';
 
 import { AuthSheetService } from '../../../core/auth/auth-sheet.service';
 import { SessionStore } from '../../../core/auth/session.store';
+import { SyncStore } from '../../../core/sync/sync.store';
 import { PointsStore } from '../../../core/points/points.store';
 import { RewardApi } from '../../../core/reward/reward.api';
 import { Reward, RewardTier } from '../../../core/reward/reward.types';
@@ -44,6 +46,7 @@ export class RewardsPageComponent {
 
   protected readonly points = inject(PointsStore);
 
+  private readonly sync = inject(SyncStore);
   protected readonly session = inject(SessionStore);
   protected readonly authSheet = inject(AuthSheetService);
 
@@ -107,6 +110,11 @@ export class RewardsPageComponent {
       }
       wasAuthenticated = isAuthenticated;
     });
+
+    // Re-read whenever this device may be behind: the tab came back after a while,
+    // the network returned, a session was restored, or the server just refused a
+    // write as stale (SyncStore).
+    this.sync.refreshes.pipe(takeUntilDestroyed()).subscribe(() => void this.loadAll());
   }
 
   private async loadAll(): Promise<void> {

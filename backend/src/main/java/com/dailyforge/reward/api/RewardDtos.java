@@ -32,10 +32,25 @@ public final class RewardDtos {
             Integer stock) {}
 
     public record RewardResponse(
-            UUID id, String name, int cost, String icon, RewardTier tier, boolean isRepeatable, Integer stock) {
+            UUID id,
+            String name,
+            int cost,
+            String icon,
+            RewardTier tier,
+            boolean isRepeatable,
+            Integer stock,
+            /** Sent back on edit as If-Match so a stale device cannot overwrite a newer one. */
+            long version) {
         public static RewardResponse of(Reward reward) {
             return new RewardResponse(
-                    reward.getId(), reward.getName(), reward.getCost(), reward.getIcon(), reward.getTier(), reward.isRepeatable(), reward.getStock());
+                    reward.getId(),
+                    reward.getName(),
+                    reward.getCost(),
+                    reward.getIcon(),
+                    reward.getTier(),
+                    reward.isRepeatable(),
+                    reward.getStock(),
+                    reward.getVersion());
         }
     }
 

@@ -96,12 +96,16 @@ export class LogSetSheetComponent {
       const editing = this.editingSet();
       if (editing) {
         const response = await firstValueFrom(
-          this.api.updateSet(editing.id, {
-            enteredWeight: this.isBodyweight() ? undefined : this.weight(),
-            weightMode: this.weightMode(),
-            addedWeight: this.isBodyweight() ? this.addedWeight() : undefined,
-            reps: this.reps(),
-          }),
+          this.api.updateSet(
+            editing.id,
+            {
+              enteredWeight: this.isBodyweight() ? undefined : this.weight(),
+              weightMode: this.weightMode(),
+              addedWeight: this.isBodyweight() ? this.addedWeight() : undefined,
+              reps: this.reps(),
+            },
+            editing.version,
+          ),
         );
         this.saved.emit([response]);
       } else {

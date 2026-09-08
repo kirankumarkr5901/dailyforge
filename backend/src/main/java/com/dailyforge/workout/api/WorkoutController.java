@@ -1,5 +1,6 @@
 package com.dailyforge.workout.api;
 
+import com.dailyforge.common.error.StaleWrite;
 import com.dailyforge.common.security.CurrentUser;
 import com.dailyforge.common.time.DayService;
 import com.dailyforge.identity.domain.IdentityService;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -102,8 +104,12 @@ public class WorkoutController {
     }
 
     @PatchMapping("/sets/{id}")
-    public SetWriteResponse updateSet(@PathVariable UUID id, @Valid @RequestBody UpdateSetRequest request) {
+    public SetWriteResponse updateSet(
+            @PathVariable UUID id,
+            @RequestHeader(value = "If-Match", required = false) Long ifMatch,
+            @Valid @RequestBody UpdateSetRequest request) {
         UUID userId = currentUser.require();
+        StaleWrite.check(ifMatch, setService.requireOwned(id, userId).getVersion(), "That set");
         var write =
                 setService.updateSet(userId, id, request.enteredWeight(), request.weightMode(), request.addedWeight(), request.reps());
         return SetWriteResponse.of(write.set(), write.points());
