@@ -12,6 +12,7 @@ import { environment } from '../../../environments/environment';
 import { ApiError, ApiErrorCode } from '../api/api.types';
 import { AuthApi, SKIP_AUTH_REFRESH } from './auth.api';
 import { AuthSheetService } from './auth-sheet.service';
+import { SessionStore } from './session.store';
 import { TokenStorage } from './token-storage';
 
 /**
@@ -22,12 +23,20 @@ import { TokenStorage } from './token-storage';
  * five refreshes that invalidate each other through token rotation.
  */
 let refreshing = false;
-const refreshed = new BehaviorSubject<string | null>(null);
+
+/** What a finished refresh tells the requests that queued behind it — including failure. */
+interface RefreshOutcome {
+  token: string | null;
+  error?: unknown;
+}
+
+const outcome = new BehaviorSubject<RefreshOutcome | null>(null);
 
 export const authInterceptor: HttpInterceptorFn = (request, next) => {
   const storage = inject(TokenStorage);
   const api = inject(AuthApi);
   const sheet = inject(AuthSheetService);
+  const session = inject(SessionStore);
 
   const isOurApi = request.url.startsWith(environment.apiBaseUrl);
   const skipRefresh = request.context.get(SKIP_AUTH_REFRESH);
@@ -44,7 +53,7 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
 
       // An expired access token is recoverable without involving the user at all.
       if (error.status === 401 && !skipRefresh && storage.read() && code !== 'AUTH_REQUIRED') {
-        return retryAfterRefresh(request, next, storage, api, sheet);
+        return retryAfterRefresh(request, next, storage, api, sheet, session);
       }
 
       // AUTH_REQUIRED means the visitor is genuinely anonymous and tried to write. This
@@ -64,13 +73,24 @@ function retryAfterRefresh(
   storage: TokenStorage,
   api: AuthApi,
   sheet: AuthSheetService,
+  session: SessionStore,
 ): Observable<HttpEvent<unknown>> {
   if (refreshing) {
     // Wait for the in-flight refresh, then go again with whatever it produced.
-    return refreshed.pipe(
-      filter((token): token is string => token !== null),
+    //
+    // `outcome` carries a failure as well as a token. Filtering for a non-null token
+    // alone meant that when the lead refresh failed, it emitted nothing the waiters
+    // would accept and they hung forever — no response, no error, just requests that
+    // never settled and spinners that never stopped. A failed refresh has to reach the
+    // waiters as a failure.
+    return outcome.pipe(
+      filter((state): state is RefreshOutcome => state !== null),
       take(1),
-      switchMap((token) => next(withToken(request, token))),
+      switchMap((state) =>
+        state.token
+          ? next(withToken(request, state.token))
+          : throwError(() => state.error ?? new Error('Session refresh failed')),
+      ),
     );
   }
 
@@ -80,7 +100,7 @@ function retryAfterRefresh(
   }
 
   refreshing = true;
-  refreshed.next(null);
+  outcome.next(null);
 
   return from(
     (async () => {
@@ -90,7 +110,7 @@ function retryAfterRefresh(
           accessToken: response.accessToken,
           refreshToken: response.refreshToken,
         });
-        refreshed.next(response.accessToken);
+        outcome.next({ token: response.accessToken });
         return response.accessToken;
       } catch (error) {
         // Rotation means a refresh token works exactly once (see RefreshTokenService):
@@ -103,11 +123,18 @@ function retryAfterRefresh(
         // real, and the session is actually still fine.
         const current = storage.read();
         if (current && current.refreshToken !== tokens.refreshToken) {
-          refreshed.next(current.accessToken);
+          outcome.next({ token: current.accessToken });
           return current.accessToken;
         }
-        storage.clear();
+        // Through SessionStore, not storage directly: clearing only the tokens left the
+        // store still holding the user, so the header kept showing their name and their
+        // data while every request 401'd. "You are signed in" and "sign in again" on the
+        // same screen is worse than either one alone.
+        session.clear();
         sheet.open('expired');
+        // Release the waiters with the failure rather than leaving them queued on a
+        // refresh that is never coming.
+        outcome.next({ token: null, error });
         throw error;
       } finally {
         refreshing = false;

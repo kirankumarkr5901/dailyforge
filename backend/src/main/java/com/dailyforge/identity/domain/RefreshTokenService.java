@@ -9,6 +9,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.Optional;
@@ -81,9 +82,27 @@ public class RefreshTokenService {
 
         Instant now = clock.instant();
         if (!existing.isUsable(now)) {
-            // A token presented after revocation is either a bug or a stolen copy. Either
-            // way, end every session for this user rather than guessing which.
+            // A token presented after revocation is either one of this app's own contexts
+            // losing a refresh race, or a stolen copy. Treating both as theft signed
+            // people out of everything for merely opening the app in two places: an
+            // installed PWA and a browser tab share localStorage but not the in-memory
+            // "one refresh at a time" flag, so both can wake with the same expired access
+            // token and both try to rotate. The loser did nothing wrong, and killing
+            // every session — including the one just issued to the winner — is a far
+            // worse outcome than the risk it was guarding against.
             //
+            // The replacement chain tells them apart. A token whose successor was minted
+            // moments ago and is still alive was rotated by this same user, just now:
+            // that is a race, so refuse this one request and leave the winner's session
+            // intact. Anything else — reused long after, or a successor already gone —
+            // still looks like theft and still ends every session.
+            if (isBenignRace(existing, now)) {
+                throw new ApiException(
+                        ErrorCode.AUTH_TOKEN_EXPIRED,
+                        HttpStatus.UNAUTHORIZED,
+                        "That token was already refreshed. Retry with the current one.");
+            }
+
             // This must commit in its own transaction: the exception below rolls the
             // current one back, and a revocation that gets rolled back by the very
             // failure that triggered it leaves the stolen session alive.
@@ -94,11 +113,36 @@ public class RefreshTokenService {
                     "That session has ended. Sign in again.");
         }
 
-        existing.revoke(now);
+        String replacement = issue(existing.getUserId(), deviceLabel);
+        existing.rotateTo(hash(replacement), now);
         repository.save(existing);
 
-        String replacement = issue(existing.getUserId(), deviceLabel);
         return new Rotation(existing.getUserId(), replacement);
+    }
+
+    /**
+     * How long after a rotation a second presentation of the old token is still read as
+     * this app racing itself rather than as theft.
+     *
+     * Generous enough to cover a phone waking several requests at once against a cold
+     * API, short enough that a token copied off a device and replayed later is still
+     * caught. A thief who replays within seconds of the real client, and whose replay
+     * loses the race, gains nothing: the request is refused either way. What the window
+     * changes is only whether the legitimate user's other sessions survive.
+     */
+    private static final Duration RACE_GRACE = Duration.ofMinutes(2);
+
+    private boolean isBenignRace(RefreshToken presented, Instant now) {
+        String successorHash = presented.getReplacedByHash();
+        if (successorHash == null || presented.getRevokedAt() == null) {
+            return false; // revoked by sign-out or by a previous theft response
+        }
+        if (presented.getRevokedAt().plus(RACE_GRACE).isBefore(now)) {
+            return false; // too long ago to be the same wake-up
+        }
+        // The successor must still be alive. If it too has been revoked, someone has been
+        // walking the chain and this is no longer an innocent duplicate.
+        return repository.findByTokenHash(successorHash).map(t -> t.isUsable(now)).orElse(false);
     }
 
     @Transactional

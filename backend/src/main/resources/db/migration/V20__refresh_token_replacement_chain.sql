@@ -1,0 +1,15 @@
+-- Tells a benign refresh race apart from an actual stolen token.
+--
+-- Rotation revokes a refresh token the moment it is used, and presenting a revoked one
+-- was treated as theft: every session for the user was killed. That is the correct
+-- response to real theft and the wrong one for the far more common case — two contexts
+-- of the same app (an installed PWA and a browser tab share localStorage but not the
+-- in-memory "one refresh at a time" flag) both waking up with the same expired access
+-- token and racing to refresh. The loser presented an already-rotated token through no
+-- fault of its own and got the user signed out everywhere, including the session that
+-- had just been issued.
+--
+-- Recording what each token was replaced by makes the difference visible: a token whose
+-- successor is alive and was minted seconds ago is a race. A token reused long after,
+-- or whose successor is already gone, is the theft case and still revokes everything.
+ALTER TABLE refresh_token ADD COLUMN replaced_by_hash VARCHAR(255);

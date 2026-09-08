@@ -14,8 +14,9 @@ import java.util.UUID;
  *
  * The raw token is returned to the client once and never persisted, so a database dump
  * cannot be replayed as a login. Rotation means using a refresh token revokes it and
- * issues a new one — a token presented twice is either a bug or a theft, and either way
- * the answer is to reject it.
+ * issues a new one. A token presented twice is usually one of this app's own contexts
+ * losing a refresh race, and only sometimes a theft; replacedByHash is what lets
+ * RefreshTokenService tell those apart instead of always assuming the worst.
  */
 @Entity
 @Table(name = "refresh_token")
@@ -39,6 +40,10 @@ public class RefreshToken {
 
     @Column(name = "revoked_at")
     private Instant revokedAt;
+
+    /** The token issued in its place when it was rotated — see RefreshTokenService. */
+    @Column(name = "replaced_by_hash", length = 255)
+    private String replacedByHash;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
@@ -64,6 +69,16 @@ public class RefreshToken {
         if (this.revokedAt == null) {
             this.revokedAt = when;
         }
+    }
+
+    /** Revoked as part of normal rotation, recording which token took its place. */
+    public void rotateTo(String replacementHash, Instant when) {
+        revoke(when);
+        this.replacedByHash = replacementHash;
+    }
+
+    public String getReplacedByHash() {
+        return replacedByHash;
     }
 
     public boolean isUsable(Instant now) {
