@@ -1,0 +1,27 @@
+<button
+  type="button"
+  class="df-date-stepper__nudge"
+  aria-label="Previous day"
+  (click)="step(-1)"
+>
+  <lucide-icon [img]="prevIcon" [size]="20" aria-hidden="true" />
+</button>
+
+<div class="df-date-stepper__current">
+  <span class="df-date-stepper__label" aria-hidden="true">{{ label() }}</span>
+  <span class="df-sr-only" aria-live="polite">{{ fullLabel() }}</span>
+
+  @if (!isToday()) {
+    <button type="button" class="df-date-stepper__today" (click)="goToToday()">Today</button>
+  }
+</div>
+
+<button
+  type="button"
+  class="df-date-stepper__nudge"
+  aria-label="Next day"
+  [disabled]="atMax()"
+  (click)="step(1)"
+>
+  <lucide-icon [img]="nextIcon" [size]="20" aria-hidden="true" />
+</button>

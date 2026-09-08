@@ -1,0 +1,27 @@
+<label class="df-input__label" [attr.for]="fieldId">{{ label() }}</label>
+
+<div class="df-input__field" [class.df-input__field--invalid]="!!error()">
+  <input
+    class="df-input__control"
+    [id]="fieldId"
+    [type]="type()"
+    [value]="value()"
+    [placeholder]="placeholder()"
+    [autocomplete]="autocomplete()"
+    [disabled]="disabled()"
+    [attr.aria-invalid]="error() ? 'true' : null"
+    [attr.aria-describedby]="describedBy()"
+    (input)="handleInput($event)"
+    (blur)="handleBlur()"
+  />
+
+  @if (suffix(); as unit) {
+    <span class="df-input__suffix" aria-hidden="true">{{ unit }}</span>
+  }
+</div>
+
+@if (error(); as message) {
+  <p class="df-input__error" [id]="fieldId + '-error'">{{ message }}</p>
+} @else if (hint(); as message) {
+  <p class="df-input__hint" [id]="fieldId + '-hint'">{{ message }}</p>
+}

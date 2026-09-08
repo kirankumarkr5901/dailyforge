@@ -1,0 +1,99 @@
+spring:
+  application:
+    name: dailyforge
+
+  # Schema is owned by Flyway. Hibernate may only check that the entities match it.
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: false
+
+  threads:
+    virtual:
+      enabled: true
+
+server:
+  port: 8080
+  error:
+    include-message: never
+    include-stacktrace: never
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
+
+logging:
+  level:
+    root: INFO
+    com.dailyforge: INFO
+
+dailyforge:
+  # Comma-separated origins allowed to call the API. Never a wildcard in production.
+  cors:
+    allowed-origins: http://localhost:4200
+
+---
+# Local development. File-mode H2 so a seven-day streak survives a restart (spec §3.2).
+spring:
+  config:
+    activate:
+      on-profile: local
+  datasource:
+    url: jdbc:h2:file:./.data/dailyforge;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;AUTO_SERVER=TRUE
+    username: sa
+    password: ''
+    driver-class-name: org.h2.Driver
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+logging:
+  level:
+    com.dailyforge: DEBUG
+
+---
+# Tests. In-memory, thrown away per run.
+spring:
+  config:
+    activate:
+      on-profile: test
+  datasource:
+    url: jdbc:h2:mem:dailyforge;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1
+    username: sa
+    password: ''
+    driver-class-name: org.h2.Driver
+
+---
+# Staging and production. Everything comes from the environment; nothing is committed.
+spring:
+  config:
+    activate:
+      on-profile: staging | prod
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: ${DB_POOL_SIZE:5}
+
+dailyforge:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS}

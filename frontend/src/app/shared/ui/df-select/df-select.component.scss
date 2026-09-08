@@ -1,0 +1,72 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.df-select__label {
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+.df-select__field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-control);
+  background: var(--surface-raised);
+}
+
+.df-select__field:focus-within {
+  border-color: var(--focus);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+.df-select__field--invalid {
+  border-color: var(--penalty);
+}
+
+.df-select__control {
+  flex: 1;
+  min-width: 0;
+  min-height: var(--tap-min);
+  padding-inline: var(--space-3) var(--space-8);
+  border: none;
+  background: none;
+  color: var(--ink);
+  font-size: var(--text-base);
+  appearance: none;
+  cursor: pointer;
+}
+
+.df-select__control:focus {
+  outline: none;
+}
+
+.df-select__control:disabled {
+  color: var(--ink-muted);
+  cursor: not-allowed;
+}
+
+.df-select__field:has(.df-select__control:disabled) {
+  background: var(--surface-sunken);
+}
+
+.df-select__chevron {
+  position: absolute;
+  right: var(--space-3);
+  color: var(--ink-muted);
+  pointer-events: none;
+}
+
+.df-select__hint {
+  color: var(--ink-muted);
+  font-size: var(--text-xs);
+}
+
+.df-select__error {
+  color: var(--penalty-ink);
+  font-size: var(--text-xs);
+}

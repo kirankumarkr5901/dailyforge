@@ -1,0 +1,32 @@
+@if (open()) {
+  <div class="df-sheet__scrim" (click)="onBackdrop($event)">
+    <section
+      class="df-sheet__panel"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-label]="heading()"
+      cdkTrapFocus
+      [cdkTrapFocusAutoCapture]="true"
+      (keydown.escape)="close()"
+    >
+      <header class="df-sheet__header">
+        <span class="df-sheet__grip" aria-hidden="true"></span>
+        <h2 class="df-sheet__heading">{{ heading() }}</h2>
+
+        @if (dismissible()) {
+          <button type="button" class="df-sheet__close" aria-label="Close" (click)="close()">
+            <lucide-icon [img]="closeIcon" [size]="20" aria-hidden="true" />
+          </button>
+        }
+      </header>
+
+      <div class="df-sheet__body">
+        <ng-content />
+      </div>
+
+      <footer class="df-sheet__footer">
+        <ng-content select="[sheetActions]" />
+      </footer>
+    </section>
+  </div>
+}

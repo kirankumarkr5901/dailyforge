@@ -1,0 +1,76 @@
+:host {
+  --_ink: var(--ink-muted);
+  --_bg: var(--surface-sunken);
+  --_border: transparent;
+
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px var(--space-2);
+  border: 1px solid var(--_border);
+  border-radius: var(--radius-control);
+  background: var(--_bg);
+  color: var(--_ink);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+:host(.df-chip--done) {
+  --_ink: var(--done-ink);
+  --_bg: var(--done-wash);
+}
+
+:host(.df-chip--penalty) {
+  --_ink: var(--penalty-ink);
+  --_bg: var(--penalty-wash);
+}
+
+/* The only warm chip. Reserved for earned quantities, and its temperature follows the
+ * size of the quantity rather than sitting at one fixed orange. */
+:host(.df-chip--earned) {
+  --_ink: var(--heat-ink-2);
+  --_bg: var(--heat-wash);
+  font-variant-numeric: tabular-nums;
+}
+
+:host(.df-chip--earned[data-heat='1']) {
+  --_ink: var(--heat-ink-1);
+  --_bg: var(--heat-fill-1);
+}
+:host(.df-chip--earned[data-heat='2']) {
+  --_ink: var(--heat-ink-2);
+  --_bg: var(--heat-fill-2);
+}
+:host(.df-chip--earned[data-heat='3']) {
+  --_ink: var(--heat-ink-3);
+  --_bg: var(--heat-fill-3);
+}
+:host(.df-chip--earned[data-heat='4']) {
+  --_ink: var(--heat-ink-4);
+  --_bg: var(--heat-fill-4);
+}
+
+/* Equipment chips carry a 1px coloured rule rather than a fill, so a row of them reads
+ * as a set of labels instead of a row of competing blocks. */
+:host(.df-chip--equipment) {
+  --_bg: transparent;
+  --_border: currentColor;
+}
+
+:host(.df-chip--equip-barbell) {
+  --_ink: var(--equip-barbell);
+}
+:host(.df-chip--equip-dumbbell) {
+  --_ink: var(--equip-dumbbell);
+}
+:host(.df-chip--equip-machine) {
+  --_ink: var(--equip-machine);
+}
+:host(.df-chip--equip-bodyweight) {
+  --_ink: var(--equip-bodyweight);
+}
+:host(.df-chip--equip-cardio) {
+  --_ink: var(--equip-cardio);
+}

@@ -1,0 +1,44 @@
+<label class="df-stepper__label" [attr.for]="fieldId">{{ label() }}</label>
+
+<div class="df-stepper__row">
+  <button
+    type="button"
+    class="df-stepper__nudge"
+    [disabled]="disabled() || atMin()"
+    [attr.aria-label]="'Decrease ' + label()"
+    (click)="nudge(-1)"
+  >
+    <lucide-icon [img]="minusIcon" [size]="18" aria-hidden="true" />
+  </button>
+
+  <div class="df-stepper__field">
+    <input
+      class="df-stepper__control df-numeric"
+      [id]="fieldId"
+      type="text"
+      inputmode="decimal"
+      [value]="display()"
+      [disabled]="disabled()"
+      [attr.aria-describedby]="hint() ? fieldId + '-hint' : null"
+      (input)="handleInput($event)"
+      (blur)="handleBlur($event)"
+    />
+    @if (suffix(); as unit) {
+      <span class="df-stepper__suffix" aria-hidden="true">{{ unit }}</span>
+    }
+  </div>
+
+  <button
+    type="button"
+    class="df-stepper__nudge"
+    [disabled]="disabled() || atMax()"
+    [attr.aria-label]="'Increase ' + label()"
+    (click)="nudge(1)"
+  >
+    <lucide-icon [img]="plusIcon" [size]="18" aria-hidden="true" />
+  </button>
+</div>
+
+@if (hint(); as message) {
+  <p class="df-stepper__hint" [id]="fieldId + '-hint'">{{ message }}</p>
+}

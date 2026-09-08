@@ -1,0 +1,80 @@
+.df-switch__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  min-height: var(--tap-min);
+  cursor: pointer;
+}
+
+.df-switch__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.df-switch__label {
+  color: var(--ink);
+  font-size: var(--text-base);
+}
+
+.df-switch__hint {
+  color: var(--ink-muted);
+  font-size: var(--text-xs);
+}
+
+/* The real control, visually replaced by the track but never removed from the
+ * accessibility tree or the tab order. */
+.df-switch__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.df-switch__track {
+  position: relative;
+  flex: none;
+  width: 44px;
+  height: 26px;
+  padding: 3px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-pill);
+  background: var(--surface-inset);
+  transition:
+    background-color var(--duration-base) var(--ease-out),
+    border-color var(--duration-base) var(--ease-out);
+}
+
+.df-switch__thumb {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-raised);
+  box-shadow: var(--elevation-raised);
+  transition: transform var(--duration-base) var(--ease-out);
+}
+
+.df-switch__input:checked + .df-switch__track {
+  background: var(--ink);
+  border-color: var(--ink);
+}
+
+.df-switch__input:checked + .df-switch__track .df-switch__thumb {
+  transform: translateX(18px);
+}
+
+.df-switch__input:focus-visible + .df-switch__track {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.df-switch__input:disabled + .df-switch__track {
+  opacity: 0.45;
+}
+
+.df-switch__row:has(.df-switch__input:disabled) {
+  cursor: not-allowed;
+}

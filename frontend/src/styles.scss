@@ -1,0 +1,15 @@
+/*
+ * Global stylesheet. Fonts, tokens, base layer — in that order, and nothing else.
+ * Component styles live beside their components.
+ *
+ * Fonts are self-hosted rather than pulled from a CDN: this is an offline-capable PWA
+ * that becomes an Android bundle at M9, and a webfont request that fails in a gym
+ * basement is a broken score display.
+ */
+
+/* Archivo, with the width axis — 'Archivo Expanded' is this face at wdth 125. */
+@use '@fontsource-variable/archivo/wdth.css';
+@use '@fontsource-variable/ibm-plex-sans/wght.css';
+
+@use 'styles/tokens.css';
+@use 'styles/base.css';

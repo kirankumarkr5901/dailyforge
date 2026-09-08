@@ -1,0 +1,427 @@
+<div class="gallery" [attr.data-width]="width()">
+  <header class="gallery__bar">
+    <div class="gallery__bar-inner">
+      <div class="gallery__identity">
+        <h1 class="gallery__title">Design system</h1>
+        <p class="gallery__version">M0 · cold steel, earned heat</p>
+      </div>
+
+      <df-score-pill [total]="score()" [pending]="!!pendingControl.value" />
+    </div>
+
+    <div class="gallery__controls">
+      <div class="gallery__control" role="group" aria-label="Theme">
+        <span class="gallery__control-label">Theme</span>
+        <div class="gallery__toggles">
+        @for (choice of themeChoices; track choice) {
+          <button
+            type="button"
+            class="gallery__toggle"
+            [class.gallery__toggle--on]="theme.choice() === choice"
+            [attr.aria-pressed]="theme.choice() === choice"
+            (click)="setTheme(choice)"
+          >
+            {{ choice.toLowerCase() }}
+          </button>
+        }
+        </div>
+      </div>
+
+      <div class="gallery__control" role="group" aria-label="Motion">
+        <span class="gallery__control-label">Motion</span>
+        <div class="gallery__toggles">
+        @for (choice of motionChoices; track choice) {
+          <button
+            type="button"
+            class="gallery__toggle"
+            [class.gallery__toggle--on]="motion.choice() === choice"
+            [attr.aria-pressed]="motion.choice() === choice"
+            (click)="setMotion(choice)"
+          >
+            {{ choice.toLowerCase() }}
+          </button>
+        }
+        </div>
+      </div>
+
+      <div class="gallery__control" role="group" aria-label="Width">
+        <span class="gallery__control-label">Width</span>
+        <div class="gallery__toggles">
+        @for (choice of widthChoices; track choice) {
+          <button
+            type="button"
+            class="gallery__toggle"
+            [class.gallery__toggle--on]="width() === choice"
+            [attr.aria-pressed]="width() === choice"
+            (click)="width.set(choice)"
+          >
+            {{ choice }}
+          </button>
+        }
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="gallery__stage">
+    <p class="gallery__lede">
+      Every primitive, every state. Almost nothing on this page is warm, because almost
+      nothing on this page was earned — that restraint is the system, not an oversight.
+    </p>
+
+    <!-- ================================================================= -->
+    <section class="section" aria-labelledby="s-colour">
+      <h2 class="section__title" id="s-colour">Colour</h2>
+      <p class="section__note">
+        Cold tokens are the default. The earned ramp below is the only place warmth is
+        allowed to start, and it maps to points, not to importance.
+      </p>
+
+      <p class="swatch-group__label">Surfaces</p>
+      <ul class="swatch-row">
+        @for (token of surfaceTokens; track token) {
+          <li class="swatch">
+            <span class="swatch__chip" [style.background]="'var(' + token + ')'"></span>
+            <code class="swatch__name">{{ token }}</code>
+          </li>
+        }
+      </ul>
+
+      <p class="swatch-group__label">Ink and rules</p>
+      <ul class="swatch-row">
+        @for (token of inkTokens.concat(lineTokens); track token) {
+          <li class="swatch">
+            <span class="swatch__chip" [style.background]="'var(' + token + ')'"></span>
+            <code class="swatch__name">{{ token }}</code>
+          </li>
+        }
+      </ul>
+
+      <p class="swatch-group__label">Earned ramp — five steps of points, plus the unearned state</p>
+      <ul class="swatch-row">
+        @for (token of earnedTokens; track token) {
+          <li class="swatch">
+            <span class="swatch__chip" [style.background]="'var(' + token + ')'"></span>
+            <code class="swatch__name">{{ token }}</code>
+          </li>
+        }
+      </ul>
+
+      <p class="swatch-group__label">Semantics</p>
+      <ul class="swatch-row">
+        @for (token of semanticTokens; track token) {
+          <li class="swatch">
+            <span class="swatch__chip" [style.background]="'var(' + token + ')'"></span>
+            <code class="swatch__name">{{ token }}</code>
+          </li>
+        }
+      </ul>
+
+      <p class="swatch-group__label">Equipment</p>
+      <ul class="swatch-row">
+        @for (token of equipmentTokens; track token) {
+          <li class="swatch">
+            <span class="swatch__chip" [style.background]="'var(' + token + ')'"></span>
+            <code class="swatch__name">{{ token }}</code>
+          </li>
+        }
+      </ul>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="section" aria-labelledby="s-type">
+      <h2 class="section__title" id="s-type">Type</h2>
+      <p class="section__note">
+        Archivo at its expanded width for display and metrics; IBM Plex Sans for
+        everything read as a sentence. Numerals are tabular so they do not jitter while a
+        score animates.
+      </p>
+
+      <ul class="type-scale">
+        @for (step of typeScale; track step.token) {
+          <li class="type-scale__row">
+            <span class="type-scale__sample df-display" [style.font-size]="'var(' + step.token + ')'">
+              Forge
+            </span>
+            <code class="type-scale__label">{{ step.label }}</code>
+          </li>
+        }
+      </ul>
+
+      <div class="numeral-demo">
+        <span class="df-metric numeral-demo__value">128,450</span>
+        <span class="numeral-demo__label">Tabular metric — the score voice</span>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="section" aria-labelledby="s-buttons">
+      <h2 class="section__title" id="s-buttons">Buttons</h2>
+      <p class="section__note">
+        The primary button is cold. In this system the loudest control is still steel,
+        because heat belongs to what the user earned, not to what the app wants.
+      </p>
+
+      <div class="specimen">
+      <div class="row">
+        <button dfButton variant="primary" type="button">Log set</button>
+        <button dfButton variant="secondary" type="button">Cancel</button>
+        <button dfButton variant="ghost" type="button">Skip</button>
+        <button dfButton variant="danger" type="button">Delete plan</button>
+      </div>
+
+      <div class="row">
+        <button dfButton variant="primary" type="button" [loading]="true">Saving</button>
+        <button dfButton variant="secondary" type="button" disabled>Unavailable</button>
+        <button dfButton variant="primary" size="lg" type="button">Large target</button>
+      </div>
+
+      <div class="row row--stack">
+        <button dfButton variant="primary" type="button" [fullWidth]="true">
+          Full width, thumb reach
+        </button>
+      </div>
+
+      <div class="row">
+        <button dfIconButton type="button" [icon]="plusIcon" label="Add exercise"></button>
+        <button
+          dfIconButton
+          type="button"
+          variant="outline"
+          [icon]="dumbbellIcon"
+          label="Workouts"
+        ></button>
+        <button dfIconButton type="button" variant="solid" [icon]="runIcon" label="Runs"></button>
+        <button dfIconButton type="button" [icon]="trashIcon" label="Delete" disabled></button>
+      </div>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="section" aria-labelledby="s-chips">
+      <h2 class="section__title" id="s-chips">Chips</h2>
+      <div class="specimen">
+      <div class="row">
+        <df-chip>Push day</df-chip>
+        <df-chip tone="done">Done</df-chip>
+        <df-chip tone="penalty">Missed</df-chip>
+        <df-chip tone="earned" [step]="2">+32</df-chip>
+      </div>
+      <div class="row">
+        <df-chip tone="equipment" equipment="barbell">Barbell</df-chip>
+        <df-chip tone="equipment" equipment="dumbbell">Dumbbell</df-chip>
+        <df-chip tone="equipment" equipment="machine">Machine</df-chip>
+        <df-chip tone="equipment" equipment="bodyweight">Bodyweight</df-chip>
+        <df-chip tone="equipment" equipment="cardio">Cardio</df-chip>
+      </div>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="section" aria-labelledby="s-fields">
+      <h2 class="section__title" id="s-fields">Fields</h2>
+
+      <div class="specimen">
+      <div class="stack">
+        <df-input label="Exercise name" [formControl]="nameControl" />
+        <df-input
+          label="Email"
+          type="email"
+          placeholder="you@example.com"
+          hint="Used to sign in. Nothing is sent to you."
+          [formControl]="emptyControl"
+        />
+        <df-input
+          label="Weight"
+          suffix="kg"
+          error="That looks out of range. Check the weight."
+          [formControl]="emptyControl"
+        />
+        <df-input label="Locked field" [formControl]="disabledControl" />
+
+        <df-stepper-input label="Reps" [min]="1" [max]="100" [formControl]="repsControl" />
+        <df-stepper-input
+          label="Weight"
+          suffix="kg"
+          [min]="0"
+          [max]="500"
+          [step]="2.5"
+          [decimals]="1"
+          hint="Per hand. The total is doubled."
+          [formControl]="weightControl"
+        />
+
+        <df-select label="Run type" [options]="runTypes" [formControl]="typeControl" />
+
+        <df-switch
+          label="Strict habit"
+          hint="Missing it costs points and breaks the streak."
+          [formControl]="strictControl"
+        />
+        <df-checkbox label="Read for 20 minutes" hint="7 day streak" [formControl]="doneControl" />
+        <df-switch label="Show pending state on the score pill" [formControl]="pendingControl" />
+      </div>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="section" aria-labelledby="s-date">
+      <h2 class="section__title" id="s-date">Date stepper</h2>
+      <p class="section__note">
+        "Today" is passed in, never computed here. The user's day belongs to the user's
+        time zone, which only the server knows.
+      </p>
+      <div class="specimen">
+        <df-card>
+          <df-date-stepper [(value)]="demoDate" [today]="demoToday" />
+        </df-card>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="section" aria-labelledby="s-cards">
+      <h2 class="section__title" id="s-cards">Cards and elevation</h2>
+      <p class="section__note">
+        Flat is the default. A shadow means "floating above the page", so only sheets,
+        toasts and the score pill have one.
+      </p>
+      <div class="specimen">
+      <div class="stack">
+        <df-card>
+          <h3 class="demo-card__title">Bench press</h3>
+          <p class="demo-card__meta">Lifetime PR 92.5 kg × 5 · Recent PR 90 kg × 6</p>
+        </df-card>
+        <df-card elevation="raised">
+          <h3 class="demo-card__title">Raised</h3>
+          <p class="demo-card__meta">Used sparingly, for something that genuinely lifts.</p>
+        </df-card>
+      </div>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="section" aria-labelledby="s-empty">
+      <h2 class="section__title" id="s-empty">Empty and loading</h2>
+      <div class="specimen">
+      <div class="stack">
+        <df-empty-state
+          [icon]="dumbbellIcon"
+          title="No plans yet"
+          body="Build your first one and the tracker will know what to show you each day."
+        >
+          <button dfButton variant="primary" type="button">Build a plan</button>
+        </df-empty-state>
+
+        <df-card>
+          <div class="skeleton-demo">
+            <df-skeleton width="60%" height="1.25rem" />
+            <df-skeleton width="100%" height="0.875rem" />
+            <df-skeleton width="80%" height="0.875rem" />
+          </div>
+        </df-card>
+      </div>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="section" aria-labelledby="s-layers">
+      <h2 class="section__title" id="s-layers">Sheets and toasts</h2>
+      <div class="specimen">
+      <div class="row">
+        <button dfButton variant="secondary" type="button" (click)="sheetOpen.set(true)">
+          Open sheet
+        </button>
+        <button dfButton variant="ghost" type="button" (click)="showNeutralToast()">
+          Neutral toast
+        </button>
+        <button dfButton variant="ghost" type="button" (click)="showEarnedToast(12)">
+          Earned toast, +12
+        </button>
+        <button dfButton variant="ghost" type="button" (click)="showEarnedToast(400)">
+          Earned toast, +400
+        </button>
+        <button dfButton variant="ghost" type="button" (click)="showPenaltyToast()">
+          Penalty toast
+        </button>
+      </div>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="section" aria-labelledby="s-score">
+      <h2 class="section__title" id="s-score">The award</h2>
+      <p class="section__note">
+        Heat is a quantity, not an accent. An earned value picks its step on the ramp from
+        its own size, so a habit tick and a marathon do not arrive at the same temperature.
+        The score pill in the bar is warm at rest for the same reason: a score is something
+        earned.
+      </p>
+
+      <div class="specimen">
+        <ul class="ramp">
+          @for (item of rampDemo; track item.amount) {
+            <li class="ramp__item">
+              <df-chip tone="earned" [step]="stepFor(item.amount)">+{{ item.amount }}</df-chip>
+              <span class="ramp__caption">{{ item.label }}</span>
+            </li>
+          }
+        </ul>
+      </div>
+
+      <p class="section__note">
+        Awarding runs the same mapping: the delta, the bloom and the toast all take their
+        step from the amount. Switch motion to "reduced" and the number and its temperature
+        still change — only the travel is removed.
+      </p>
+
+      <div class="specimen">
+        <div class="row">
+          <button dfButton variant="primary" type="button" (click)="award(12)">+12 habit</button>
+          <button dfButton variant="secondary" type="button" (click)="award(150)">
+            +150 half marathon
+          </button>
+          <button dfButton variant="secondary" type="button" (click)="award(400)">
+            +400 marathon
+          </button>
+          <button dfButton variant="ghost" type="button" (click)="award(-10)">−10 penalty</button>
+          <button dfButton variant="ghost" type="button" (click)="award(123456 - score())">
+            Six figures
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <p class="gallery__foot">
+      DailyForge M0. Fifteen primitives, two themes, one motion switch. Nothing here talks
+      to a server yet.
+    </p>
+  </div>
+</div>
+
+<df-sheet [(open)]="sheetOpen" heading="Log a set">
+  <div class="stack">
+    <df-stepper-input label="Reps" [min]="1" [max]="100" [formControl]="repsControl" />
+    <df-stepper-input
+      label="Weight"
+      suffix="kg"
+      [min]="0"
+      [max]="500"
+      [step]="2.5"
+      [decimals]="1"
+      [formControl]="weightControl"
+    />
+  </div>
+
+  <ng-container sheetActions>
+    <button dfButton variant="ghost" type="button" (click)="sheetOpen.set(false)">Cancel</button>
+    <button
+      dfButton
+      variant="primary"
+      type="button"
+      [fullWidth]="true"
+      (click)="sheetOpen.set(false); showEarnedToast()"
+    >
+      Log set
+    </button>
+  </ng-container>
+</df-sheet>

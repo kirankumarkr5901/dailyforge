@@ -1,0 +1,15 @@
+<span class="df-score-pill__bloom" aria-hidden="true"></span>
+
+<span class="df-sr-only">Score</span>
+<span class="df-score-pill__value df-metric">{{ display() }}</span>
+
+@if (deltaLabel(); as label) {
+  <span class="df-score-pill__delta df-numeric" aria-hidden="true">{{ label }}</span>
+}
+
+@if (pending()) {
+  <span class="df-score-pill__pending" title="Not yet confirmed by the server">·</span>
+}
+
+<!-- Points changes are announced rather than only animated. -->
+<span class="df-sr-only" role="status" aria-live="polite">{{ display() }} points</span>

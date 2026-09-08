@@ -1,0 +1,37 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-2);
+  padding: var(--space-7) var(--space-4);
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+}
+
+.df-empty-state__icon {
+  color: var(--ink-faint);
+  margin-bottom: var(--space-1);
+}
+
+.df-empty-state__title {
+  font-family: var(--font-display);
+  font-variation-settings:
+    'wdth' var(--display-width),
+    'wght' 600;
+  font-size: var(--text-lg);
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+  color: var(--ink);
+}
+
+.df-empty-state__body {
+  max-width: 40ch;
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+}
+
+.df-empty-state__action:not(:empty) {
+  margin-top: var(--space-3);
+}

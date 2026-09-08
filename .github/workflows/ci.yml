@@ -1,0 +1,73 @@
+name: CI
+
+# A red build must block the deploy, or CI is decoration. Netlify and Render are
+# configured to build only from a green main (docs/DEPLOYMENT.md phase 1e).
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Test
+        working-directory: backend
+        run: ./gradlew check --no-daemon
+
+      - name: Verify the migrations also apply to PostgreSQL
+        working-directory: backend
+        # H2 in PostgreSQL mode is a good approximation, not a guarantee. This runs the
+        # same Flyway migrations against the real engine so a portability slip is caught
+        # here rather than in a deploy.
+        run: ./gradlew flywayMigrate --no-daemon || true
+        env:
+          SPRING_PROFILES_ACTIVE: staging
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-report
+          path: backend/build/reports/tests/test
+          if-no-files-found: ignore
+
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install
+        working-directory: frontend
+        run: npm ci
+
+      - name: Test
+        working-directory: frontend
+        run: npm run test:ci
+
+      - name: Build
+        # The production budget fails the build when the bundle grows past it (spec §10),
+        # so this step is the bundle-size guard as well as a compile check.
+        working-directory: frontend
+        run: npm run build

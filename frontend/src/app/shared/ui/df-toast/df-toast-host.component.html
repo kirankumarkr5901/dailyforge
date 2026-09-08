@@ -1,0 +1,30 @@
+@for (toast of toasts.toasts(); track toast.id) {
+  <div
+    class="df-toast"
+    [class]="'df-toast--' + toast.tone"
+    [attr.data-heat]="toast.tone === 'earned' ? (toast.heatStep ?? 2) : null"
+    role="status"
+    aria-live="polite"
+    (mouseenter)="toasts.pause(toast.id)"
+    (mouseleave)="toasts.resume(toast.id)"
+    (focusin)="toasts.pause(toast.id)"
+    (focusout)="toasts.resume(toast.id)"
+  >
+    <span class="df-toast__message">{{ toast.message }}</span>
+
+    @if (toast.actionLabel) {
+      <button type="button" class="df-toast__action" (click)="toasts.invoke(toast.id)">
+        {{ toast.actionLabel }}
+      </button>
+    }
+
+    <button
+      type="button"
+      class="df-toast__close"
+      aria-label="Dismiss"
+      (click)="toasts.dismiss(toast.id)"
+    >
+      <lucide-icon [img]="closeIcon" [size]="16" aria-hidden="true" />
+    </button>
+  </div>
+}

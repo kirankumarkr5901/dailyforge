@@ -1,0 +1,231 @@
+/*
+ * Base layer: the reset, the type roles, and the browser surfaces.
+ *
+ * Selection, caret, scrollbars and focus rings ship with browser defaults that belong to
+ * no design system. They are themed here so the app looks built rather than assembled.
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scrollbar-color: var(--line-strong) transparent;
+}
+
+body {
+  margin: 0;
+  min-height: 100svh;
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: 400;
+  line-height: var(--leading-body);
+  letter-spacing: var(--tracking-normal);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+h4,
+p,
+figure,
+blockquote,
+dl,
+dd {
+  margin: 0;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+img,
+svg,
+video,
+canvas {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+/* ---------------------------------------------------------------------------
+ * Type roles. Sentence case everywhere; no all-caps labels, no eyebrows.
+ * ------------------------------------------------------------------------ */
+
+.df-display,
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-variation-settings:
+    'wdth' var(--display-width),
+    'wght' var(--display-weight);
+  font-weight: var(--display-weight);
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: var(--text-2xl);
+}
+h2 {
+  font-size: var(--text-xl);
+}
+h3 {
+  font-size: var(--text-lg);
+}
+
+/*
+ * Every number the user reads is a measurement, so numerals never jitter while a value
+ * animates and columns of figures line up. Applied by role, not per component.
+ */
+.df-numeric {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+.df-metric {
+  font-family: var(--font-display);
+  font-variation-settings:
+    'wdth' var(--display-width),
+    'wght' var(--display-weight);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+}
+
+.df-muted {
+  color: var(--ink-muted);
+}
+
+/* Screen-reader-only, for labels a sighted user gets from layout. */
+.df-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------------------------------------------------------------------------
+ * Layout roles
+ * ------------------------------------------------------------------------ */
+
+.df-container {
+  width: 100%;
+  max-width: var(--content-max);
+  margin-inline: auto;
+  padding-inline: max(var(--gutter), var(--safe-left), var(--safe-right));
+}
+
+/* ---------------------------------------------------------------------------
+ * Browser surfaces
+ * ------------------------------------------------------------------------ */
+
+::selection {
+  background: var(--selection-bg);
+  color: var(--selection-ink);
+}
+
+input,
+textarea {
+  caret-color: var(--focus);
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-control);
+}
+
+/* Mouse users do not get a ring; keyboard users always do. */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+a {
+  color: var(--info-ink);
+  text-decoration-color: color-mix(in oklab, var(--info-ink) 40%, transparent);
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1px;
+}
+
+a:hover {
+  text-decoration-color: currentColor;
+}
+
+/* WebKit scrollbars, themed to the surface rather than left as system chrome. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border: 3px solid var(--surface);
+  border-radius: var(--radius-pill);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ink-faint);
+}
+
+/* ---------------------------------------------------------------------------
+ * Motion
+ *
+ * Durations are already built from --motion-scale, so reduced motion collapses them
+ * to zero without a per-component media query. This block is the backstop for
+ * anything that slipped through with a literal duration.
+ * ------------------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion='full']) *,
+  :root:not([data-motion='full']) *::before,
+  :root:not([data-motion='full']) *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+:root[data-motion='reduced'] *,
+:root[data-motion='reduced'] *::before,
+:root[data-motion='reduced'] *::after {
+  animation-duration: 1ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 1ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Set while a sheet is open, so the page behind it cannot scroll away under the panel. */
+.df-scroll-locked {
+  overflow: hidden;
+}

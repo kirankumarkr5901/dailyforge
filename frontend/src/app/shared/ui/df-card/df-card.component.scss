@@ -1,0 +1,19 @@
+:host {
+  display: block;
+  padding: var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: var(--surface-raised);
+}
+
+:host(.df-card--flat) {
+  box-shadow: var(--elevation-flat);
+}
+
+:host(.df-card--raised) {
+  box-shadow: var(--elevation-raised);
+}
+
+:host(.df-card--flush) {
+  padding: 0;
+}

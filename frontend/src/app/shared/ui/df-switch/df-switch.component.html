@@ -1,0 +1,21 @@
+<label class="df-switch__row" [attr.for]="fieldId">
+  <span class="df-switch__text">
+    <span class="df-switch__label">{{ label() }}</span>
+    @if (hint(); as message) {
+      <span class="df-switch__hint">{{ message }}</span>
+    }
+  </span>
+
+  <input
+    class="df-switch__input"
+    type="checkbox"
+    role="switch"
+    [id]="fieldId"
+    [checked]="checked()"
+    [disabled]="disabled()"
+    (change)="toggle($event)"
+  />
+  <span class="df-switch__track" aria-hidden="true">
+    <span class="df-switch__thumb"></span>
+  </span>
+</label>

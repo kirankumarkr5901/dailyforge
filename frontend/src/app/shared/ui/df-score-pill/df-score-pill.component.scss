@@ -1,0 +1,132 @@
+/*
+ * The score pill.
+ *
+ * The one component that is warm at rest, because the one thing it ever shows is a
+ * quantity the user earned. Its step on the heat ramp follows magnitude: the same
+ * component is cooler holding 400 points than holding 40,000, and cooler awarding +12
+ * than awarding +150.
+ */
+
+:host {
+  /* Resolved from data-heat below. Step 2 is the resting default. */
+  --_heat-ink: var(--heat-ink-2);
+  --_heat-solid: var(--heat-2);
+
+  position: relative;
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid color-mix(in oklab, var(--_heat-solid) 30%, var(--line-strong));
+  border-radius: var(--radius-pill);
+  background: var(--surface-raised);
+  box-shadow: var(--elevation-floating);
+  overflow: hidden;
+  isolation: isolate;
+  transition:
+    border-color var(--duration-base) var(--ease-out),
+    color var(--duration-base) var(--ease-out);
+}
+
+:host([data-heat='1']) {
+  --_heat-ink: var(--heat-ink-1);
+  --_heat-solid: var(--heat-1);
+}
+:host([data-heat='2']) {
+  --_heat-ink: var(--heat-ink-2);
+  --_heat-solid: var(--heat-2);
+}
+:host([data-heat='3']) {
+  --_heat-ink: var(--heat-ink-3);
+  --_heat-solid: var(--heat-3);
+}
+:host([data-heat='4']) {
+  --_heat-ink: var(--heat-ink-4);
+  --_heat-solid: var(--heat-4);
+}
+
+.df-score-pill__value {
+  position: relative;
+  z-index: 1;
+  font-size: var(--text-lg);
+  color: var(--_heat-ink);
+}
+
+.df-score-pill__delta {
+  position: relative;
+  z-index: 1;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--_heat-ink);
+}
+
+.df-score-pill__pending {
+  position: relative;
+  z-index: 1;
+  color: var(--ink-muted);
+  font-size: var(--text-lg);
+  line-height: 1;
+}
+
+/*
+ * The bloom. A warm wash sweeps through the pill once per award and leaves it as it
+ * was — the heat arrives with the points rather than accumulating as decoration. Its
+ * intensity comes from the same step as the value, so a milestone blooms harder.
+ */
+.df-score-pill__bloom {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in oklab, var(--_heat-solid) 14%, transparent) 35%,
+    color-mix(in oklab, var(--_heat-solid) 30%, transparent) 50%,
+    color-mix(in oklab, var(--_heat-solid) 14%, transparent) 65%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+}
+
+:host(.df-score-pill--blooming) .df-score-pill__bloom {
+  animation: df-score-bloom var(--duration-bloom) var(--ease-out) 1;
+}
+
+:host(.df-score-pill--blooming) {
+  border-color: color-mix(in oklab, var(--_heat-solid) 60%, var(--line-strong));
+}
+
+/* Pending means "the server has not confirmed this yet". The value goes cold, which is
+ * exactly right: nothing is earned until the server says so. */
+:host(.df-score-pill--pending) .df-score-pill__value {
+  color: var(--ink-muted);
+}
+
+@keyframes df-score-bloom {
+  0% {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+/* Reduced motion: the number and its temperature still change, the light does not
+ * travel. */
+:root[data-motion='reduced'] .df-score-pill__bloom {
+  animation: none !important;
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion='full']) .df-score-pill__bloom {
+    animation: none !important;
+    opacity: 0;
+  }
+}

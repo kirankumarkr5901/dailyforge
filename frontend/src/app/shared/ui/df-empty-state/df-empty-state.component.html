@@ -1,0 +1,10 @@
+@if (icon(); as glyph) {
+  <lucide-icon class="df-empty-state__icon" [img]="glyph" [size]="28" aria-hidden="true" />
+}
+
+<p class="df-empty-state__title">{{ title() }}</p>
+<p class="df-empty-state__body">{{ body() }}</p>
+
+<div class="df-empty-state__action">
+  <ng-content />
+</div>

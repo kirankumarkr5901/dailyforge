@@ -1,0 +1,377 @@
+/*
+ * DailyForge design tokens.
+ *
+ * Cold steel, earned heat (spec §9). The interface is a quiet workshop; warm colour
+ * appears ONLY where the user has earned something.
+ *
+ * The rule is encoded here rather than remembered:
+ *   --surface-*, --ink-*, --line, --equip-*  are the cold system. Use these by default.
+ *   --heat-*                                 are EARNED-VALUE tokens. A component may
+ *                                            use them only when it renders a quantity
+ *                                            the user earned: points, a PR, a streak
+ *                                            bonus, a heatmap cell with points in it.
+ *
+ * If you are reaching for a heat token and nothing on screen was earned, the answer is
+ * a cold token. There is deliberately no warm "brand" or "primary" colour to reach for.
+ *
+ * Plain CSS custom properties, not SCSS variables: the theme switches at runtime and
+ * SCSS compiles away.
+ */
+
+:root {
+  /* ---------------------------------------------------------------------
+   * Light — "cold steel"
+   * ------------------------------------------------------------------ */
+  --surface: #f1f3f5; /* cool paper, never cream */
+  --surface-raised: #ffffff;
+  --surface-sunken: #e4e8eb;
+  --surface-inset: #dae0e5; /* pressed wells, track backgrounds */
+
+  --ink: #14171a;
+  --ink-muted: #5a626b;
+  --ink-faint: #79818b; /* non-text only: rules, disabled glyphs */
+  --ink-inverse: #f1f3f5;
+
+  --line: #d6dbe0;
+  --line-strong: #b9c1c9;
+
+  /* Earned heat. Four steps, cold to hot. */
+  --heat-1: #ffc24a; /* spark    — small gains, low heatmap steps */
+  --heat-2: #f5811f; /* ember    — normal gains */
+  --heat-3: #e0521b; /* forge    — big gains, PRs */
+  --heat-4: #b32d12; /* crucible — top heatmap step, milestones */
+
+  /* Heat as TEXT. The display hues above fail contrast on a light ground, so text
+   * that must be read uses these instead. Same family, legible. */
+  --heat-ink: #b4490f;
+  --heat-ink-strong: #8f3208;
+
+  /* The ramp as readable text. Heat is a QUANTITY, so an earned value picks its step
+   * from its own magnitude — a 12-point tick and a 150-point milestone must not arrive
+   * the same temperature. On a light ground hotter reads as deeper and redder; each
+   * step still clears 4.5:1. */
+  --heat-ink-1: #7a4f00;
+  --heat-ink-2: #8a4008;
+  --heat-ink-3: #8a2408;
+  --heat-ink-4: #7a0d06;
+
+  /* The matching fills. Heat has to climb in BOTH channels: a fill that desaturates as
+   * the ink darkens makes the ramp read backwards at a glance. Alpha rises with the
+   * step, and each pairing clears 4.5:1 against its own ink. */
+  --heat-fill-1: color-mix(in oklab, var(--heat-1) 14%, transparent);
+  --heat-fill-2: color-mix(in oklab, var(--heat-2) 20%, transparent);
+  --heat-fill-3: color-mix(in oklab, var(--heat-3) 26%, transparent);
+  --heat-fill-4: color-mix(in oklab, var(--heat-4) 32%, transparent);
+
+  /* Heat as a surface wash, for the count-up bloom and earned cell fills. */
+  --heat-wash: rgba(245 129 31 / 0.12);
+  --heat-wash-strong: rgba(224 82 27 / 0.22);
+
+  /* Semantics */
+  --done: #2e9e6b; /* habit completed */
+  --done-ink: #1a6b46; /* the same state, as readable text */
+  --done-wash: rgba(46 158 107 / 0.12);
+
+  --penalty: #a8324a; /* cool-shifted red: never reads as heat */
+  --penalty-ink: #8c2036;
+  --penalty-wash: rgba(168 50 74 / 0.12);
+
+  --info: #3a6ea5;
+  --info-ink: #2c5580;
+  --info-wash: rgba(58 110 165 / 0.12);
+
+  --focus: #4c9aff;
+  --focus-ring: rgba(76 154 255 / 0.45);
+
+  /* Text on a solid semantic fill. Both themes keep these fills dark enough that white
+   * stays the readable answer, so it is one value rather than two. */
+  --ink-on-solid: #ffffff;
+
+  /* Equipment chips (spec §9.2). Desaturated and cool so they never compete with heat. */
+  --equip-barbell: #4a5a78;
+  --equip-dumbbell: #4f6f63;
+  --equip-machine: #6b5a78;
+  --equip-bodyweight: #5e6b72;
+  --equip-cardio: #3f6c7a;
+
+  /* Selection and caret: browser surfaces belong to the design system too. */
+  --selection-bg: rgba(58 110 165 / 0.22);
+  --selection-ink: var(--ink);
+
+  color-scheme: light;
+}
+
+/* Dark — "night shift". Applied when the OS asks for it and the user has not
+ * explicitly chosen light. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --surface: #0f1216;
+    --surface-raised: #171b21;
+    --surface-sunken: #0a0c0f;
+    --surface-inset: #05070a;
+
+    --ink: #e9ecef;
+    --ink-muted: #949ca6;
+    --ink-faint: #6d757f;
+    --ink-inverse: #0f1216;
+
+    --line: #262c34;
+    --line-strong: #39414b;
+
+    --heat-1: #ffc24a;
+    --heat-2: #f5811f;
+    --heat-3: #e0521b;
+    --heat-4: #b32d12;
+
+    /* On a dark ground the display hues are already legible, so heat text is the
+     * bright end of the ramp rather than a darkened one. */
+    --heat-ink: #ffc24a;
+    --heat-ink-strong: #ffd57e;
+
+    /* Same ramp, inverted: on a dark ground hotter reads as brighter and redder. */
+    --heat-ink-1: #ffd97e;
+    --heat-ink-2: #ffb05c;
+    --heat-ink-3: #ff8a5b;
+    --heat-ink-4: #ff6b57;
+
+    --heat-fill-1: color-mix(in oklab, var(--heat-1) 10%, transparent);
+    --heat-fill-2: color-mix(in oklab, var(--heat-2) 13%, transparent);
+    --heat-fill-3: color-mix(in oklab, var(--heat-3) 17%, transparent);
+    --heat-fill-4: color-mix(in oklab, var(--heat-4) 22%, transparent);
+
+    --heat-wash: rgba(245 129 31 / 0.16);
+    --heat-wash-strong: rgba(255 194 74 / 0.26);
+
+    --done: #2e9e6b;
+    --done-ink: #4fc48c;
+    --done-wash: rgba(46 158 107 / 0.18);
+
+    --penalty: #a8324a;
+    --penalty-ink: #e0637e;
+    --penalty-wash: rgba(168 50 74 / 0.22);
+
+    --info: #3a6ea5;
+    --info-ink: #79aade;
+    --info-wash: rgba(58 110 165 / 0.2);
+
+    --focus: #4c9aff;
+    --focus-ring: rgba(76 154 255 / 0.5);
+
+    --equip-barbell: #7d8dab;
+    --equip-dumbbell: #82a296;
+    --equip-machine: #9e8dab;
+    --equip-bodyweight: #919ea5;
+    --equip-cardio: #729fad;
+
+    --selection-bg: rgba(76 154 255 / 0.3);
+    --selection-ink: var(--ink);
+
+    color-scheme: dark;
+  }
+}
+
+/* An explicit choice wins over the OS in both directions. */
+:root[data-theme='dark'] {
+  --surface: #0f1216;
+  --surface-raised: #171b21;
+  --surface-sunken: #0a0c0f;
+  --surface-inset: #05070a;
+
+  --ink: #e9ecef;
+  --ink-muted: #949ca6;
+  --ink-faint: #6d757f;
+  --ink-inverse: #0f1216;
+
+  --line: #262c34;
+  --line-strong: #39414b;
+
+  --heat-1: #ffc24a;
+  --heat-2: #f5811f;
+  --heat-3: #e0521b;
+  --heat-4: #b32d12;
+
+  --heat-ink: #ffc24a;
+  --heat-ink-strong: #ffd57e;
+
+  --heat-ink-1: #ffd97e;
+  --heat-ink-2: #ffb05c;
+  --heat-ink-3: #ff8a5b;
+  --heat-ink-4: #ff6b57;
+
+  --heat-fill-1: color-mix(in oklab, var(--heat-1) 10%, transparent);
+  --heat-fill-2: color-mix(in oklab, var(--heat-2) 13%, transparent);
+  --heat-fill-3: color-mix(in oklab, var(--heat-3) 17%, transparent);
+  --heat-fill-4: color-mix(in oklab, var(--heat-4) 22%, transparent);
+
+  --heat-wash: rgba(245 129 31 / 0.16);
+  --heat-wash-strong: rgba(255 194 74 / 0.26);
+
+  --done: #2e9e6b;
+  --done-ink: #4fc48c;
+  --done-wash: rgba(46 158 107 / 0.18);
+
+  --penalty: #a8324a;
+  --penalty-ink: #e0637e;
+  --penalty-wash: rgba(168 50 74 / 0.22);
+
+  --info: #3a6ea5;
+  --info-ink: #79aade;
+  --info-wash: rgba(58 110 165 / 0.2);
+
+  --focus: #4c9aff;
+  --focus-ring: rgba(76 154 255 / 0.5);
+
+  --equip-barbell: #7d8dab;
+  --equip-dumbbell: #82a296;
+  --equip-machine: #9e8dab;
+  --equip-bodyweight: #919ea5;
+  --equip-cardio: #729fad;
+
+  --selection-bg: rgba(76 154 255 / 0.3);
+  --selection-ink: var(--ink);
+
+  color-scheme: dark;
+}
+
+:root {
+  /* ---------------------------------------------------------------------
+   * The earned ramp. Five intensity steps mapped to points earned, used by
+   * the heatmap and by any surface that shades itself by magnitude.
+   * Step 0 is the unearned state and is deliberately cold.
+   *
+   * Six named values, four heat tokens: --earned-1 is a pale wash mixed from
+   * --heat-1 rather than a fifth hue, so the lowest earned step separates from the
+   * unearned ground without inventing a colour. The four heat tokens carry steps
+   * 2 through 5.
+   * ------------------------------------------------------------------ */
+  --earned-0: var(--surface-sunken);
+  --earned-1: color-mix(in oklab, var(--heat-1) 35%, var(--surface-sunken));
+  --earned-2: color-mix(in oklab, var(--heat-1) 70%, var(--heat-2));
+  --earned-3: var(--heat-2);
+  --earned-4: var(--heat-3);
+  --earned-5: var(--heat-4);
+
+  /* ---------------------------------------------------------------------
+   * Spacing. 4px base. Every gap in the app comes from this scale.
+   * ------------------------------------------------------------------ */
+  --space-0: 0;
+  --space-1: 0.25rem; /*  4px */
+  --space-2: 0.5rem; /*   8px */
+  --space-3: 0.75rem; /* 12px */
+  --space-4: 1rem; /*    16px — the gutter */
+  --space-5: 1.5rem; /*  24px */
+  --space-6: 2rem; /*    32px */
+  --space-7: 3rem; /*    48px */
+  --space-8: 4rem; /*    64px */
+
+  /* ---------------------------------------------------------------------
+   * Radii. Deliberately not one value everywhere (spec §9.2).
+   * ------------------------------------------------------------------ */
+  --radius-control: 4px; /* inputs, chips, buttons */
+  --radius-card: 10px;
+  --radius-sheet: 20px;
+  --radius-pill: 999px;
+
+  /* ---------------------------------------------------------------------
+   * Elevation. Three levels, and nothing outside this list casts a shadow.
+   * Flat is the default: a 1px rule, no shadow at all.
+   * ------------------------------------------------------------------ */
+  --elevation-flat: none;
+  --elevation-raised: 0 1px 2px rgba(10 14 18 / 0.06), 0 2px 6px rgba(10 14 18 / 0.05);
+  --elevation-floating: 0 2px 4px rgba(10 14 18 / 0.1), 0 12px 28px rgba(10 14 18 / 0.16);
+
+  /* ---------------------------------------------------------------------
+   * Type. Display is Archivo at its expanded width; body is IBM Plex Sans.
+   * ------------------------------------------------------------------ */
+  --font-display: 'Archivo Variable', 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+  --font-body: 'IBM Plex Sans Variable', 'IBM Plex Sans', system-ui, sans-serif;
+
+  /* The expanded width axis is what makes the display voice industrial rather than
+   * merely bold. 125 is the top of Archivo's wdth range. */
+  --display-width: 125;
+  --display-weight: 700;
+
+  --text-xs: 0.75rem; /*   12 */
+  --text-sm: 0.875rem; /*  14 */
+  --text-base: 1rem; /*    16 */
+  --text-lg: 1.25rem; /*   20 */
+  --text-xl: 1.625rem; /*  26 */
+  --text-2xl: 2.125rem; /* 34 */
+  --text-3xl: 2.875rem; /* 46 */
+
+  --leading-body: 1.5;
+  --leading-display: 1.15;
+
+  --tracking-display: -0.02em;
+  --tracking-tight: -0.01em;
+  --tracking-normal: 0;
+
+  /* ---------------------------------------------------------------------
+   * Motion. Three durations, two easings, and everything picks from these.
+   * The --motion-scale switch below collapses all of it to zero for users
+   * who asked for reduced motion; components do not each re-implement that.
+   * ------------------------------------------------------------------ */
+  --motion-scale: 1;
+  --duration-fast: calc(120ms * var(--motion-scale));
+  --duration-base: calc(220ms * var(--motion-scale));
+  --duration-slow: calc(420ms * var(--motion-scale));
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1); /* exponential settle: the default */
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1); /* two-way moves only */
+
+  /* Three motions run longer than an action-response and need their own durations.
+   * They are still built from --motion-scale, so nothing bypasses the one switch:
+   * a literal ms value in a component would keep animating under reduced motion and
+   * survive only because of the backstop in base.css, which is not a design. */
+  --duration-spinner: calc(640ms * var(--motion-scale));
+  --duration-bloom: calc(700ms * var(--motion-scale));
+  --duration-sweep: calc(1400ms * var(--motion-scale));
+
+  /* ---------------------------------------------------------------------
+   * Layout
+   * ------------------------------------------------------------------ */
+  --content-max: 560px;
+  --gutter: var(--space-4);
+  --tap-min: 44px;
+  --header-height: 56px;
+
+  /* Safe areas, so the Capacitor wrap at M9 is not a retrofit. */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+
+  --z-sheet: 100;
+  --z-toast: 200;
+}
+
+:root[data-theme='dark'],
+:root:not([data-theme='light']) {
+  /* Shadows on a dark ground need more opacity to register at all. */
+  --elevation-raised: 0 1px 2px rgba(0 0 0 / 0.4), 0 2px 6px rgba(0 0 0 / 0.32);
+  --elevation-floating: 0 2px 4px rgba(0 0 0 / 0.5), 0 12px 28px rgba(0 0 0 / 0.55);
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark']) {
+    --elevation-raised: 0 1px 2px rgba(10 14 18 / 0.06), 0 2px 6px rgba(10 14 18 / 0.05);
+    --elevation-floating: 0 2px 4px rgba(10 14 18 / 0.1), 0 12px 28px rgba(10 14 18 / 0.16);
+  }
+}
+
+/*
+ * Reduced motion is a token-level switch, not a per-animation media query bolted on
+ * later. Setting the scale to zero collapses every duration built from it.
+ * Celebrations still change state; they just stop moving.
+ *
+ * [data-motion='reduced'] lets the gallery and Settings force the same path for testing.
+ */
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion='full']) {
+    --motion-scale: 0;
+  }
+}
+
+:root[data-motion='reduced'] {
+  --motion-scale: 0;
+}

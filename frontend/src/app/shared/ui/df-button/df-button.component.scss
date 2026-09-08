@@ -1,0 +1,123 @@
+:host {
+  --_bg: transparent;
+  --_ink: var(--ink);
+  --_border: transparent;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--tap-min);
+  padding-inline: var(--space-4);
+  border: 1px solid var(--_border);
+  border-radius: var(--radius-control);
+  background: var(--_bg);
+  color: var(--_ink);
+  font-size: var(--text-base);
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+:host(.df-button--lg) {
+  min-height: 52px;
+  padding-inline: var(--space-5);
+  font-size: var(--text-lg);
+}
+
+:host(.df-button--full) {
+  width: 100%;
+}
+
+/* Primary: filled steel. The strongest control in the app and still not warm. */
+:host(.df-button--primary) {
+  --_bg: var(--ink);
+  --_ink: var(--surface);
+  --_border: var(--ink);
+}
+
+:host(.df-button--primary:hover:not(:disabled)) {
+  --_bg: color-mix(in oklab, var(--ink) 88%, var(--surface));
+}
+
+:host(.df-button--secondary) {
+  --_bg: var(--surface-raised);
+  --_ink: var(--ink);
+  --_border: var(--line-strong);
+}
+
+:host(.df-button--secondary:hover:not(:disabled)) {
+  --_bg: var(--surface-sunken);
+}
+
+:host(.df-button--ghost) {
+  --_bg: transparent;
+  --_ink: var(--ink-muted);
+  --_border: transparent;
+}
+
+:host(.df-button--ghost:hover:not(:disabled)) {
+  --_bg: var(--surface-sunken);
+  --_ink: var(--ink);
+}
+
+:host(.df-button--danger) {
+  --_bg: var(--penalty);
+  --_ink: var(--ink-on-solid);
+  --_border: var(--penalty);
+}
+
+:host(.df-button--danger:hover:not(:disabled)) {
+  --_bg: color-mix(in oklab, var(--penalty) 88%, black);
+}
+
+:host(:active:not(:disabled)) {
+  transform: translateY(1px);
+}
+
+:host(:disabled),
+:host([aria-disabled='true']) {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+/* While loading the label stays in place so the button does not resize under the
+ * pointer; only the spinner is added. */
+:host([data-loading]) .df-button__label {
+  opacity: 0.7;
+}
+
+.df-button__spinner {
+  width: 1em;
+  height: 1em;
+  flex: none;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: var(--radius-pill);
+  animation: df-button-spin var(--duration-spinner) linear infinite;
+}
+
+/* Reduced motion still needs a busy signal, so the ring stops turning and holds as a
+ * partial arc rather than disappearing. aria-busy carries it for screen readers. */
+:root[data-motion='reduced'] .df-button__spinner {
+  animation: none;
+  opacity: 0.6;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion='full']) .df-button__spinner {
+    animation: none;
+    opacity: 0.6;
+  }
+}
+
+@keyframes df-button-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

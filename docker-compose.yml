@@ -1,0 +1,31 @@
+# PostgreSQL for local work.
+#
+# Unused in day-to-day development — that runs on file-mode H2 with no infrastructure to
+# install. This exists so that the moment you want to rehearse a migration against the
+# real engine (deployment phase 1a), it is one command away rather than an afternoon.
+#
+#   docker compose up -d
+#   cd backend && SPRING_PROFILES_ACTIVE=staging \
+#     DATABASE_URL=jdbc:postgresql://localhost:5432/dailyforge \
+#     DATABASE_USERNAME=dailyforge DATABASE_PASSWORD=dailyforge ./gradlew bootRun
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: dailyforge-postgres
+    environment:
+      POSTGRES_DB: dailyforge
+      POSTGRES_USER: dailyforge
+      POSTGRES_PASSWORD: dailyforge
+    ports:
+      - '5432:5432'
+    volumes:
+      - dailyforge-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U dailyforge -d dailyforge']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  dailyforge-pgdata:

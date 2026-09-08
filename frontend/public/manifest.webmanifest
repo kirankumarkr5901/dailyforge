@@ -1,0 +1,17 @@
+{
+  "name": "DailyForge",
+  "short_name": "DailyForge",
+  "description": "Everything you log becomes points.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f1216",
+  "theme_color": "#0f1216",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    }
+  ]
+}

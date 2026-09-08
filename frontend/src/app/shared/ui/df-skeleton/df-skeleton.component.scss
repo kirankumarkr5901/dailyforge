@@ -1,0 +1,43 @@
+:host {
+  display: block;
+  background: var(--surface-sunken);
+  overflow: hidden;
+  position: relative;
+}
+
+/* A single sweep, not a pulse: it reads as "working" without drawing the eye back
+ * repeatedly. The sweep is a transform on a pseudo-element, so it stays on the
+ * compositor. */
+:host::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklab, var(--surface-raised) 70%, transparent),
+    transparent
+  );
+  animation: df-skeleton-sweep var(--duration-sweep) var(--ease-in-out) infinite;
+}
+
+/* :host-context reaches the root attribute from inside the component. Written as
+ * `.df-skeleton::after` this silently matched nothing — a host class in a descendant
+ * selector never matches the host under emulated encapsulation — and the rule only
+ * appeared to work because of the backstop in base.css. */
+:host-context([data-motion='reduced'])::after {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :host-context(:root:not([data-motion='full']))::after {
+    animation: none;
+  }
+}
+
+@keyframes df-skeleton-sweep {
+  to {
+    transform: translateX(100%);
+  }
+}

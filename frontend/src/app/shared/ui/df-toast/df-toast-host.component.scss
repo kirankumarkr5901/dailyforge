@@ -1,0 +1,99 @@
+:host {
+  position: fixed;
+  z-index: var(--z-toast);
+  left: 50%;
+  translate: -50% 0;
+  /* Above the thumb zone and above any bottom navigation, plus the safe area. */
+  bottom: calc(var(--space-5) + var(--safe-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: min(100% - (var(--space-4) * 2), var(--content-max));
+  pointer-events: none;
+}
+
+.df-toast {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: var(--surface-raised);
+  box-shadow: var(--elevation-floating);
+  pointer-events: auto;
+  animation: df-toast-in var(--duration-base) var(--ease-out);
+}
+
+.df-toast__message {
+  flex: 1;
+  min-width: 0;
+  color: var(--ink);
+  font-size: var(--text-sm);
+}
+
+/* A toast reporting earned points carries the heat on its edge, at the step the amount
+ * earned — the same ramp the score pill and the earned chip use. */
+.df-toast--earned {
+  border-color: color-mix(in oklab, var(--heat-2) 35%, var(--line));
+}
+
+.df-toast--earned[data-heat='1'] {
+  border-color: color-mix(in oklab, var(--heat-1) 35%, var(--line));
+}
+.df-toast--earned[data-heat='2'] {
+  border-color: color-mix(in oklab, var(--heat-2) 45%, var(--line));
+}
+.df-toast--earned[data-heat='3'] {
+  border-color: color-mix(in oklab, var(--heat-3) 55%, var(--line));
+}
+.df-toast--earned[data-heat='4'] {
+  border-color: color-mix(in oklab, var(--heat-4) 65%, var(--line));
+}
+
+.df-toast--penalty {
+  border-color: color-mix(in oklab, var(--penalty) 35%, var(--line));
+}
+
+.df-toast__action {
+  flex: none;
+  min-height: 32px;
+  padding-inline: var(--space-3);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.df-toast__action:hover {
+  background: var(--surface-sunken);
+}
+
+.df-toast__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border: none;
+  border-radius: var(--radius-control);
+  background: none;
+  color: var(--ink-muted);
+  cursor: pointer;
+}
+
+.df-toast__close:hover {
+  background: var(--surface-sunken);
+  color: var(--ink);
+}
+
+@keyframes df-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}

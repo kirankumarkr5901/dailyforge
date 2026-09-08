@@ -1,0 +1,29 @@
+<label class="df-checkbox__row" [attr.for]="fieldId">
+  <input
+    class="df-checkbox__input"
+    type="checkbox"
+    [id]="fieldId"
+    [checked]="checked()"
+    [disabled]="disabled()"
+    (change)="toggle($event)"
+  />
+
+  <span class="df-checkbox__box" aria-hidden="true">
+    <svg class="df-checkbox__tick" viewBox="0 0 16 16" fill="none">
+      <path
+        d="M3.5 8.5 L6.5 11.5 L12.5 4.5"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </svg>
+  </span>
+
+  <span class="df-checkbox__text">
+    <span class="df-checkbox__label">{{ label() }}</span>
+    @if (hint(); as message) {
+      <span class="df-checkbox__hint">{{ message }}</span>
+    }
+  </span>
+</label>

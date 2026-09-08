@@ -1,0 +1,386 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-06T00:00:00Z",
+  "title": "Design System: DailyForge",
+  "extensions": {
+    "colorMeta": {
+      "surface": {
+        "role": "neutral",
+        "displayName": "Cool Paper",
+        "canonical": "#f1f3f5",
+        "darkThemeValue": "#0f1216",
+        "tonalRamp": ["#0a0c0f", "#14171a", "#2b3138", "#454d56", "#5f6771", "#8d949c", "#b9c1c9", "#f1f3f5"]
+      },
+      "surface-raised": {
+        "role": "neutral",
+        "displayName": "Bench White",
+        "canonical": "#ffffff",
+        "darkThemeValue": "#171b21",
+        "tonalRamp": ["#0f1216", "#171b21", "#2b3138", "#4a525b", "#79818b", "#b9c1c9", "#e4e8eb", "#ffffff"]
+      },
+      "surface-sunken": {
+        "role": "neutral",
+        "displayName": "Sunken Steel",
+        "canonical": "#e4e8eb",
+        "darkThemeValue": "#0a0c0f",
+        "tonalRamp": ["#0a0c0f", "#14171a", "#262c34", "#39414b", "#79818b", "#b9c1c9", "#dae0e5", "#f4f6f8"]
+      },
+      "surface-inset": {
+        "role": "neutral",
+        "displayName": "Pressed Well",
+        "canonical": "#dae0e5",
+        "darkThemeValue": "#05070a",
+        "tonalRamp": ["#05070a", "#12161b", "#262c34", "#39414b", "#79818b", "#b9c1c9", "#dae0e5", "#eef1f4"]
+      },
+      "ink": {
+        "role": "primary",
+        "displayName": "Steel Ink",
+        "canonical": "#14171a",
+        "darkThemeValue": "#e9ecef",
+        "tonalRamp": ["#0a0c0f", "#14171a", "#262c34", "#39414b", "#5a626b", "#949ca6", "#c8ced4", "#e9ecef"]
+      },
+      "ink-muted": {
+        "role": "neutral",
+        "displayName": "Muted Ink",
+        "canonical": "#5a626b",
+        "darkThemeValue": "#949ca6",
+        "tonalRamp": ["#14171a", "#242a30", "#3b434b", "#5a626b", "#79818b", "#949ca6", "#c2c8ce", "#e6e9ec"]
+      },
+      "ink-faint": {
+        "role": "neutral",
+        "displayName": "Faint Ink",
+        "canonical": "#79818b",
+        "darkThemeValue": "#6d757f",
+        "tonalRamp": ["#171a1e", "#282d33", "#3c434b", "#5a626b", "#79818b", "#9aa2ab", "#c3c9cf", "#e7eaed"]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Rule",
+        "canonical": "#d6dbe0",
+        "darkThemeValue": "#262c34",
+        "tonalRamp": ["#111418", "#1b2027", "#262c34", "#39414b", "#767f89", "#a7aeb6", "#d6dbe0", "#f0f2f5"]
+      },
+      "line-strong": {
+        "role": "neutral",
+        "displayName": "Strong Rule",
+        "canonical": "#b9c1c9",
+        "darkThemeValue": "#39414b",
+        "tonalRamp": ["#14181c", "#222831", "#39414b", "#525b66", "#818b96", "#b9c1c9", "#dbe0e5", "#f2f4f6"]
+      },
+      "heat-1": {
+        "role": "secondary",
+        "displayName": "Spark",
+        "canonical": "#ffc24a",
+        "tonalRamp": ["#2b1c00", "#4a3100", "#6d4800", "#94620a", "#bd7f12", "#e6a32a", "#ffc24a", "#ffe0a8"]
+      },
+      "heat-2": {
+        "role": "secondary",
+        "displayName": "Ember",
+        "canonical": "#f5811f",
+        "tonalRamp": ["#2b1200", "#4a2000", "#6c2f02", "#8f4108", "#b45610", "#d76a17", "#f5811f", "#ffbe83"]
+      },
+      "heat-3": {
+        "role": "secondary",
+        "displayName": "Forge",
+        "canonical": "#e0521b",
+        "tonalRamp": ["#280c00", "#451604", "#672108", "#892e0d", "#ac3d12", "#c64717", "#e0521b", "#ff9d70"]
+      },
+      "heat-4": {
+        "role": "secondary",
+        "displayName": "Crucible",
+        "canonical": "#b32d12",
+        "tonalRamp": ["#220600", "#3d0d03", "#5a1606", "#791f0a", "#98260e", "#b32d12", "#d95a3a", "#ff9c80"]
+      },
+      "heat-ink-1": {
+        "role": "secondary",
+        "displayName": "Spark Ink",
+        "canonical": "#7a4f00",
+        "darkThemeValue": "#ffd97e",
+        "purpose": "Readable text at heat step 1. 5.54:1 on light, 12.20:1 on dark.",
+        "tonalRamp": ["#241700", "#3d2700", "#573800", "#7a4f00", "#a06800", "#c98400", "#f0a92b", "#ffd97e"]
+      },
+      "heat-ink-2": {
+        "role": "secondary",
+        "displayName": "Ember Ink",
+        "canonical": "#8a4008",
+        "darkThemeValue": "#ffb05c",
+        "purpose": "Readable text at heat step 2. 5.16:1 on light, 9.22:1 on dark.",
+        "tonalRamp": ["#280f00", "#421c02", "#5f2a04", "#8a4008", "#ac5410", "#d06f1c", "#ef9137", "#ffb05c"]
+      },
+      "heat-ink-3": {
+        "role": "secondary",
+        "displayName": "Forge Ink",
+        "canonical": "#8a2408",
+        "darkThemeValue": "#ff8a5b",
+        "purpose": "Readable text at heat step 3. 5.38:1 on light, 7.20:1 on dark.",
+        "tonalRamp": ["#260600", "#400f02", "#5e1804", "#8a2408", "#ab3411", "#cf4a20", "#ec6a3c", "#ff8a5b"]
+      },
+      "heat-ink-4": {
+        "role": "secondary",
+        "displayName": "Crucible Ink",
+        "canonical": "#7a0d06",
+        "darkThemeValue": "#ff6b57",
+        "purpose": "Readable text at heat step 4. 5.44:1 on light, 6.12:1 on dark.",
+        "tonalRamp": ["#220100", "#3b0402", "#560804", "#7a0d06", "#9c1a0f", "#c22f1f", "#e64c37", "#ff6b57"]
+      },
+      "done": {
+        "role": "tertiary",
+        "displayName": "Workshop Green",
+        "canonical": "#2e9e6b",
+        "purpose": "Habit completed. A state, never an earned amount.",
+        "tonalRamp": ["#04170e", "#08291a", "#0e3f28", "#155638", "#1a6b46", "#248657", "#2e9e6b", "#4fc48c"]
+      },
+      "penalty": {
+        "role": "tertiary",
+        "displayName": "Cool Crimson",
+        "canonical": "#a8324a",
+        "purpose": "Penalties and destructive actions. Cool-shifted so it never reads as heat.",
+        "tonalRamp": ["#1c0409", "#320810", "#4c101c", "#6a1828", "#8c2036", "#a8324a", "#c74b64", "#e0637e"]
+      },
+      "info": {
+        "role": "tertiary",
+        "displayName": "Slate Blue",
+        "canonical": "#3a6ea5",
+        "purpose": "Links and informational notes.",
+        "tonalRamp": ["#050f1a", "#0a1d2f", "#123049", "#1c4467", "#2c5580", "#3a6ea5", "#79aade", "#bcd6f2"]
+      },
+      "focus": {
+        "role": "tertiary",
+        "displayName": "Signal Blue",
+        "canonical": "#4c9aff",
+        "purpose": "Focus ring and caret only. Never decorative.",
+        "tonalRamp": ["#04121f", "#082238", "#0f3557", "#184c7c", "#2367a6", "#3383d4", "#4c9aff", "#a9cdff"]
+      },
+      "equip-barbell": {
+        "role": "neutral",
+        "displayName": "Barbell Slate",
+        "canonical": "#4a5a78",
+        "darkThemeValue": "#7d8dab",
+        "tonalRamp": ["#0b0f16", "#161c27", "#242d3d", "#354154", "#4a5a78", "#63769a", "#7d8dab", "#b6c1d5"]
+      },
+      "equip-dumbbell": {
+        "role": "neutral",
+        "displayName": "Dumbbell Sage",
+        "canonical": "#4f6f63",
+        "darkThemeValue": "#82a296",
+        "tonalRamp": ["#0b1210", "#16211d", "#24332d", "#35493f", "#4f6f63", "#688b7d", "#82a296", "#bcd0c8"]
+      },
+      "equip-machine": {
+        "role": "neutral",
+        "displayName": "Machine Mauve",
+        "canonical": "#6b5a78",
+        "darkThemeValue": "#9e8dab",
+        "tonalRamp": ["#110d14", "#1e1823", "#2f2636", "#443a4d", "#6b5a78", "#856f95", "#9e8dab", "#cfc4d7"]
+      },
+      "equip-bodyweight": {
+        "role": "neutral",
+        "displayName": "Bodyweight Grey",
+        "canonical": "#5e6b72",
+        "darkThemeValue": "#919ea5",
+        "tonalRamp": ["#0d1113", "#181e21", "#283034", "#3b464b", "#5e6b72", "#78868d", "#919ea5", "#c6cfd4"]
+      },
+      "equip-cardio": {
+        "role": "neutral",
+        "displayName": "Cardio Teal",
+        "canonical": "#3f6c7a",
+        "darkThemeValue": "#729fad",
+        "tonalRamp": ["#081114", "#102025", "#1c3339", "#2b4c56", "#3f6c7a", "#568b9a", "#729fad", "#b2cfd8"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Page titles and h1. Archivo at wdth 125, which renders 26.2% wider than wdth 100 — a real variable width axis, not a faux stretch." },
+      "headline": { "displayName": "Headline", "purpose": "h2 and section headers." },
+      "title": { "displayName": "Title", "purpose": "h3, sheet headings, empty-state titles, the date stepper's current-day label." },
+      "body": { "displayName": "Body", "purpose": "All prose and control labels, capped by the 560px column; supporting copy caps at 40ch." },
+      "label": { "displayName": "Label", "purpose": "Field labels, toast messages, unit suffixes. Sentence case, never letter-spaced." },
+      "caption": { "displayName": "Caption", "purpose": "Hints, errors, chips." },
+      "metric": { "displayName": "Metric", "purpose": "Any number the user reads as a measurement. Display face plus tabular figures so values do not jitter while counting up." }
+    },
+    "shadows": [
+      { "name": "elevation-flat", "value": "none", "purpose": "The default for every surface. Structure comes from a 1px rule and a surface tone." },
+      { "name": "elevation-raised", "value": "0 1px 2px rgba(10 14 18 / 0.06), 0 2px 6px rgba(10 14 18 / 0.05)", "purpose": "Opt-in card lift and the switch thumb. Light theme." },
+      { "name": "elevation-raised-dark", "value": "0 1px 2px rgba(0 0 0 / 0.4), 0 2px 6px rgba(0 0 0 / 0.32)", "purpose": "Same role on a dark ground, where the light values do not register." },
+      { "name": "elevation-floating", "value": "0 2px 4px rgba(10 14 18 / 0.1), 0 12px 28px rgba(10 14 18 / 0.16)", "purpose": "Sheets, toasts and the score pill. Nothing else floats. Light theme." },
+      { "name": "elevation-floating-dark", "value": "0 2px 4px rgba(0 0 0 / 0.5), 0 12px 28px rgba(0 0 0 / 0.55)", "purpose": "The floating role on a dark ground." },
+      { "name": "focus-ring", "value": "0 0 0 3px rgba(76 154 255 / 0.45)", "purpose": "The halo a text field draws around itself on focus-within, alongside the border shift." }
+    ],
+    "motion": [
+      { "name": "motion-scale", "value": "1", "purpose": "The single reduced-motion switch. Set to 0 by prefers-reduced-motion or [data-motion='reduced']; every duration is calc()'d from it, so no animation needs its own media query." },
+      { "name": "duration-fast", "value": "calc(120ms * var(--motion-scale))", "purpose": "Hover and border colour changes on controls." },
+      { "name": "duration-base", "value": "calc(220ms * var(--motion-scale))", "purpose": "Switch throw, sheet rise, toast entry, score-pill temperature change." },
+      { "name": "duration-slow", "value": "calc(420ms * var(--motion-scale))", "purpose": "The longest move the system allows." },
+      { "name": "ease-out", "value": "cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "Exponential settle: the default for everything that arrives." },
+      { "name": "ease-in-out", "value": "cubic-bezier(0.65, 0, 0.35, 1)", "purpose": "Two-way moves only, e.g. the skeleton sweep." }
+    ],
+    "breakpoints": [
+      { "name": "sheet-centred", "value": "720px", "purpose": "The only breakpoint in the primitive layer: the bottom sheet becomes a centred panel and drops its grip." }
+    ],
+    "layout": [
+      { "name": "content-max", "value": "560px", "purpose": "The single content column." },
+      { "name": "gutter", "value": "16px", "purpose": "Horizontal page padding, expanded by max() to clear the safe-area insets." },
+      { "name": "tap-min", "value": "44px", "purpose": "Minimum interactive target; buttons, icon buttons and steppers are sized from it." },
+      { "name": "header-height", "value": "56px" },
+      { "name": "z-sheet", "value": "100" },
+      { "name": "z-toast", "value": "200" }
+    ],
+    "heatRamp": {
+      "purpose": "Earned-value tokens. Available only to a surface rendering a quantity the user earned; the step is chosen by the magnitude of that quantity.",
+      "thresholds": [0, 25, 100, 300],
+      "thresholdNote": "Display thresholds (lower bounds by absolute amount), not point values. Owned by df-score-pill; df-chip takes `step`, the toast takes `heatStep`.",
+      "lightFillAlpha": ["14%", "20%", "26%", "32%"],
+      "darkFillAlpha": ["10%", "13%", "17%", "22%"],
+      "earnedScale": {
+        "earned-0": "var(--surface-sunken)",
+        "earned-1": "color-mix(in oklab, var(--heat-1) 35%, var(--surface-sunken))",
+        "earned-2": "color-mix(in oklab, var(--heat-1) 70%, var(--heat-2))",
+        "earned-3": "var(--heat-2)",
+        "earned-4": "var(--heat-3)",
+        "earned-5": "var(--heat-4)"
+      }
+    }
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The strongest control in the app, and still cold: filled steel, because there is no warm brand colour to reach for.",
+      "html": "<button class=\"ds-btn-primary\">Log workout</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding-inline: 16px; border: 1px solid var(--ink, #14171a); border-radius: var(--radius-control, 4px); background: var(--ink, #14171a); color: var(--surface, #f1f3f5); font-family: var(--font-body, 'IBM Plex Sans Variable', system-ui, sans-serif); font-size: 1rem; font-weight: 600; letter-spacing: -0.01em; cursor: pointer; transition: background-color 120ms cubic-bezier(0.16,1,0.3,1), transform 120ms cubic-bezier(0.16,1,0.3,1); } .ds-btn-primary:hover { background: color-mix(in oklab, var(--ink, #14171a) 88%, var(--surface, #f1f3f5)); } .ds-btn-primary:active { transform: translateY(1px); } .ds-btn-primary:focus-visible { outline: 2px solid var(--focus, #4c9aff); outline-offset: 2px; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Raised surface with a strong hairline; the everyday alternative action.",
+      "html": "<button class=\"ds-btn-secondary\">Cancel</button>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding-inline: 16px; border: 1px solid var(--line-strong, #b9c1c9); border-radius: var(--radius-control, 4px); background: var(--surface-raised, #ffffff); color: var(--ink, #14171a); font-family: var(--font-body, 'IBM Plex Sans Variable', system-ui, sans-serif); font-size: 1rem; font-weight: 600; letter-spacing: -0.01em; cursor: pointer; transition: background-color 120ms cubic-bezier(0.16,1,0.3,1); } .ds-btn-secondary:hover { background: var(--surface-sunken, #e4e8eb); } .ds-btn-secondary:active { transform: translateY(1px); } .ds-btn-secondary:focus-visible { outline: 2px solid var(--focus, #4c9aff); outline-offset: 2px; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Muted and borderless until hovered; for tertiary actions that must not compete.",
+      "html": "<button class=\"ds-btn-ghost\">Skip</button>",
+      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding-inline: 16px; border: 1px solid transparent; border-radius: var(--radius-control, 4px); background: transparent; color: var(--ink-muted, #5a626b); font-family: var(--font-body, 'IBM Plex Sans Variable', system-ui, sans-serif); font-size: 1rem; font-weight: 600; cursor: pointer; transition: background-color 120ms cubic-bezier(0.16,1,0.3,1), color 120ms cubic-bezier(0.16,1,0.3,1); } .ds-btn-ghost:hover { background: var(--surface-sunken, #e4e8eb); color: var(--ink, #14171a); } .ds-btn-ghost:focus-visible { outline: 2px solid var(--focus, #4c9aff); outline-offset: 2px; }"
+    },
+    {
+      "name": "Icon Button",
+      "kind": "button",
+      "refersTo": "icon-button",
+      "description": "A 44px square carrying one Lucide glyph at 20px, muted until hovered.",
+      "html": "<button class=\"ds-icon-btn\" aria-label=\"Add\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 12h14\"/><path d=\"M12 5v14\"/></svg></button>",
+      "css": ".ds-icon-btn { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0; border: 1px solid transparent; border-radius: var(--radius-control, 4px); background: transparent; color: var(--ink-muted, #5a626b); cursor: pointer; transition: background-color 120ms cubic-bezier(0.16,1,0.3,1), color 120ms cubic-bezier(0.16,1,0.3,1); } .ds-icon-btn:hover { background: var(--surface-sunken, #e4e8eb); color: var(--ink, #14171a); } .ds-icon-btn:focus-visible { outline: 2px solid var(--focus, #4c9aff); outline-offset: 2px; }"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Flat by default: a raised surface inside a 1px rule, casting nothing.",
+      "html": "<div class=\"ds-card\"><h3 class=\"ds-card-title\">Bench press</h3><p class=\"ds-card-body\">3 sets of 8 at 60 kg.</p></div>",
+      "css": ".ds-card { display: block; padding: 16px; border: 1px solid var(--line, #d6dbe0); border-radius: var(--radius-card, 10px); background: var(--surface-raised, #ffffff); box-shadow: none; } .ds-card-title { margin: 0 0 4px; font-family: var(--font-display, 'Archivo Variable', sans-serif); font-variation-settings: 'wdth' 125, 'wght' 600; font-size: 1.25rem; line-height: 1.15; letter-spacing: -0.02em; color: var(--ink, #14171a); } .ds-card-body { margin: 0; font-family: var(--font-body, 'IBM Plex Sans Variable', system-ui, sans-serif); font-size: 1rem; line-height: 1.5; color: var(--ink-muted, #5a626b); }"
+    },
+    {
+      "name": "Earned Chip",
+      "kind": "chip",
+      "refersTo": "chip-earned",
+      "description": "The only warm chip. Its ink and fill come from the heat step of the amount it shows; step 3 is drawn here.",
+      "html": "<span class=\"ds-chip-earned\">+120 pts</span>",
+      "css": ".ds-chip-earned { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border: 1px solid transparent; border-radius: var(--radius-control, 4px); background: color-mix(in oklab, var(--heat-3, #e0521b) 26%, transparent); color: var(--heat-ink-3, #8a2408); font-family: var(--font-body, 'IBM Plex Sans Variable', system-ui, sans-serif); font-size: 0.75rem; font-weight: 500; line-height: 1.5; white-space: nowrap; font-variant-numeric: tabular-nums; }"
+    },
+    {
+      "name": "Equipment Chip",
+      "kind": "chip",
+      "refersTo": "chip-equipment",
+      "description": "A 1px coloured rule and no fill, so a row of them reads as labels rather than competing blocks.",
+      "html": "<span class=\"ds-chip-equip\">Barbell</span>",
+      "css": ".ds-chip-equip { display: inline-flex; align-items: center; padding: 2px 8px; border: 1px solid currentColor; border-radius: var(--radius-control, 4px); background: transparent; color: var(--equip-barbell, #4a5a78); font-family: var(--font-body, 'IBM Plex Sans Variable', system-ui, sans-serif); font-size: 0.75rem; font-weight: 500; line-height: 1.5; white-space: nowrap; }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "The field owns the focus treatment so the inner input never draws a second ring; the unit suffix lives inside it.",
+      "html": "<div class=\"ds-field\"><label class=\"ds-field-label\" for=\"ds-weight\">Weight</label><div class=\"ds-field-box\"><input class=\"ds-field-input\" id=\"ds-weight\" value=\"60\" /><span class=\"ds-field-suffix\">kg</span></div><p class=\"ds-field-hint\">Last session: 57.5 kg</p></div>",
+      "css": ".ds-field { display: flex; flex-direction: column; gap: 4px; font-family: var(--font-body, 'IBM Plex Sans Variable', system-ui, sans-serif); } .ds-field-label { color: var(--ink-muted, #5a626b); font-size: 0.875rem; font-weight: 500; } .ds-field-box { display: flex; align-items: center; gap: 8px; min-height: 44px; padding-inline: 12px; border: 1px solid var(--line-strong, #b9c1c9); border-radius: var(--radius-control, 4px); background: var(--surface-raised, #ffffff); transition: border-color 120ms cubic-bezier(0.16,1,0.3,1); } .ds-field-box:focus-within { border-color: var(--focus, #4c9aff); box-shadow: 0 0 0 3px rgba(76 154 255 / 0.45); } .ds-field-input { flex: 1; min-width: 0; border: none; background: none; padding: 0; color: var(--ink, #14171a); font: inherit; font-size: 1rem; } .ds-field-input:focus { outline: none; } .ds-field-suffix { flex: none; color: var(--ink-muted, #5a626b); font-size: 0.875rem; font-variant-numeric: tabular-nums; } .ds-field-hint { margin: 0; color: var(--ink-muted, #5a626b); font-size: 0.75rem; }"
+    },
+    {
+      "name": "Score Pill",
+      "kind": "custom",
+      "refersTo": "score-pill",
+      "description": "The signature component and the only object warm at rest, because the only thing it shows is an earned quantity. Its border and ink follow the heat step of the amount.",
+      "html": "<span class=\"ds-score-pill\"><span class=\"ds-score-value\">4,820</span><span class=\"ds-score-delta\">+120</span></span>",
+      "css": ".ds-score-pill { position: relative; display: inline-flex; align-items: baseline; gap: 8px; padding: 4px 12px; border: 1px solid color-mix(in oklab, var(--heat-2, #f5811f) 30%, var(--line-strong, #b9c1c9)); border-radius: 999px; background: var(--surface-raised, #ffffff); box-shadow: 0 2px 4px rgba(10 14 18 / 0.1), 0 12px 28px rgba(10 14 18 / 0.16); overflow: hidden; transition: border-color 220ms cubic-bezier(0.16,1,0.3,1), color 220ms cubic-bezier(0.16,1,0.3,1); } .ds-score-pill:hover { border-color: color-mix(in oklab, var(--heat-2, #f5811f) 60%, var(--line-strong, #b9c1c9)); } .ds-score-value { font-family: var(--font-display, 'Archivo Variable', sans-serif); font-variation-settings: 'wdth' 125, 'wght' 700; font-variant-numeric: tabular-nums; font-size: 1.25rem; line-height: 1.15; letter-spacing: -0.02em; color: var(--heat-ink-2, #8a4008); } .ds-score-delta { font-family: var(--font-body, 'IBM Plex Sans Variable', system-ui, sans-serif); font-size: 0.875rem; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--heat-ink-2, #8a4008); }"
+    },
+    {
+      "name": "Toast",
+      "kind": "custom",
+      "refersTo": "toast",
+      "description": "A floating card whose tone lives entirely on its border. The six-second dwell is the undo window.",
+      "html": "<div class=\"ds-toast\"><span class=\"ds-toast-msg\">Workout logged. +120 pts</span><button class=\"ds-toast-action\">Undo</button></div>",
+      "css": ".ds-toast { display: flex; align-items: center; gap: 12px; width: min(100%, 560px); padding: 12px 12px 12px 16px; border: 1px solid color-mix(in oklab, var(--heat-3, #e0521b) 55%, var(--line, #d6dbe0)); border-radius: var(--radius-card, 10px); background: var(--surface-raised, #ffffff); box-shadow: 0 2px 4px rgba(10 14 18 / 0.1), 0 12px 28px rgba(10 14 18 / 0.16); font-family: var(--font-body, 'IBM Plex Sans Variable', system-ui, sans-serif); } .ds-toast-msg { flex: 1; min-width: 0; color: var(--ink, #14171a); font-size: 0.875rem; } .ds-toast-action { flex: none; min-height: 32px; padding-inline: 12px; border: 1px solid var(--line-strong, #b9c1c9); border-radius: var(--radius-control, 4px); background: var(--surface, #f1f3f5); color: var(--ink, #14171a); font: inherit; font-size: 0.875rem; font-weight: 600; cursor: pointer; } .ds-toast-action:hover { background: var(--surface-sunken, #e4e8eb); } .ds-toast-action:focus-visible { outline: 2px solid var(--focus, #4c9aff); outline-offset: 2px; }"
+    },
+    {
+      "name": "Switch",
+      "kind": "custom",
+      "refersTo": "switch",
+      "description": "A capsule track that fills with steel when on — on is a setting, not a reward, so it is never warm. The real checkbox stays focusable.",
+      "html": "<label class=\"ds-switch-row\"><span class=\"ds-switch-text\"><span class=\"ds-switch-label\">Rest day reminders</span><span class=\"ds-switch-hint\">A nudge at 19:00</span></span><input class=\"ds-switch-input\" type=\"checkbox\" checked /><span class=\"ds-switch-track\"><span class=\"ds-switch-thumb\"></span></span></label>",
+      "css": ".ds-switch-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 44px; cursor: pointer; font-family: var(--font-body, 'IBM Plex Sans Variable', system-ui, sans-serif); } .ds-switch-text { display: flex; flex-direction: column; gap: 2px; } .ds-switch-label { color: var(--ink, #14171a); font-size: 1rem; } .ds-switch-hint { color: var(--ink-muted, #5a626b); font-size: 0.75rem; } .ds-switch-input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; } .ds-switch-track { position: relative; flex: none; width: 44px; height: 26px; padding: 3px; border: 1px solid var(--line-strong, #b9c1c9); border-radius: 999px; background: var(--surface-inset, #dae0e5); transition: background-color 220ms cubic-bezier(0.16,1,0.3,1), border-color 220ms cubic-bezier(0.16,1,0.3,1); } .ds-switch-thumb { display: block; width: 18px; height: 18px; border-radius: 999px; background: var(--surface-raised, #ffffff); box-shadow: 0 1px 2px rgba(10 14 18 / 0.06), 0 2px 6px rgba(10 14 18 / 0.05); transition: transform 220ms cubic-bezier(0.16,1,0.3,1); } .ds-switch-input:checked + .ds-switch-track { background: var(--ink, #14171a); border-color: var(--ink, #14171a); } .ds-switch-input:checked + .ds-switch-track .ds-switch-thumb { transform: translateX(18px); } .ds-switch-input:focus-visible + .ds-switch-track { outline: 2px solid var(--focus, #4c9aff); outline-offset: 2px; }"
+    },
+    {
+      "name": "Empty State",
+      "kind": "custom",
+      "refersTo": "empty-state",
+      "description": "The one dashed border in the system: an outline that says nothing is here yet without needing a word.",
+      "html": "<div class=\"ds-empty\"><svg class=\"ds-empty-icon\" viewBox=\"0 0 24 24\" width=\"28\" height=\"28\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M14.4 14.4 9.6 9.6\"/><path d=\"M18.657 21.485a2 2 0 1 1-2.829-2.828l-1.767 1.768a2 2 0 1 1-2.829-2.829l6.364-6.364a2 2 0 1 1 2.829 2.829l-1.768 1.767a2 2 0 1 1 2.828 2.829z\"/><path d=\"m21.5 21.5-1.4-1.4\"/><path d=\"M3.9 3.9 2.5 2.5\"/><path d=\"M6.404 12.768a2 2 0 1 1-2.829-2.829l1.768-1.767a2 2 0 1 1-2.828-2.829l2.828-2.828a2 2 0 1 1 2.829 2.828l1.767-1.768a2 2 0 1 1 2.829 2.829z\"/></svg><p class=\"ds-empty-title\">No sets logged yet</p><p class=\"ds-empty-body\">Log your first set and the day starts counting.</p></div>",
+      "css": ".ds-empty { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; padding: 48px 16px; border: 1px dashed var(--line-strong, #b9c1c9); border-radius: var(--radius-card, 10px); background: var(--surface, #f1f3f5); } .ds-empty-icon { color: var(--ink-faint, #79818b); margin-bottom: 4px; } .ds-empty-title { margin: 0; font-family: var(--font-display, 'Archivo Variable', sans-serif); font-variation-settings: 'wdth' 125, 'wght' 600; font-size: 1.25rem; line-height: 1.15; letter-spacing: -0.02em; color: var(--ink, #14171a); } .ds-empty-body { margin: 0; max-width: 40ch; font-family: var(--font-body, 'IBM Plex Sans Variable', system-ui, sans-serif); font-size: 0.875rem; line-height: 1.5; color: var(--ink-muted, #5a626b); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Cold Workshop",
+    "overview": "DailyForge looks like a well-kept steel bench: cool greys across three surface depths, hairline rules instead of shadows, tabular figures wherever a number is a measurement, and almost no colour at all. The whole interface is deliberately underheated so that the rare warm object reads as a payout rather than as branding. A reviewer scanning a screen should see a workshop of cold parts and one glowing thing, and understand without being told that the glow was earned.\n\nThe system encodes that rule mechanically rather than trusting anyone to remember it. The token layer splits into a cold set (--surface-*, --ink-*, --line*, --equip-*) that anything may use, and an earned-value set (--heat-*, --heat-ink-*, --heat-fill-*, --earned-*) that only a component rendering a quantity the user earned may reach for. There is no warm \"primary\" or \"brand\" colour in the file — the strongest control in the app, the primary button, is filled with --ink, cold steel. A component with nothing earned on screen has no warm token available to it.\n\nWarmth is also a quantity, not a switch. The four heat tokens form a ramp, and an earned value picks its step from its own magnitude: a twelve-point tick and a hundred-and-fifty-point milestone must not arrive at the same temperature. Density is compact and mobile-first — a single 560px column, 44px minimum targets, a 4px spacing grid — and the two themes are equal citizens rather than a light design with a dark skin bolted on.",
+    "keyCharacteristics": [
+      "Cold by default; warm only where something was earned.",
+      "Three surface depths and 1px rules carry structure; shadows are reserved for floating layers.",
+      "Four-step heat ramp driven by magnitude, with one bloom animation owned by a single component.",
+      "Archivo at wdth 125 for display, IBM Plex Sans for body, tabular numerals on every figure.",
+      "4px spacing scale, 44px minimum tap target, 560px content column.",
+      "Reduced motion is a token-level switch, not a per-animation exception."
+    ],
+    "rules": [
+      { "name": "The Earned Heat Rule", "body": "Warm colour is a payout. A surface may use a heat token only while it renders a quantity the user earned. If you are reaching for heat and nothing on screen was earned, the answer is a cold token — and there is deliberately no warm \"brand\" or \"primary\" colour to fall back on.", "section": "colors" },
+      { "name": "The Temperature Is Magnitude Rule", "body": "An earned value picks its ramp step from its own size, not from its component. The score pill owns the thresholds ([0, 25, 100, 300], lower bounds by absolute amount, display thresholds rather than point values); the earned chip takes a step, the toast takes an optional heatStep. Same amount, same temperature, wherever it appears.", "section": "colors" },
+      { "name": "The Opposite Fills Rule", "body": "Earned fills saturate as the step climbs in light (14 / 20 / 26 / 32% alpha) and stay low in dark (10 / 13 / 17 / 22%). A rising fill on a dark ground lightens the field and washes out the bright ink, so the dark theme climbs in ink and holds in fill. Never copy the light alphas into dark.", "section": "colors" },
+      { "name": "The Cool Failure Rule", "body": "Penalty red is cool-shifted so it can never be read as heat, and green marks completion rather than reward. State colours and earned colours are different vocabularies.", "section": "colors" },
+      { "name": "The Tabular Numeral Rule", "body": "Every number the user reads is a measurement. Figures carry font-variant-numeric: tabular-nums and 'tnum' 1, applied by role (.df-numeric, .df-metric) rather than per component, so numerals never jitter while a value counts up and columns of figures line up.", "section": "typography" },
+      { "name": "The Sentence Case Rule", "body": "Sentence case everywhere. No all-caps labels, no letter-spaced eyebrows, no kickers above headings. The display face carries emphasis through width and weight, not through case.", "section": "typography" },
+      { "name": "The One Motion Switch Rule", "body": "Reduced motion is a token-level switch (--motion-scale), never a per-animation media query. Build durations from the tokens and the switch handles you for free. Celebrations still change state under reduced motion — the number and its temperature still move, the light just stops travelling.", "section": "layout" },
+      { "name": "The Three Floaters Rule", "body": "Only sheets, toasts and the score pill float. If a new surface wants a shadow, the answer is a rule and a surface tone instead.", "section": "elevation" },
+      { "name": "The Rule Before The Shadow Rule", "body": "Structure is drawn with a 1px hairline (--line inside content, --line-strong around controls). Reach for a border before reaching for elevation.", "section": "elevation" },
+      { "name": "The Host Selector Rule", "body": "Under Angular's emulated encapsulation a bare .df-* class in a component's own stylesheet silently does not apply to its host element. Style the host with :host and its variants with :host(.modifier) / :host([data-attr]), always. This cost the build a full inspection round; do not re-learn it.", "section": "components" }
+    ],
+    "dos": [
+      "Do reach for a cold token by default. Heat tokens are only available to a surface rendering something the user earned.",
+      "Do derive an earned surface's temperature from the amount, using the shared thresholds ([0, 25, 100, 300]); pass step / heatStep rather than hard-coding a hue.",
+      "Do take every gap, pad and inset from the 4px scale, and keep interactive targets at 44px or more.",
+      "Do style component hosts with :host / :host(.modifier) — never a bare .df-* class in the component's own stylesheet.",
+      "Do build every transition from --duration-* and --ease-*, so the reduced-motion switch collapses it without a per-component rule.",
+      "Do put tabular figures on every number the user reads, via .df-numeric or .df-metric.",
+      "Do ship each primitive as three files — .ts, .html, .scss — with no inline template or style block.",
+      "Do theme the browser's own surfaces: selection, caret, scrollbar, focus ring, link underline offset.",
+      "Do re-tune shadow opacity per theme; the light values are invisible on the dark ground."
+    ],
+    "donts": [
+      "Don't introduce a warm \"primary\" or \"brand\" colour. The strongest control in the app is cold steel, and that is the point.",
+      "Don't use heat for a state — completion is --done, failure is the cool-shifted --penalty, information is --info.",
+      "Don't give a surface a shadow unless it is a sheet, a toast or the score pill; use a 1px rule and a surface tone instead.",
+      "Don't copy the light theme's rising fill alphas into dark — there the fill holds low and the ink brightens instead.",
+      "Don't write a per-animation prefers-reduced-motion block when the duration already comes from --motion-scale.",
+      "Don't set type in all caps, add a kicker or eyebrow above a heading, or letter-space a label; the system is sentence case throughout.",
+      "Don't use icon fonts or glyph characters; icons are Lucide SVG at one weight.",
+      "Don't apply one radius everywhere — 4px means control, 10px means container, 20px means sheet, 999px means capsule.",
+      "Don't load fonts from a CDN. Everything is self-hosted woff2, because the app must render its score in a basement with no signal."
+    ]
+  }
+}
