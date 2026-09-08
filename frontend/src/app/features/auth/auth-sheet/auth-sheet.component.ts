@@ -173,9 +173,20 @@ export class AuthSheetComponent {
     }
   }
 
+  /**
+   * From the same endpoint that says whether Google is enabled at all.
+   *
+   * This used to read a `__DF_GOOGLE_CLIENT_ID__` global "injected at build time" —
+   * except nothing ever injected it, so it was permanently undefined. The button's slot
+   * appeared (capabilities said enabled) while the id was null, so the render was
+   * skipped and Google's script was never even fetched: a feature that looked switched
+   * on and silently did nothing.
+   *
+   * Serving it with the capabilities keeps one source of truth — the deployment's own
+   * GOOGLE_CLIENT_ID — so switching Google on needs no frontend rebuild.
+   */
   private googleClientId(): string | null {
-    // Injected at build time per environment; absent means the feature is off.
-    const configured = (globalThis as { __DF_GOOGLE_CLIENT_ID__?: string }).__DF_GOOGLE_CLIENT_ID__;
+    const configured = this.capabilities().googleClientId;
     return configured && configured.length > 0 ? configured : null;
   }
 

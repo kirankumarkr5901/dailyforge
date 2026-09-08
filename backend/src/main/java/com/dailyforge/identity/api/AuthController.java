@@ -40,7 +40,7 @@ public class AuthController {
      */
     @GetMapping("/capabilities")
     public AuthCapabilities capabilities() {
-        return new AuthCapabilities(true, identity.googleEnabled());
+        return new AuthCapabilities(true, identity.googleEnabled(), identity.googleClientId());
     }
 
     @PostMapping("/signup")
