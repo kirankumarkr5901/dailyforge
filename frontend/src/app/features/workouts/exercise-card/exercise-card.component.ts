@@ -29,6 +29,8 @@ export class ExerciseCardComponent {
   readonly editSetRequested = output<WorkoutSet>();
   readonly deleteSetRequested = output<WorkoutSet>();
   readonly historyRequested = output<void>();
+  /** Only ever emitted for an exercise the viewer owns; the template guards it. */
+  readonly editRequested = output<void>();
 
   protected readonly plusIcon = Plus;
   protected readonly editIcon = SquarePen;

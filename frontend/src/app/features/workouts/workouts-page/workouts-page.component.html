@@ -109,6 +109,7 @@
             (editSetRequested)="openEditSheet(entry, $event)"
             (deleteSetRequested)="deleteSet($event)"
             (historyRequested)="openHistorySheet(entry)"
+            (editRequested)="openExerciseEdit(entry)"
           />
         }
       }
@@ -120,6 +121,7 @@
           (editSetRequested)="openEditSheet(entry, $event)"
           (deleteSetRequested)="deleteSet($event)"
           (historyRequested)="openHistorySheet(entry)"
+          (editRequested)="openExerciseEdit(entry)"
         />
       } @empty {
         @if (sortedExercises().length > 0) {
@@ -175,6 +177,12 @@
   [exerciseName]="historyContext()?.name ?? ''"
   [equipment]="historyContext()?.equipment ?? 'BARBELL'"
   (closed)="closeHistorySheet()"
+/>
+
+<df-exercise-edit-sheet
+  [exercise]="editingExercise()"
+  (closed)="editingExercise.set(null)"
+  (saved)="onExerciseSaved()"
 />
 
 <df-plan-manager-sheet

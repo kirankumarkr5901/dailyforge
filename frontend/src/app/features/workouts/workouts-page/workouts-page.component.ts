@@ -33,6 +33,10 @@ import { DfCelebrationComponent } from '../../../shared/ui/df-celebration/df-cel
 import { DfMonthCalendarComponent } from '../../../shared/ui/df-month-calendar/df-month-calendar.component';
 import { ToastService } from '../../../shared/ui/df-toast/toast.service';
 import { ExerciseCardComponent } from '../exercise-card/exercise-card.component';
+import {
+  ExerciseEditSheetComponent,
+  ExerciseEditTarget,
+} from '../exercise-edit-sheet/exercise-edit-sheet.component';
 import { ExerciseHistorySheetComponent } from '../exercise-history-sheet/exercise-history-sheet.component';
 import { ExercisePickerSheetComponent } from '../exercise-picker-sheet/exercise-picker-sheet.component';
 import { LogSetSheetComponent } from '../log-set-sheet/log-set-sheet.component';
@@ -60,6 +64,7 @@ import { RestTimerService } from '../rest-timer/rest-timer.service';
     DfSelectComponent,
     DfSkeletonComponent,
     ExerciseCardComponent,
+    ExerciseEditSheetComponent,
     ExerciseHistorySheetComponent,
     ExercisePickerSheetComponent,
     LogSetSheetComponent,
@@ -104,6 +109,8 @@ export class WorkoutsPageComponent {
   protected readonly logSheetContext = signal<{ id: string; name: string; equipment: Equipment } | null>(null);
   protected readonly editingSet = signal<WorkoutSet | null>(null);
   protected readonly celebrationTrigger = signal(0);
+  /** The exercise whose edit sheet is open, or null when none is. */
+  protected readonly editingExercise = signal<ExerciseEditTarget | null>(null);
   protected readonly historySheetOpen = signal(false);
   protected readonly historyContext = signal<{ id: string; name: string; equipment: Equipment } | null>(null);
   /** null means "every muscle group" — the default, unfiltered view. */
@@ -304,6 +311,29 @@ export class WorkoutsPageComponent {
   protected openHistorySheet(entry: ExerciseBoardEntry): void {
     this.historyContext.set({ id: entry.exerciseId, name: entry.name, equipment: entry.equipment });
     this.historySheetOpen.set(true);
+  }
+
+  protected openExerciseEdit(entry: ExerciseBoardEntry): void {
+    this.editingExercise.set({
+      id: entry.exerciseId,
+      name: entry.name,
+      kind: entry.kind,
+      equipment: entry.equipment,
+      muscleGroups: entry.muscleGroups,
+      isElite: entry.isElite,
+      version: entry.version,
+    });
+  }
+
+  /**
+   * A renamed or recategorised exercise changes the board itself — its card, and the
+   * muscle-group sections it is filed under — so the session is reloaded rather than
+   * patched in place.
+   */
+  protected async onExerciseSaved(): Promise<void> {
+    this.editingExercise.set(null);
+    await this.refreshSession();
+    this.toasts.show('Exercise updated.');
   }
 
   protected closeHistorySheet(): void {

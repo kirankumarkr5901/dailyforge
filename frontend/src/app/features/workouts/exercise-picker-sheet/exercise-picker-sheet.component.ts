@@ -12,29 +12,7 @@ import { DfInputComponent } from '../../../shared/ui/df-input/df-input.component
 import { DfSelectComponent, DfSelectOption } from '../../../shared/ui/df-select/df-select.component';
 import { DfSheetComponent } from '../../../shared/ui/df-sheet/df-sheet.component';
 import { equipmentLabel, equipmentTone } from '../equipment-tone';
-
-/**
- * Every main muscle group a gym exercise typically targets — split out from the
- * broader groupings the catalog seed still uses (V6__seed_exercise_catalog.sql: "arms"
- * for a pull-up, "legs" for a squat) so a card can say "biceps" or "quads" specifically
- * rather than only the broad limb it belongs to.
- */
-const MUSCLE_GROUPS = [
-  'chest',
-  'back',
-  'lats',
-  'traps',
-  'shoulders',
-  'biceps',
-  'triceps',
-  'forearms',
-  'core',
-  'obliques',
-  'quads',
-  'hamstrings',
-  'glutes',
-  'calves',
-] as const;
+import { EQUIPMENT_OPTIONS, KIND_OPTIONS, MUSCLE_GROUPS } from '../muscle-groups';
 
 /**
  * "A search field that suggests from the shared catalog as the user types, with
@@ -86,19 +64,9 @@ export class ExercisePickerSheetComponent {
   protected readonly equipmentTone = equipmentTone;
   protected readonly equipmentLabel = equipmentLabel;
 
-  protected readonly kindOptions: readonly DfSelectOption[] = [
-    { value: 'STRENGTH', label: 'Strength' },
-    { value: 'CARDIO', label: 'Cardio' },
-  ];
+  protected readonly kindOptions: readonly DfSelectOption[] = KIND_OPTIONS;
 
-  protected readonly equipmentOptions: readonly DfSelectOption[] = [
-    { value: 'BARBELL', label: 'Barbell' },
-    { value: 'DUMBBELL', label: 'Dumbbell' },
-    { value: 'MACHINE', label: 'Machine' },
-    { value: 'CABLE', label: 'Cable' },
-    { value: 'BODYWEIGHT', label: 'Bodyweight' },
-    { value: 'NONE', label: 'None' },
-  ];
+  protected readonly equipmentOptions: readonly DfSelectOption[] = EQUIPMENT_OPTIONS;
 
   /**
    * Typed characters go to a stream, not straight to the network.

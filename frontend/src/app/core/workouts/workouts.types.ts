@@ -16,6 +16,8 @@ export interface Exercise {
   isElite: boolean;
   ownedByMe: boolean;
   archived: boolean;
+  /** Sent back as If-Match when editing, so a stale device cannot overwrite a newer one. */
+  version: number;
 }
 
 export interface CreateExercisePayload {
@@ -86,6 +88,10 @@ export interface ExerciseBoardEntry {
   recentPr: Pr | null;
   lifetimePr: Pr | null;
   sets: WorkoutSet[];
+  /** Only an exercise you own can be edited; the shared catalogue is not yours to rename. */
+  ownedByMe: boolean;
+  /** Echoed back as If-Match when editing. */
+  version: number;
 }
 
 export interface WorkoutSession {

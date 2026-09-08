@@ -1,0 +1,77 @@
+.exercise-edit {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.exercise-edit__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.exercise-edit__muscle-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.exercise-edit__muscle-label {
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+.exercise-edit__muscle-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.exercise-edit__muscle-chip {
+  min-height: var(--tap-min);
+  padding-inline: var(--space-3);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-pill);
+  background: var(--surface-raised);
+  color: var(--ink);
+  font-size: var(--text-sm);
+  text-transform: capitalize;
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+}
+
+.exercise-edit__muscle-chip--selected {
+  border-color: var(--heat-2);
+  background: var(--heat-fill-2);
+  color: var(--heat-ink);
+}
+
+.exercise-edit__elite-field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.exercise-edit__elite-field span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--heat-2);
+}
+
+.exercise-edit__error {
+  margin: 0;
+  color: var(--danger);
+  font-size: var(--text-sm);
+}
+
+.exercise-edit__note {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: var(--text-xs);
+}
