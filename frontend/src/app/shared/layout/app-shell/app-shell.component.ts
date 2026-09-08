@@ -5,7 +5,6 @@ import { LucideAngularModule, Menu, MoreHorizontal, X } from 'lucide-angular';
 import { AuthSheetService } from '../../../core/auth/auth-sheet.service';
 import { SessionStore } from '../../../core/auth/session.store';
 import { TPipe } from '../../../core/i18n/i18n.service';
-import { AuthSheetComponent } from '../../../features/auth/auth-sheet/auth-sheet.component';
 import { DfScorePillComponent } from '../../ui/df-score-pill/df-score-pill.component';
 import { NAV_ITEMS, PRIMARY_NAV } from './nav-items';
 
@@ -29,7 +28,6 @@ import { NAV_ITEMS, PRIMARY_NAV } from './nav-items';
     LucideAngularModule,
     TPipe,
     DfScorePillComponent,
-    AuthSheetComponent,
   ],
   templateUrl: './app-shell.component.html',
   styleUrl: './app-shell.component.scss',

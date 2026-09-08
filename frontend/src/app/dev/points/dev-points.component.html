@@ -1,0 +1,131 @@
+<div class="page">
+  <header class="page__bar">
+    <div>
+      <h1 class="page__title">Points engine debug</h1>
+      <p class="page__subtitle">M2 · not a product screen — see docs/DAILYFORGE_SPEC.md §5</p>
+    </div>
+    <df-score-pill [total]="snapshot()?.total ?? 0" />
+  </header>
+
+  @if (!session.isAuthenticated()) {
+    <df-empty-state
+      [icon]="alertIcon"
+      title="Sign in to use the debug page"
+      body="The points endpoints are all per-user. Sign in with any test account to award and inspect a real ledger."
+    >
+      <button dfButton variant="primary" type="button" (click)="signIn()">Sign in</button>
+    </df-empty-state>
+  } @else {
+    @if (error(); as message) {
+      <p class="page__error" role="alert">{{ message }}</p>
+    }
+
+    <section class="section">
+      <div class="section__head">
+        <h2 class="section__title">Snapshot</h2>
+        <button dfIconButton type="button" [icon]="refreshIcon" label="Refresh" (click)="refresh()"></button>
+      </div>
+
+      @if (snapshot(); as snap) {
+        <div class="specimen">
+          <dl class="stats">
+            <div class="stats__item">
+              <dt>Total</dt>
+              <dd class="df-numeric">{{ snap.total }}</dd>
+            </div>
+            <div class="stats__item">
+              <dt>Today</dt>
+              <dd class="df-numeric">{{ snap.today }}</dd>
+            </div>
+            <div class="stats__item">
+              <dt>This week</dt>
+              <dd class="df-numeric">{{ snap.thisWeek }}</dd>
+            </div>
+            <div class="stats__item">
+              <dt>This month</dt>
+              <dd class="df-numeric">{{ snap.thisMonth }}</dd>
+            </div>
+          </dl>
+
+          <button dfButton variant="secondary" type="button" [loading]="loading()" (click)="recalculate()">
+            Recalculate cache from ledger
+          </button>
+        </div>
+      }
+    </section>
+
+    <section class="section">
+      <h2 class="section__title">Award a test entry</h2>
+      <p class="section__note">
+        Hits <code>POST /api/v1/points/debug/award</code> — disabled entirely in production.
+        Pick a real rule code to see its celebration mapping (spec §5.2).
+      </p>
+
+      <div class="specimen">
+        <form class="form" [formGroup]="form" (ngSubmit)="award()">
+          <df-select label="Category" [options]="categoryOptions" formControlName="category" />
+          <df-select label="Rule code" [options]="ruleCodeOptions" formControlName="ruleCode" />
+          <df-stepper-input label="Amount" [min]="-500" [max]="1000" formControlName="amount" />
+          <df-input label="Description" formControlName="description" />
+
+          <button
+            dfButton
+            type="submit"
+            variant="primary"
+            [fullWidth]="true"
+            [loading]="awarding()"
+            [disabled]="awarding()"
+          >
+            Award
+          </button>
+        </form>
+
+        @if (lastCelebrations().length) {
+          <div class="row">
+            <span class="df-muted">Celebrations:</span>
+            @for (type of lastCelebrations(); track type) {
+              <df-chip tone="earned" [step]="3">{{ type }}</df-chip>
+            }
+          </div>
+        }
+      </div>
+    </section>
+
+    <section class="section">
+      <h2 class="section__title">Ledger — most recent 20</h2>
+
+      @if (ledger().length === 0) {
+        <df-empty-state
+          title="Nothing logged yet"
+          body="Award a test entry above to see it appear here."
+        />
+      } @else {
+        <div class="specimen">
+          <ul class="ledger">
+            @for (entry of ledger(); track entry.id) {
+              <li class="ledger__row">
+                <div class="ledger__main">
+                  <span class="ledger__description" [class.is-reversed]="entry.reversed">
+                    {{ entry.description }}
+                  </span>
+                  <span class="ledger__meta df-muted">
+                    {{ entry.occurredOn }} · {{ entry.category }} · {{ entry.ruleCode }}
+                    @if (entry.isReversal) {
+                      · reversal
+                    }
+                    @if (entry.reversed) {
+                      · reversed
+                    }
+                  </span>
+                </div>
+                <df-chip [tone]="entry.amount < 0 ? 'penalty' : 'earned'" [step]="2" class="ledger__amount df-numeric">
+                  {{ entry.amount >= 0 ? '+' : '' }}{{ entry.amount }}
+                </df-chip>
+              </li>
+            }
+          </ul>
+        </div>
+      }
+    </section>
+  }
+</div>

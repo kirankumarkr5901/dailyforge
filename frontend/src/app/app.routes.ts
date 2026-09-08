@@ -23,6 +23,12 @@ export const routes: Routes = [
           loadComponent: () => import('./dev/ui/dev-ui.component').then((m) => m.DevUiComponent),
           title: 'Design system — DailyForge',
         },
+        {
+          path: 'dev/points',
+          loadComponent: () =>
+            import('./dev/points/dev-points.component').then((m) => m.DevPointsComponent),
+          title: 'Points debug — DailyForge',
+        },
       ]
     : []),
 

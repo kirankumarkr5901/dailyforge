@@ -36,13 +36,17 @@ class MigrationIntegrationTest {
 
     @Test
     void theLedgerAndItsIndexesExist() {
+        // Asserts the tables are queryable at all, not that they are empty: the test
+        // profile shares one in-memory database across every test class in the suite
+        // (points tests populate both tables), so a global row count here would really
+        // be an assertion about test execution order.
         JdbcTemplate jdbc = new JdbcTemplate(dataSource);
 
         Integer entries = jdbc.queryForObject("SELECT COUNT(*) FROM points_entry", Integer.class);
-        assertThat(entries).isZero();
+        assertThat(entries).isGreaterThanOrEqualTo(0);
 
         Integer caches = jdbc.queryForObject("SELECT COUNT(*) FROM user_score_cache", Integer.class);
-        assertThat(caches).isZero();
+        assertThat(caches).isGreaterThanOrEqualTo(0);
     }
 
     @Test

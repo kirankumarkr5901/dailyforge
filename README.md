@@ -16,9 +16,11 @@ A manual-logging fitness and habit tracker where every logged action becomes poi
 
 Google sign-in is built but **dark by default**: it appears only when `GOOGLE_CLIENT_ID` is set, and the API says so at `/api/v1/auth/capabilities`. No code change is needed to switch it on — see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) §1d.
 
+**M2 — Points engine. Complete.** The spine of the app (spec §5): an append-only ledger, idempotent awards, reversal, reconciliation, the score cache, the daily rollover job, and the guardrail caps. No feature produces points yet — nothing awards until M3 — so the only way to see it work is `/dev/points`, an internal debug page (its one write endpoint does not exist at all when `SPRING_PROFILES_ACTIVE=prod`).
+
 Screens for M3–M7 are routed to a placeholder naming the milestone that builds them, so the navigation is real and testable now.
 
-Milestones M2–M9 are listed in spec §11. **M2 is the points engine — the project's spine.**
+Milestones M3–M9 are listed in spec §11. **M3 is habits — the first feature that actually earns a point.**
 
 ## Requirements
 
@@ -69,7 +71,7 @@ cd backend && ./gradlew check     # unit + slice tests, plus coverage verificati
 cd frontend && npm run test:ci    # vitest
 ```
 
-Both run in CI on every push and pull request.
+Both run in CI on every push and pull request. The points module (spec §10: "target 90%+ coverage... this is where correctness actually matters") carries its own enforced floor in `backend/build.gradle.kts` — `./gradlew check` fails if line coverage under `com.dailyforge.points.*` drops below 85%.
 
 ## Layout
 
