@@ -39,6 +39,14 @@
   font-size: var(--text-base);
 }
 
+/* Positive and negative activities are opposites, and reading them as one long list
+ * made the boundary between them easy to miss — the Negative heading arrived with no
+ * more room around it than the rows above it. Only a heading that follows a list gets
+ * the gap, so the first heading on the page still sits flush at the top. */
+.habits-page__activity-list + .habits-page__section-title {
+  margin-top: var(--space-6);
+}
+
 .habits-page__error {
   margin: 0 0 var(--space-4);
   color: var(--penalty-ink);
