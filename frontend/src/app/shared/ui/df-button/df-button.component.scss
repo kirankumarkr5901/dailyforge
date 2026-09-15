@@ -92,6 +92,19 @@
   opacity: 0.7;
 }
 
+/* inline-flex, not the span default: a projected icon renders as an <svg>, and the
+ * base reset (img, svg, video, canvas { display: block }) turns it into a block-level
+ * child of this label. An inline span containing a block child breaks the flow onto
+ * its own line, which is what wrapped a two-word label like "New habit" underneath its
+ * icon instead of beside it. This is the one place that decides how an icon and its
+ * label sit together, so every button with both gets it for free. */
+.df-button__label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  white-space: nowrap;
+}
+
 .df-button__spinner {
   width: 1em;
   height: 1em;

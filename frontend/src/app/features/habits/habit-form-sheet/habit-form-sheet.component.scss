@@ -1,0 +1,165 @@
+.habit-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.habit-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.habit-form__label {
+  color: var(--ink);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.habit-form__hint {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: var(--text-xs);
+}
+
+.habit-form__icons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.habit-form__icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--surface-raised);
+  color: var(--ink-muted);
+  cursor: pointer;
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.habit-form__icon--selected {
+  border-color: var(--ink);
+  color: var(--ink);
+  background: var(--surface-sunken);
+}
+
+.habit-form__icon:focus-visible,
+.habit-form__toggle:focus-visible,
+.habit-form__day:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.habit-form__toggle-row {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.habit-form__toggle {
+  flex: 1;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--surface-raised);
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.habit-form__toggle--selected {
+  border-color: var(--ink);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.habit-form__days {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.habit-form__day {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--surface-raised);
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
+}
+
+.habit-form__day--selected {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--ink-inverse);
+}
+
+.habit-form__bonus-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.habit-form__preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--radius-card);
+  background: var(--surface-sunken);
+}
+
+.habit-form__preview-row {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.habit-form__preview-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  color: var(--ink-muted);
+  font-size: var(--text-xs);
+}
+
+/* The one warm element in this form: a bonus a habit would earn is an earned quantity
+ * by the system's own rule, even in preview, because it is a fact about the rules and
+ * not an invented decoration. */
+.habit-form__preview-chip strong {
+  color: var(--heat-ink-2);
+  font-size: var(--text-sm);
+}
+
+.habit-form__error {
+  margin: 0;
+  color: var(--penalty-ink);
+  font-size: var(--text-sm);
+}
+
+.habit-form__actions {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.habit-form__actions > [dfbutton] {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}

@@ -1,0 +1,33 @@
+<df-sheet [open]="open()" (openChange)="$event ? null : close()" heading="One more thing">
+  <div class="commitment-bonus">
+    <p class="commitment-bonus__body">
+      Finish every habit scheduled for a day and you can earn an extra bonus just for
+      completing the whole day. Set the amount now, or skip it — you can turn it on
+      later in Settings.
+    </p>
+
+    <df-stepper-input
+      label="Completion bonus"
+      suffix="pts"
+      [min]="0"
+      [max]="1000"
+      [ngModel]="amount()"
+      (ngModelChange)="amount.set($event)"
+    />
+
+    <div class="commitment-bonus__actions">
+      <button dfButton type="button" variant="ghost" (click)="skip()">Skip for now</button>
+      <button
+        dfButton
+        type="button"
+        variant="primary"
+        [fullWidth]="true"
+        [loading]="saving()"
+        [disabled]="saving()"
+        (click)="save()"
+      >
+        Turn it on
+      </button>
+    </div>
+  </div>
+</df-sheet>

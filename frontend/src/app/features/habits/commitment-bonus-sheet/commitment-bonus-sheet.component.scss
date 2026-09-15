@@ -1,0 +1,17 @@
+.commitment-bonus {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.commitment-bonus__body {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+}
+
+.commitment-bonus__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}

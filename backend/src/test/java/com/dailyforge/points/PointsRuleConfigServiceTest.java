@@ -1,5 +1,7 @@
 package com.dailyforge.points;
 
+import com.dailyforge.testsupport.TestUsers;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 

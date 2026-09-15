@@ -1,6 +1,8 @@
 package com.dailyforge.points.domain;
 
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * Recomputes what a scope's ledger entries should be, from that scope's raw source data
@@ -22,4 +24,16 @@ public interface ReconciliationCalculator<S extends ReconcileScope> {
 
     /** Everything that should currently be true for this scope, computed from raw source data. */
     List<DesiredEntry> desiredEntries(S scope);
+
+    /**
+     * Every source id this specific invocation is authoritative over — the "universe"
+     * the engine diffs {@link #desiredEntries} against, not merely every entry of
+     * {@link #sourceType} the user has. Without this, two different habits sharing the
+     * source type "HABIT_LOG" (or two different dates sharing "DAY_COMMITMENT") would
+     * see each other's entries as "exists but is no longer desired" and reverse them —
+     * a real bug this method exists specifically to prevent. Must include every id a
+     * date/entity in range could produce, whether or not it currently has a desired
+     * entry, so a source that WAS desired and no longer is still gets reversed.
+     */
+    Set<UUID> sourceIdsInScope(S scope);
 }

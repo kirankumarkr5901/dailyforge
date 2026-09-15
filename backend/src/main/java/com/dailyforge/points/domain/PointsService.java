@@ -18,8 +18,16 @@ public interface PointsService {
      */
     void reverseBySource(String sourceType, UUID sourceId, String reason);
 
-    /** Recomputes what a scope's entries should be and reconciles the ledger to match (spec §5.3). */
-    void reconcile(UUID userId, ReconcileScope scope);
+    /**
+     * Recomputes what a scope's entries should be and reconciles the ledger to match
+     * (spec §5.3). Returns the net effect of whatever changed — spec §5.2 names this
+     * {@code void}, but a habit tick's points and celebrations flow entirely through
+     * this method (there is no separate {@code award()} call for a habit module to make),
+     * so the caller needs the same delta/newTotal/celebrations shape any other mutation
+     * returns (spec §7). A scope with nothing to reconcile still returns a valid result,
+     * at zero delta and the account's current total.
+     */
+    PointsResult reconcile(UUID userId, ReconcileScope scope);
 
     ScoreSnapshot snapshot(UUID userId, java.time.ZoneId zone);
 

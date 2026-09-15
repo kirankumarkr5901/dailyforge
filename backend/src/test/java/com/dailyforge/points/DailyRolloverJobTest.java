@@ -1,5 +1,7 @@
 package com.dailyforge.points;
 
+import com.dailyforge.testsupport.TestUsers;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -179,8 +181,10 @@ class DailyRolloverJobTest {
 
     @TestConfiguration
     static class FakeClockConfig {
+        // Deliberately NOT @Primary — see HabitClockTestConfig's identical comment. This
+        // fake clock is for DayService alone; unqualified Clock injections elsewhere
+        // (token issuance, etc.) must keep resolving to real wall-clock time.
         @Bean
-        @Primary
         MutableClock mutableClock() {
             return new MutableClock();
         }

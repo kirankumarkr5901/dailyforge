@@ -1,5 +1,7 @@
 package com.dailyforge.points;
 
+import com.dailyforge.testsupport.TestUsers;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.dailyforge.points.domain.DesiredEntry;
@@ -13,6 +15,7 @@ import com.dailyforge.points.repo.PointsEntryRepository;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
@@ -28,16 +31,19 @@ import org.springframework.test.context.ActiveProfiles;
  * log/unlog/edit operations, then assert that the ledger sum equals a naive
  * from-scratch recomputation. This test is non-negotiable."
  *
- * No module owns a real {@link ReconcileScope} yet — habits arrive at M3 — so this
- * proves the mechanism itself: a synthetic calculator stands in for "a habit's raw
- * logs", backed by nothing but an in-memory set of ticked dates, exactly like a real
- * habit's log table would be. Random log, unlog and edit (re-tick with a different
- * amount) operations run against it, {@code reconcile()} runs after every one, and the
- * ledger is checked against an independent naive recomputation each time.
+ * This proves the mechanism itself, independent of any one module's data: a synthetic
+ * calculator stands in for "a habit's raw logs", backed by nothing but an in-memory set
+ * of ticked dates. Random log, unlog and edit (re-tick with a different amount)
+ * operations run against it, {@code reconcile()} runs after every one, and the ledger is
+ * checked against an independent naive recomputation each time.
  *
- * When M3 builds the real habit module, it writes a real
- * {@link ReconciliationCalculator} against this same, already-proven engine — this test
- * does not get rewritten, it gets a sibling.
+ * It stands against {@code ReconcileScope.Goal} rather than {@code ReconcileScope.Habit}:
+ * M3 built the real habit module, so {@code ReconcileScope.Habit} now has a genuine
+ * {@code com.dailyforge.habit.domain.HabitReconciliationCalculator} registered against
+ * it, and this synthetic test would otherwise collide with (or be shadowed by) that real
+ * one in the same Spring context. Goal has no owner yet (that lands at M7), so it is the
+ * stand-in instead — the diff mechanism under test does not care which scope shape
+ * carries it.
  *
  * The fake calculator is registered through a nested {@code @TestConfiguration} rather
  * than a {@code @Component}, so it exists only inside this test class's Spring context
@@ -56,6 +62,7 @@ class ReconciliationEnginePropertyTest {
 
     private static final String RULE_CODE = "TEST_HABIT_TICK";
     private static final String SOURCE_TYPE = "TEST_HABIT_LOG";
+    private static final LocalDate FIXED_FROM_DATE = LocalDate.of(2026, 1, 1);
 
     @RepeatedTest(20)
     void aRandomSequenceOfTickUntickAndAmountEditsAlwaysLeavesTheLedgerMatchingANaiveRecompute() {
@@ -78,7 +85,7 @@ class ReconciliationEnginePropertyTest {
                 default -> fakeHabitLog.tick(habitId, date, 15); // edit: re-tick at a new amount
             }
 
-            points.reconcile(userId, new ReconcileScope.Habit(habitId, candidateDates.getFirst()));
+            points.reconcile(userId, new ReconcileScope.Goal(habitId));
 
             int ledgerSum = entries.sumAmountForUser(userId);
             int naiveSum = fakeHabitLog.naiveTotal(habitId);
@@ -96,10 +103,10 @@ class ReconciliationEnginePropertyTest {
         fakeHabitLog.reset();
         fakeHabitLog.tick(habitId, LocalDate.of(2026, 1, 1), 10);
 
-        points.reconcile(userId, new ReconcileScope.Habit(habitId, LocalDate.of(2026, 1, 1)));
+        points.reconcile(userId, new ReconcileScope.Goal(habitId));
         int countAfterFirst = entries.countForUser(userId);
 
-        points.reconcile(userId, new ReconcileScope.Habit(habitId, LocalDate.of(2026, 1, 1)));
+        points.reconcile(userId, new ReconcileScope.Goal(habitId));
         int countAfterSecond = entries.countForUser(userId);
 
         assertThat(countAfterSecond).isEqualTo(countAfterFirst);
@@ -111,10 +118,10 @@ class ReconciliationEnginePropertyTest {
         UUID habitId = UUID.randomUUID();
         fakeHabitLog.reset();
         fakeHabitLog.tick(habitId, LocalDate.of(2026, 1, 1), 10);
-        points.reconcile(userId, new ReconcileScope.Habit(habitId, LocalDate.of(2026, 1, 1)));
+        points.reconcile(userId, new ReconcileScope.Goal(habitId));
 
         fakeHabitLog.tick(habitId, LocalDate.of(2026, 1, 1), 25); // the habit's points value changed
-        points.reconcile(userId, new ReconcileScope.Habit(habitId, LocalDate.of(2026, 1, 1)));
+        points.reconcile(userId, new ReconcileScope.Goal(habitId));
 
         // Two rows for that date: the original +10 (now reversed) and its -10 reversal,
         // plus the new +25 — never an in-place edit of the first row's amount.
@@ -150,7 +157,7 @@ class ReconciliationEnginePropertyTest {
         }
     }
 
-    static final class FakeHabitCalculator implements ReconciliationCalculator<ReconcileScope.Habit> {
+    static final class FakeHabitCalculator implements ReconciliationCalculator<ReconcileScope.Goal> {
 
         private final FakeHabitLog log;
 
@@ -159,8 +166,8 @@ class ReconciliationEnginePropertyTest {
         }
 
         @Override
-        public Class<ReconcileScope.Habit> scopeType() {
-            return ReconcileScope.Habit.class;
+        public Class<ReconcileScope.Goal> scopeType() {
+            return ReconcileScope.Goal.class;
         }
 
         @Override
@@ -169,8 +176,8 @@ class ReconciliationEnginePropertyTest {
         }
 
         @Override
-        public List<DesiredEntry> desiredEntries(ReconcileScope.Habit scope) {
-            return log.tickedDatesFrom(scope.habitId(), scope.fromDate()).entrySet().stream()
+        public List<DesiredEntry> desiredEntries(ReconcileScope.Goal scope) {
+            return log.tickedDatesFrom(scope.goalId(), FIXED_FROM_DATE).entrySet().stream()
                     .map(
                             e ->
                                     new DesiredEntry(
@@ -179,7 +186,7 @@ class ReconciliationEnginePropertyTest {
                                             RULE_CODE,
                                             e.getValue(),
                                             SOURCE_TYPE,
-                                            sourceIdFor(scope.habitId(), e.getKey()),
+                                            sourceIdFor(scope.goalId(), e.getKey()),
                                             "Test habit tick"))
                     .toList();
         }
@@ -188,6 +195,17 @@ class ReconciliationEnginePropertyTest {
             // A stable id per (habit, date), the same way a real habit_log row's id
             // would be stable across reconciliation passes.
             return UUID.nameUUIDFromBytes((habitId + ":" + date).getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        }
+
+        @Override
+        public Set<UUID> sourceIdsInScope(ReconcileScope.Goal scope) {
+            // Every candidate date this goal could ever touch, ticked or not — matching
+            // the real habit calculator's "every scheduled date in range" scoping, so a
+            // date that WAS ticked and got unticked still has its stale entry reversed.
+            return java.util.stream.IntStream.range(0, 10)
+                    .mapToObj(i -> FIXED_FROM_DATE.plusDays(i))
+                    .map(date -> sourceIdFor(scope.goalId(), date))
+                    .collect(java.util.stream.Collectors.toSet());
         }
     }
 
@@ -199,7 +217,7 @@ class ReconciliationEnginePropertyTest {
         }
 
         @Bean
-        ReconciliationCalculator<ReconcileScope.Habit> fakeHabitCalculator(FakeHabitLog log) {
+        ReconciliationCalculator<ReconcileScope.Goal> fakeHabitCalculator(FakeHabitLog log) {
             return new FakeHabitCalculator(log);
         }
     }

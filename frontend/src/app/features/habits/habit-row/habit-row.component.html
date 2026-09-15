@@ -1,0 +1,55 @@
+<lucide-icon class="df-habit-row__icon" [img]="icon()" [size]="20" aria-hidden="true" />
+
+<div class="df-habit-row__body">
+  <span class="df-habit-row__name">{{ entry().name }}</span>
+
+  <div class="df-habit-row__meta">
+    <span class="df-habit-row__points">{{ entry().points }} pts</span>
+
+    @if (entry().currentStreak > 0) {
+      <span class="df-habit-row__streak">
+        <lucide-icon [img]="flameIcon" [size]="14" aria-hidden="true" />
+        {{ entry().currentStreak }}-day streak
+      </span>
+    }
+
+    @if (stateChip(); as chip) {
+      <df-chip [tone]="chip.tone">{{ chip.label }}</df-chip>
+    }
+  </div>
+</div>
+
+<button
+  dfIconButton
+  type="button"
+  [label]="'Edit ' + entry().name"
+  variant="ghost"
+  [icon]="editIcon"
+  (click)="requestEdit()"
+></button>
+
+@if (entry().editable) {
+  <button
+    type="button"
+    class="df-habit-row__check"
+    role="checkbox"
+    [attr.aria-checked]="checked()"
+    [attr.aria-label]="'Mark ' + entry().name + ' done'"
+    [disabled]="busy()"
+    (click)="onToggle(!checked())"
+  >
+    <svg class="df-habit-row__tick" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path
+        d="M3.5 8.5 L6.5 11.5 L12.5 4.5"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </svg>
+  </button>
+} @else {
+  <span class="df-habit-row__lock" [attr.aria-label]="'Locked — ' + entry().name + ' can no longer be changed'">
+    <lucide-icon [img]="lockIcon" [size]="18" aria-hidden="true" />
+  </span>
+}

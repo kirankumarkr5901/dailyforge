@@ -58,10 +58,10 @@ export const routes: Routes = [
       {
         path: 'habits',
         title: 'Habits — DailyForge',
-        ...notBuiltYet(
-          'Habits land at M3',
-          'The first real end-to-end points flow: streaks, consistency bonuses and the commitment bonus.',
-        ),
+        loadComponent: () =>
+          import('./features/habits/habits-page/habits-page.component').then(
+            (m) => m.HabitsPageComponent,
+          ),
       },
       {
         path: 'run',
