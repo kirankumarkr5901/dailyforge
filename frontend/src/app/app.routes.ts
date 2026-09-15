@@ -42,10 +42,8 @@ export const routes: Routes = [
       {
         path: 'home',
         title: 'DailyForge',
-        ...notBuiltYet(
-          'Home lands at M6',
-          'Your quote, score, heatmap and activity log live here once the points engine and the first trackers exist.',
-        ),
+        loadComponent: () =>
+          import('./features/home/home-page/home-page.component').then((m) => m.HomePageComponent),
       },
       {
         path: 'workout',

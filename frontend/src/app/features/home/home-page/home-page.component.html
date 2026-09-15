@@ -1,0 +1,99 @@
+<h1 class="home-page__title">Home</h1>
+
+@if (!session.isResolved() || (session.isAuthenticated() && loading() && !summary())) {
+  <df-card>
+    <df-skeleton height="3rem" />
+    <df-skeleton height="6rem" />
+    <df-skeleton height="10rem" />
+  </df-card>
+} @else if (!session.isAuthenticated()) {
+  <df-empty-state
+    [icon]="targetIcon"
+    title="You are browsing as a guest"
+    body="Sign in to see your score, your streak history, and everything you've logged."
+  >
+    <button dfButton type="button" variant="primary" (click)="signIn()">Sign in</button>
+  </df-empty-state>
+} @else {
+  @if (error(); as message) {
+    <p class="home-page__error" role="alert">{{ message }}</p>
+  }
+
+  @if (summary(); as home) {
+    @if (home.quote; as quote) {
+      <df-card class="home-page__quote">
+        <lucide-icon class="home-page__quote-icon" [img]="quoteIcon" [size]="18" aria-hidden="true" />
+        <p class="home-page__quote-text">"{{ quote.text }}"</p>
+        <p class="home-page__quote-author">— {{ quote.author }}</p>
+      </df-card>
+    }
+
+    <df-card class="home-page__score">
+      <div class="home-page__score-header">
+        <span class="home-page__score-label">Total score</span>
+        <df-score-pill [total]="home.score.total" />
+      </div>
+
+      <div class="home-page__score-periods">
+        <div>
+          <span class="home-page__period-label">Today</span>
+          <span class="home-page__period-value">{{ home.score.today }}</span>
+        </div>
+        <div>
+          <span class="home-page__period-label">This week</span>
+          <span class="home-page__period-value">{{ home.score.thisWeek }}</span>
+        </div>
+        <div>
+          <span class="home-page__period-label">This month</span>
+          <span class="home-page__period-value">{{ home.score.thisMonth }}</span>
+        </div>
+      </div>
+
+      @if (categoryBreakdown().length > 0) {
+        <div class="home-page__breakdown">
+          <div class="home-page__bar">
+            @for (pair of categoryBreakdown(); track pair[0]) {
+              <span class="home-page__bar-segment" [style.width]="barWidth(pair[1])"></span>
+            }
+          </div>
+          <ul class="home-page__legend">
+            @for (pair of categoryBreakdown(); track pair[0]) {
+              <li>
+                <span>{{ categoryLabels[pair[0]] }}</span>
+                <span>{{ pair[1] }}</span>
+              </li>
+            }
+          </ul>
+        </div>
+      }
+    </df-card>
+
+    <df-card class="home-page__heatmap-card">
+      <h2 class="home-page__section-title">Activity</h2>
+      <df-heatmap [today]="home.date" (cellSelected)="openDay($event)" />
+    </df-card>
+
+    <h2 class="home-page__section-title">Recent activity</h2>
+    @if (dayGroups().length === 0) {
+      <df-empty-state title="Nothing logged yet" body="Once you log something it shows up here." />
+    } @else {
+      <df-card [flush]="true">
+        <div class="home-page__log">
+          @for (group of dayGroups(); track group.date) {
+            <div class="home-page__log-day">
+              <h3 class="home-page__log-date">{{ formatLong(group.date) }}</h3>
+              @for (entry of group.entries; track entry.id) {
+                <p class="home-page__log-entry" [class.home-page__log-entry--reversed]="entry.reversed">
+                  <span>{{ entry.description }}</span>
+                  <span>{{ entry.amount >= 0 ? '+' : '' }}{{ entry.amount }}</span>
+                </p>
+              }
+            </div>
+          }
+        </div>
+      </df-card>
+    }
+  }
+}
+
+<df-day-detail-sheet [date]="selectedDay()" (closed)="closeDay()" />

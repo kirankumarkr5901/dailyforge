@@ -26,9 +26,13 @@ Plan-day reordering is up/down rather than drag-and-drop, and an elite exercise'
 
 **M5 — Runs. Complete.** The run tracker (spec §6, §5.4, §8.5): logging a run with distance, duration and type — auto-assigned and locked to `LONG` at 10 km, per the plan — the distance and milestone calculator (recomputed from a user's whole run history on every change, so editing or deleting a run correctly promotes the next-earliest one to "first ever" at a threshold), and PR sections by distance, by pace, and by bracket. A new `GET /me/today` endpoint gives any screen the server's own answer to "what day is it" without computing one client-side, closing a gap the habit and workout boards had each been solving on their own.
 
-Screens for M6–M7 are routed to a placeholder naming the milestone that builds them, so the navigation is real and testable now.
+**M6 — Home. Complete.** The landing page (spec §8.1): a deterministic quote of the day (`hash(userId, date) % poolSize`, never a third-party API), the score card with today/week/month and a category breakdown, the 12-month activity heatmap (spec §8.1.1's full state machine — `BOTH`/`WORKOUT`/`RUN`/`REST`/`MISSED`/`EMPTY`, with `inactiveRunLength` computed over a user's entire continuous history so it correctly carries across month boundaries), a tap-to-open day-detail sheet, and the recent-activity log grouped by day with reversed entries struck through. Goal progress and job metrics are omitted entirely rather than sent empty — both land at M7, and an absent field already satisfies the spec's own "hidden entirely when none" rule.
 
-Milestones M6–M9 are listed in spec §11. **M6 is Home** (score, quote, heatmap, activity log).
+The seeded quote pool is a deliberately smaller, honestly-labelled starter set (30 quotes, `verified_at` left null on all of them) rather than the spec's ~200 attribution-checked target — verifying each quote against a primary source is an editorial task, not one this session could respectably shortcut. The mechanism spec §8.1 actually asks for — deterministic per-user-per-day selection, source-tracked, no runtime fetch — is fully built; the pool just needs a human pass to grow and verify before real use.
+
+Screens for M7 are routed to a placeholder naming the milestone that builds them, so the navigation is real and testable now.
+
+Milestone M7 is listed in spec §11: **Goals, Jobs, and Body metrics.**
 
 ## Requirements
 

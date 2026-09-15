@@ -1,0 +1,26 @@
+<df-sheet [open]="isOpen()" (openChange)="$event ? null : close()" [heading]="date() ? formatLong(date()!) : 'Day'">
+  @if (loading()) {
+    <df-skeleton height="4rem" />
+  } @else if (detail(); as day) {
+    <div class="day-detail">
+      <p class="day-detail__total">{{ day.total }} points that day</p>
+
+      @for (group of day.groups; track group.category) {
+        <div class="day-detail__group">
+          <div class="day-detail__group-header">
+            <span>{{ group.category }}</span>
+            <span>{{ group.total >= 0 ? '+' : '' }}{{ group.total }}</span>
+          </div>
+          @for (entry of group.entries; track entry.id) {
+            <p class="day-detail__entry" [class.day-detail__entry--reversed]="entry.reversed">
+              <span>{{ entry.description }}</span>
+              <span>{{ entry.amount >= 0 ? '+' : '' }}{{ entry.amount }}</span>
+            </p>
+          }
+        </div>
+      } @empty {
+        <p class="day-detail__empty">Nothing logged this day.</p>
+      }
+    </div>
+  }
+</df-sheet>

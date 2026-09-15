@@ -20,7 +20,7 @@ export interface NavItem {
  * which is the usual way a "More" menu ends up missing a screen.
  */
 export const NAV_ITEMS: readonly NavItem[] = [
-  { path: '/home', labelKey: 'nav.home', icon: House, primary: true, ready: false },
+  { path: '/home', labelKey: 'nav.home', icon: House, primary: true, ready: true },
   { path: '/workout', labelKey: 'nav.workout', icon: Dumbbell, primary: true, ready: true },
   { path: '/habits', labelKey: 'nav.habits', icon: Target, primary: true, ready: true },
   { path: '/run', labelKey: 'nav.run', icon: Footprints, primary: true, ready: true },
