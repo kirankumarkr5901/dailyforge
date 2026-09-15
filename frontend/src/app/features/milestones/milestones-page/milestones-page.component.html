@@ -97,5 +97,32 @@
         </df-card>
       </div>
     }
+
+    @if (badges().length > 0) {
+      <section class="milestones-page__badges">
+        <div class="milestones-page__badges-head">
+          <h2 class="milestones-page__section-title">Badges</h2>
+          @if (claimableCount() > 0) {
+            <span class="milestones-page__badges-ready">
+              {{ claimableCount() }} ready to claim
+            </span>
+          }
+        </div>
+        <p class="milestones-page__badges-hint">Tap a badge to see what it takes.</p>
+
+        <div class="milestones-page__badge-list">
+          @for (badge of sortedBadges(); track badge.code) {
+            <df-badge-tile [badge]="badge" (opened)="onBadgeOpened($event)" />
+          }
+        </div>
+      </section>
+    }
   }
 </div>
+
+<df-badge-sheet
+  [badge]="openBadge()"
+  [anchor]="anchor()"
+  (closed)="openBadge.set(null)"
+  (claimed)="onBadgeClaimed($event)"
+/>

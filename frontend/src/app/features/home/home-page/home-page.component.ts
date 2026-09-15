@@ -29,6 +29,7 @@ const CATEGORY_LABELS: Record<PointsCategory, string> = {
   GOAL: 'Goal',
   JOB: 'Job',
   REWARD: 'Reward',
+  BADGE: 'Badge',
   ADJUSTMENT: 'Adjustment',
 };
 

@@ -1,0 +1,30 @@
+<button
+  type="button"
+  class="badge-tile"
+  [class.badge-tile--claimed]="state() === 'claimed'"
+  [class.badge-tile--claimable]="state() === 'claimable'"
+  [attr.aria-label]="badge().name + ' — ' + progressLabel() + '. Open for details.'"
+  (click)="opened.emit(badge())"
+>
+  <span class="badge-tile__medal">
+    <lucide-icon [img]="icon()" [size]="20" aria-hidden="true" />
+  </span>
+
+  <span class="badge-tile__body">
+    <span class="badge-tile__name">{{ badge().name }}</span>
+    <span class="badge-tile__progress-label">{{ progressLabel() }}</span>
+
+    <span class="badge-tile__track" aria-hidden="true">
+      <span class="badge-tile__fill" [style.width.%]="percent()"></span>
+    </span>
+  </span>
+
+  @switch (state()) {
+    @case ('claimable') {
+      <span class="badge-tile__flag badge-tile__flag--claimable">+{{ badge().points }}</span>
+    }
+    @case ('claimed') {
+      <span class="badge-tile__flag badge-tile__flag--claimed">Claimed</span>
+    }
+  }
+</button>

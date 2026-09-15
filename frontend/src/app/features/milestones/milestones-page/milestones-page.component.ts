@@ -13,7 +13,11 @@ import {
 
 import { HomeApi } from '../../../core/home/home.api';
 import { MilestoneApi } from '../../../core/milestone/milestone.api';
+import { Badge } from '../../../core/milestone/badge.types';
 import { MilestoneRecap, RecapPeriod } from '../../../core/milestone/milestone.types';
+import { PointsStore } from '../../../core/points/points.store';
+import { BadgeSheetComponent } from '../badge-sheet/badge-sheet.component';
+import { BadgeTileComponent } from '../badge-tile/badge-tile.component';
 import { PointsCategory } from '../../../core/points/points.types';
 import { monthsAgoStart, yearsAgoStart } from '../../../core/time/calendar-grid';
 import { LogicalDate } from '../../../core/time/logical-date';
@@ -31,6 +35,7 @@ const CATEGORY_LABELS: Record<PointsCategory, string> = {
   GOAL: 'Goal',
   JOB: 'Job',
   REWARD: 'Reward',
+  BADGE: 'Badge',
   ADJUSTMENT: 'Adjustment',
 };
 
@@ -55,6 +60,8 @@ const MONTH_NAMES = [
     DfEmptyStateComponent,
     DfIconButtonComponent,
     DfSkeletonComponent,
+    BadgeSheetComponent,
+    BadgeTileComponent,
   ],
   templateUrl: './milestones-page.component.html',
   styleUrl: './milestones-page.component.scss',
@@ -64,6 +71,7 @@ export class MilestonesPageComponent {
   private readonly api = inject(MilestoneApi);
   private readonly homeApi = inject(HomeApi);
   private readonly toasts = inject(ToastService);
+  private readonly points = inject(PointsStore);
 
   protected readonly icons = { PartyPopper, Award, Dumbbell, Footprints, Target, ChevronLeft, ChevronRight };
 
@@ -73,6 +81,17 @@ export class MilestonesPageComponent {
   protected readonly recap = signal<MilestoneRecap | null>(null);
   protected readonly loading = signal(true);
   protected readonly categoryLabels = CATEGORY_LABELS;
+
+  protected readonly badges = signal<Badge[]>([]);
+  /** The badge whose sheet is open, or null. */
+  protected readonly openBadge = signal<Badge | null>(null);
+
+  /** Claimable first: it is the only state with something to do about it. */
+  protected readonly sortedBadges = computed<Badge[]>(() =>
+    [...this.badges()].sort((a, b) => Number(b.claimable) - Number(a.claimable)),
+  );
+
+  protected readonly claimableCount = computed(() => this.badges().filter((b) => b.claimable).length);
 
   protected readonly anchor = computed<LogicalDate | null>(() => {
     const today = this.todayDate();
@@ -130,6 +149,7 @@ export class MilestonesPageComponent {
         return;
       }
       void this.loadRecap(period, anchor);
+      void this.loadBadges(period, anchor);
     });
 
     void this.init();
@@ -152,6 +172,42 @@ export class MilestonesPageComponent {
       this.toasts.show('Could not load that recap. Check your connection.', { tone: 'penalty' });
     } finally {
       this.loading.set(false);
+    }
+  }
+
+  /**
+   * Badges load separately from the recap and are allowed to fail on their own.
+   *
+   * A frontend deploy reaches the CDN minutes before the backend finishes building, so
+   * a newly added endpoint is briefly missing in production. Folding this into the
+   * recap's own load would mean that window took the whole recap down with it — which
+   * is exactly what happened when the referral list was added, and is not a mistake
+   * worth making twice.
+   */
+  private async loadBadges(period: RecapPeriod, anchor: LogicalDate): Promise<void> {
+    try {
+      this.badges.set(await firstValueFrom(this.api.badges(period, anchor)));
+    } catch {
+      this.badges.set([]);
+    }
+  }
+
+  protected onBadgeOpened(badge: Badge): void {
+    this.openBadge.set(badge);
+  }
+
+  /**
+   * A claim moves the score, so the shared store is refreshed rather than left to
+   * disagree with the header pill until the next navigation.
+   */
+  protected async onBadgeClaimed(claimed: Badge): Promise<void> {
+    this.badges.update((all) => all.map((b) => (b.code === claimed.code ? claimed : b)));
+    this.openBadge.set(null);
+    this.toasts.show(`${claimed.name} claimed — +${claimed.points} points.`);
+    void this.points.refresh();
+    const anchor = this.anchor();
+    if (anchor) {
+      void this.loadRecap(this.period(), anchor);
     }
   }
 

@@ -1,0 +1,136 @@
+:host {
+  display: block;
+}
+
+.badge-tile {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: var(--surface-raised);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
+}
+
+.badge-tile:hover {
+  border-color: var(--line-strong);
+}
+
+.badge-tile:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* Heat is the system's "you earned this" colour, and a badge waiting to be claimed is
+ * the most earned thing on the page — so this is the one tile that gets warm. */
+.badge-tile--claimable {
+  border-color: var(--heat-2);
+  background: var(--heat-wash);
+}
+
+/* Claimed is finished business: still legible, no longer competing for attention. */
+.badge-tile--claimed .badge-tile__name,
+.badge-tile--claimed .badge-tile__progress-label {
+  color: var(--ink-muted);
+}
+
+.badge-tile__medal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-sunken);
+  color: var(--ink-faint);
+}
+
+.badge-tile--claimable .badge-tile__medal {
+  background: var(--heat-fill-2);
+  color: var(--heat-ink);
+}
+
+.badge-tile--claimed .badge-tile__medal {
+  background: var(--done-wash);
+  color: var(--done-ink);
+}
+
+.badge-tile__body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.badge-tile__name {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.badge-tile__progress-label {
+  color: var(--ink-muted);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.badge-tile__track {
+  display: block;
+  height: 4px;
+  margin-top: 3px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-inset);
+  overflow: hidden;
+}
+
+.badge-tile__fill {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--ink-faint);
+  transition: width var(--duration-slow, 320ms) var(--ease-out);
+}
+
+.badge-tile--claimable .badge-tile__fill {
+  background: var(--heat-2);
+}
+
+.badge-tile--claimed .badge-tile__fill {
+  background: var(--done);
+}
+
+.badge-tile__flag {
+  flex: none;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.badge-tile__flag--claimable {
+  background: var(--heat-2);
+  color: var(--ink-inverse);
+}
+
+.badge-tile__flag--claimed {
+  background: var(--done-wash);
+  color: var(--done-ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .badge-tile__fill {
+    transition: none;
+  }
+}
