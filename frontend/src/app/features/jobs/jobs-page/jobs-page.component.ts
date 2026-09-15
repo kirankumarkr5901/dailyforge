@@ -121,6 +121,8 @@ export class JobsPageComponent {
   protected readonly referrals = signal<Referral[]>([]);
   /** null means every referral; otherwise only those in that state. */
   protected readonly referralFilter = signal<ReferralState | null>(null);
+  /** True when the referral list could not be fetched — see loadReferrals(). */
+  protected readonly referralsUnavailable = signal(false);
 
   constructor() {
     let wasAuthenticated = false;
@@ -148,16 +150,15 @@ export class JobsPageComponent {
     this.loading.set(true);
     this.error.set(null);
     try {
-      const [today, apps, metrics, referrals] = await Promise.all([
+      const [today, apps, metrics] = await Promise.all([
         firstValueFrom(this.authApi.today()),
         firstValueFrom(this.api.list()),
         firstValueFrom(this.api.metrics()),
-        firstValueFrom(this.api.referrals()),
       ]);
       this.todayDate.set(today.date);
       this.applications.set(apps);
       this.metrics.set(metrics);
-      this.referrals.set(referrals);
+      await this.loadReferrals();
     } catch {
       this.error.set('Could not load your applications. Check your connection and try again.');
     } finally {
@@ -166,14 +167,39 @@ export class JobsPageComponent {
   }
 
   private async refresh(): Promise<void> {
-    const [apps, metrics, referrals] = await Promise.all([
-      firstValueFrom(this.api.list()),
-      firstValueFrom(this.api.metrics()),
-      firstValueFrom(this.api.referrals()),
-    ]);
+    const [apps, metrics] = await Promise.all([firstValueFrom(this.api.list()), firstValueFrom(this.api.metrics())]);
     this.applications.set(apps);
     this.metrics.set(metrics);
-    this.referrals.set(referrals);
+    await this.loadReferrals();
+  }
+
+  /**
+   * Referrals load on their own, and are allowed to fail on their own.
+   *
+   * They were originally fetched in the same Promise.all as the applications and the
+   * metrics, which meant one rejected request took the whole page down — the
+   * applications board, which had worked for months, showed "could not load" because a
+   * newer endpoint was missing. A frontend deploy reaches Cloudflare in under a minute
+   * while the backend is still building on Render, so that window is not hypothetical;
+   * it is every single deploy that adds an endpoint.
+   *
+   * An additive feature must never be able to break the board that already worked, so
+   * this failure is contained and reported where it belongs: on the referrals tab, in
+   * its own words, rather than as a lie about the applications.
+   */
+  /** The retry the referrals empty state offers. */
+  protected async reload(): Promise<void> {
+    await this.loadReferrals();
+  }
+
+  private async loadReferrals(): Promise<void> {
+    try {
+      this.referrals.set(await firstValueFrom(this.api.referrals()));
+      this.referralsUnavailable.set(false);
+    } catch {
+      this.referrals.set([]);
+      this.referralsUnavailable.set(true);
+    }
   }
 
   /** Every referral, most urgent first — the order the list is read in. */

@@ -57,7 +57,17 @@
   </div>
 
   @if (view() === 'referrals') {
-    @if (referrals().length === 0) {
+    <!-- "No referrals yet" would be a lie when the truth is that the list could not be
+         fetched — most often because the frontend deployed ahead of the backend. -->
+    @if (referralsUnavailable()) {
+      <df-empty-state
+        [icon]="referralIcon"
+        title="Referrals are not available yet"
+        body="The server has not caught up with this version of the app. Your applications are unaffected — try again in a few minutes."
+      >
+        <button dfButton type="button" variant="secondary" (click)="reload()">Try again</button>
+      </df-empty-state>
+    } @else if (referrals().length === 0) {
       <df-empty-state
         [icon]="referralIcon"
         title="No referrals yet"
