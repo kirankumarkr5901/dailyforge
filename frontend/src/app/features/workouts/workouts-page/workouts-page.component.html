@@ -59,6 +59,28 @@
     </div>
   }
 
+  @if (dayProgress().total > 0) {
+    <div
+      class="workouts-page__progress"
+      [class.workouts-page__progress--complete]="dayProgress().done === dayProgress().total"
+      role="progressbar"
+      [attr.aria-valuenow]="dayProgress().done"
+      [attr.aria-valuemin]="0"
+      [attr.aria-valuemax]="dayProgress().total"
+      [attr.aria-label]="dayProgress().done + ' of ' + dayProgress().total + ' exercises logged'"
+    >
+      <div class="workouts-page__progress-head">
+        <span class="workouts-page__progress-label">
+          {{ dayProgress().done }} of {{ dayProgress().total }} {{ dayProgress().total === 1 ? 'exercise' : 'exercises' }} logged
+        </span>
+        <span class="workouts-page__progress-pct">{{ dayProgress().percentLabel }}</span>
+      </div>
+      <span class="workouts-page__progress-track" aria-hidden="true">
+        <span class="workouts-page__progress-fill" [style.width.%]="dayProgress().percent"></span>
+      </span>
+    </div>
+  }
+
   @if (todayDate()) {
     <df-card class="workouts-page__calendar-card">
       <df-month-calendar
@@ -165,6 +187,7 @@
   [planId]="selectedPlan()?.id ?? null"
   [dayIndex]="selectedPlan() ? selectedDayIndex() : null"
   [editingSet]="editingSet()"
+  [lastSet]="lastSetForSheet()"
   (closed)="closeLogSheet()"
   (saved)="onSetSaved($event)"
 />

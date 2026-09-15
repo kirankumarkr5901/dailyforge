@@ -109,6 +109,11 @@
   color: var(--earned-3);
 }
 
+/* Spent points read in the penalty hue so the sign is not the only thing carrying it. */
+.milestones-page__category-amount--negative {
+  color: var(--penalty-ink);
+}
+
 .milestones-page__stat-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

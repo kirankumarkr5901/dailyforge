@@ -211,6 +211,15 @@ export class MilestonesPageComponent {
     }
   }
 
+  /**
+   * A signed amount with the right glyph. Rewards are spent, so their category total is
+   * negative, and a template that prefixed "+" to everything printed "+-50" for them.
+   * The minus is a real minus sign, not a hyphen, so it is the same width as the plus.
+   */
+  protected signed(amount: number): string {
+    return amount < 0 ? `−${Math.abs(amount).toLocaleString()}` : `+${amount.toLocaleString()}`;
+  }
+
   protected setPeriod(period: RecapPeriod): void {
     if (this.period() === period) {
       return;

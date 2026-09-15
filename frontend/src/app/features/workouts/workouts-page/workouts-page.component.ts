@@ -108,6 +108,8 @@ export class WorkoutsPageComponent {
   protected readonly logSheetOpen = signal(false);
   protected readonly logSheetContext = signal<{ id: string; name: string; equipment: Equipment } | null>(null);
   protected readonly editingSet = signal<WorkoutSet | null>(null);
+  /** What the log sheet is pre-filled from when logging fresh — see openLogSheetForCard. */
+  protected readonly lastSetForSheet = signal<WorkoutSet | null>(null);
   protected readonly celebrationTrigger = signal(0);
   /** The exercise whose edit sheet is open, or null when none is. */
   protected readonly editingExercise = signal<ExerciseEditTarget | null>(null);
@@ -129,6 +131,18 @@ export class WorkoutsPageComponent {
   protected readonly planOptions = computed<readonly DfSelectOption[]>(() =>
     this.plans().map((p) => ({ value: p.id, label: p.name })),
   );
+
+  /**
+   * How much of the day is done: exercises with at least one set logged, out of every
+   * exercise scheduled. Counted per exercise rather than per set because the plan names
+   * exercises, not set totals — "4 of 6 exercises" is a fact, "12 of ? sets" is not.
+   */
+  protected readonly dayProgress = computed(() => {
+    const exercises = this.workoutSession()?.exercises ?? [];
+    const done = exercises.filter((e) => e.sets.length > 0).length;
+    const percent = exercises.length ? (done / exercises.length) * 100 : 0;
+    return { done, total: exercises.length, percent, percentLabel: `${Math.round(percent)}%` };
+  });
 
   /** Unfinished cards first, done ones sink to the bottom (spec §8.3). */
   protected readonly sortedExercises = computed<ExerciseBoardEntry[]>(() => {
@@ -296,10 +310,37 @@ export class WorkoutsPageComponent {
     await this.refreshSession();
   }
 
-  protected openLogSheetForCard(entry: ExerciseBoardEntry): void {
+  /**
+   * Opens the log sheet pre-filled with the last thing logged for this exercise.
+   *
+   * Nobody's numbers change much between sets, or between sessions: the sheet used to
+   * open on 0 kg × 8 every time, which meant re-entering the same weight for every set
+   * of every exercise (owner feedback). Today's most recent set wins when there is one;
+   * otherwise the last set from any earlier day, fetched from history. The sheet opens
+   * at once either way — a seed that arrives a moment late fills a still-untouched form,
+   * and one that never arrives leaves the old defaults.
+   */
+  protected async openLogSheetForCard(entry: ExerciseBoardEntry): Promise<void> {
     this.editingSet.set(null);
     this.logSheetContext.set({ id: entry.exerciseId, name: entry.name, equipment: entry.equipment });
+
+    const today = entry.sets[entry.sets.length - 1] ?? null;
+    this.lastSetForSheet.set(today);
     this.logSheetOpen.set(true);
+
+    if (today) {
+      return;
+    }
+    try {
+      const history = await firstValueFrom(this.api.exerciseHistory(entry.exerciseId));
+      // Only if the sheet is still open for this same exercise — the user may have
+      // closed it or moved to another card while the request was out.
+      if (this.logSheetOpen() && this.logSheetContext()?.id === entry.exerciseId) {
+        this.lastSetForSheet.set(history[0]?.set ?? null);
+      }
+    } catch {
+      // History is a convenience; the sheet works without it.
+    }
   }
 
   protected openEditSheet(entry: ExerciseBoardEntry, set: WorkoutSet): void {

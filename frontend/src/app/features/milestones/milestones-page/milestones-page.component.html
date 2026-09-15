@@ -65,7 +65,7 @@
             @for (pair of categoryBreakdown(); track pair[0]) {
               <li class="milestones-page__category-row">
                 <span>{{ categoryLabels[pair[0]] }}</span>
-                <span class="milestones-page__category-amount">+{{ pair[1] }}</span>
+                <span class="milestones-page__category-amount" [class.milestones-page__category-amount--negative]="pair[1] < 0">{{ signed(pair[1]) }}</span>
               </li>
             }
           </ul>
