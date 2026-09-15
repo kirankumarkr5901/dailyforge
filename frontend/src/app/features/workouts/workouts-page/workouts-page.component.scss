@@ -1,0 +1,39 @@
+.workouts-page__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.workouts-page__title {
+  font-size: var(--text-2xl);
+  margin: 0;
+}
+
+.workouts-page__stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+
+.workouts-page__picker-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.workouts-page__error {
+  margin: 0 0 var(--space-4);
+  color: var(--penalty-ink);
+  font-size: var(--text-sm);
+}
+
+.workouts-page__cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}

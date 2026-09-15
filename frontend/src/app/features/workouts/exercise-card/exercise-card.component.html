@@ -1,0 +1,54 @@
+<df-card>
+  <div class="exercise-card__header">
+    <div>
+      <h3 class="exercise-card__name">{{ entry().name }}</h3>
+      <df-chip tone="equipment" [equipment]="equipmentTone(entry().equipment)">{{ equipmentLabel(entry().equipment) }}</df-chip>
+    </div>
+  </div>
+
+  <div class="exercise-card__prs">
+    <div class="exercise-card__pr">
+      <span class="exercise-card__pr-label">Recent PR</span>
+      <span class="exercise-card__pr-value">{{ prLabel(entry().recentPr) }}</span>
+    </div>
+    <div class="exercise-card__pr">
+      <span class="exercise-card__pr-label">Lifetime PR</span>
+      <span class="exercise-card__pr-value">{{ prLabel(entry().lifetimePr) }}</span>
+    </div>
+  </div>
+
+  @if (entry().sets.length > 0) {
+    <ul class="exercise-card__sets">
+      @for (set of entry().sets; track set.id) {
+        <li class="exercise-card__set">
+          <span>{{ setLabel(set) }}</span>
+          <span class="exercise-card__set-actions">
+            <button
+              dfIconButton
+              type="button"
+              [label]="'Edit this set'"
+              variant="ghost"
+              [icon]="editIcon"
+              [size]="16"
+              (click)="editSetRequested.emit(set)"
+            ></button>
+            <button
+              dfIconButton
+              type="button"
+              [label]="'Delete this set'"
+              variant="ghost"
+              [icon]="deleteIcon"
+              [size]="16"
+              (click)="deleteSetRequested.emit(set)"
+            ></button>
+          </span>
+        </li>
+      }
+    </ul>
+  }
+
+  <button dfButton type="button" variant="secondary" [fullWidth]="true" (click)="logRequested.emit()">
+    <lucide-icon [img]="plusIcon" [size]="16" aria-hidden="true" />
+    Log
+  </button>
+</df-card>

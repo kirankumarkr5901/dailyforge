@@ -21,7 +21,7 @@ export interface NavItem {
  */
 export const NAV_ITEMS: readonly NavItem[] = [
   { path: '/home', labelKey: 'nav.home', icon: House, primary: true, ready: false },
-  { path: '/workout', labelKey: 'nav.workout', icon: Dumbbell, primary: true, ready: false },
+  { path: '/workout', labelKey: 'nav.workout', icon: Dumbbell, primary: true, ready: true },
   { path: '/habits', labelKey: 'nav.habits', icon: Target, primary: true, ready: true },
   { path: '/run', labelKey: 'nav.run', icon: Footprints, primary: true, ready: false },
   { path: '/goals', labelKey: 'nav.goals', icon: Award, primary: false, ready: false },

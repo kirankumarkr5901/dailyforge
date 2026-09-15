@@ -1,0 +1,94 @@
+<df-sheet [open]="open()" (openChange)="$event ? null : close()" heading="Plans">
+  <div class="plan-manager">
+    @if (plans().length > 0) {
+      <df-select
+        label="Plan"
+        [options]="planOptions()"
+        [ngModel]="selectedPlanId()"
+        (ngModelChange)="selectedPlanId.set($event)"
+      />
+
+      @if (selectedPlan(); as plan) {
+        <div class="plan-manager__plan-actions">
+          @if (!plan.isActive) {
+            <button dfButton type="button" variant="secondary" (click)="activate(plan.id)">Make active</button>
+          }
+          <button dfButton type="button" variant="ghost" (click)="archive(plan.id)">Archive</button>
+        </div>
+
+        @for (label of plan.dayLabels; track $index) {
+          <df-card>
+            <div class="plan-manager__day-header">
+              <h3 class="plan-manager__day-title">{{ label }}</h3>
+              <button dfButton type="button" variant="ghost" (click)="openPickerForDay($index + 1)">
+                <lucide-icon [img]="plusIcon" [size]="16" aria-hidden="true" />
+                Add
+              </button>
+            </div>
+
+            @for (pe of exercisesForDay(plan, $index + 1); track pe.id) {
+              <div class="plan-manager__exercise">
+                <span>{{ pe.exerciseName }}</span>
+                <button
+                  dfIconButton
+                  type="button"
+                  label="Remove"
+                  variant="ghost"
+                  [icon]="deleteIcon"
+                  (click)="removeExercise(plan.id, pe.id)"
+                ></button>
+              </div>
+            } @empty {
+              <p class="plan-manager__empty">Nothing here yet.</p>
+            }
+          </df-card>
+        }
+
+        <df-card>
+          <div class="plan-manager__day-header">
+            <h3 class="plan-manager__day-title">Extras</h3>
+            <button dfButton type="button" variant="ghost" (click)="openPickerForDay(0)">
+              <lucide-icon [img]="plusIcon" [size]="16" aria-hidden="true" />
+              Add
+            </button>
+          </div>
+
+          @for (pe of extrasFor(plan); track pe.id) {
+            <div class="plan-manager__exercise">
+              <span>{{ pe.exerciseName }}</span>
+              <button
+                dfIconButton
+                type="button"
+                label="Remove"
+                variant="ghost"
+                [icon]="deleteIcon"
+                (click)="removeExercise(plan.id, pe.id)"
+              ></button>
+            </div>
+          } @empty {
+            <p class="plan-manager__empty">Nothing here yet — exercises land here before you assign them a day.</p>
+          }
+        </df-card>
+      }
+    }
+
+    <df-card class="plan-manager__new">
+      <h3 class="plan-manager__day-title">New plan</h3>
+      <df-input label="Name" placeholder="e.g. Push Pull Legs" [ngModel]="newPlanName()" (ngModelChange)="newPlanName.set($event)" />
+      <df-stepper-input label="Days" [min]="1" [max]="14" [ngModel]="newPlanDays()" (ngModelChange)="newPlanDays.set($event)" />
+      <button
+        dfButton
+        type="button"
+        variant="primary"
+        [fullWidth]="true"
+        [loading]="creating()"
+        [disabled]="creating() || !newPlanName().trim()"
+        (click)="createPlan()"
+      >
+        Create plan
+      </button>
+    </df-card>
+  </div>
+</df-sheet>
+
+<df-exercise-picker-sheet [open]="pickerOpen()" (closed)="pickerOpen.set(false)" (picked)="onExercisePicked($event)" />

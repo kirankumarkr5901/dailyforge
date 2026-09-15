@@ -16,7 +16,13 @@ public sealed interface ReconcileScope {
 
     record Habit(UUID habitId, LocalDate fromDate) implements ReconcileScope {}
 
-    record ExercisePr(UUID exerciseId) implements ReconcileScope {}
+    /**
+     * {@code userId} is explicit here — unlike {@link Habit}, an exercise is not
+     * single-owner: the shared catalog (spec §6, "exercises are shared across plans")
+     * means the same {@code exerciseId} can have sets logged by many different users,
+     * so the scope cannot be resolved back to one user from {@code exerciseId} alone.
+     */
+    record ExercisePr(UUID userId, UUID exerciseId) implements ReconcileScope {}
 
     record DayCommitment(UUID userId, LocalDate date) implements ReconcileScope {}
 

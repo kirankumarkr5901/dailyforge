@@ -1,0 +1,47 @@
+<df-sheet [open]="open()" (openChange)="$event ? null : close()" heading="Add an exercise">
+  <div class="exercise-picker">
+    <df-input
+      label="Search"
+      placeholder="e.g. Bench press"
+      [ngModel]="query()"
+      (ngModelChange)="onQueryChange($event)"
+    />
+
+    @if (results().length > 0) {
+      <ul class="exercise-picker__results">
+        @for (exercise of results(); track exercise.id) {
+          <li>
+            <button type="button" class="exercise-picker__result" (click)="select(exercise)">
+              <span>{{ exercise.name }}</span>
+              <df-chip tone="equipment" [equipment]="equipmentTone(exercise.equipment)">{{ equipmentLabel(exercise.equipment) }}</df-chip>
+            </button>
+          </li>
+        }
+      </ul>
+    } @else if (query().trim().length > 0 && !loading()) {
+      <div class="exercise-picker__create">
+        <p class="exercise-picker__create-hint">No match — create it:</p>
+        <div class="exercise-picker__create-row">
+          <df-select label="Type" [options]="kindOptions" [ngModel]="newKind()" (ngModelChange)="newKind.set($event)" />
+          <df-select
+            label="Equipment"
+            [options]="equipmentOptions"
+            [ngModel]="newEquipment()"
+            (ngModelChange)="newEquipment.set($event)"
+          />
+        </div>
+        <button
+          dfButton
+          type="button"
+          variant="primary"
+          [fullWidth]="true"
+          [loading]="creating()"
+          [disabled]="creating()"
+          (click)="createNew()"
+        >
+          Create "{{ query().trim() }}"
+        </button>
+      </div>
+    }
+  </div>
+</df-sheet>

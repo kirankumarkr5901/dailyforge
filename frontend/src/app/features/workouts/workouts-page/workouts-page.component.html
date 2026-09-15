@@ -1,0 +1,100 @@
+<div class="workouts-page__header">
+  <h1 class="workouts-page__title">Workout</h1>
+
+  @if (session.isAuthenticated()) {
+    <button dfButton type="button" variant="ghost" (click)="openPlanManager()">
+      <lucide-icon [img]="settingsIcon" [size]="16" aria-hidden="true" />
+      Plans
+    </button>
+  }
+</div>
+
+@if (!session.isResolved() || (session.isAuthenticated() && loading() && !workoutSession())) {
+  <df-card>
+    <df-skeleton height="2.5rem" />
+    <df-skeleton height="8rem" />
+    <df-skeleton height="8rem" />
+  </df-card>
+} @else if (!session.isAuthenticated()) {
+  <df-empty-state
+    [icon]="targetIcon"
+    title="You are browsing as a guest"
+    body="Sign in to plan your workouts and start earning PR bonuses."
+  >
+    <button dfButton type="button" variant="primary" (click)="signIn()">Sign in</button>
+  </df-empty-state>
+} @else {
+  @if (viewedDate() && todayDate()) {
+    <df-date-stepper
+      class="workouts-page__stepper"
+      [value]="viewedDate()!"
+      [today]="todayDate()!"
+      (valueChange)="changeDate($event)"
+    />
+  }
+
+  @if (plans().length > 0) {
+    <div class="workouts-page__picker-row">
+      <df-select label="Plan" [options]="planOptions()" [ngModel]="selectedPlanId()" (ngModelChange)="changePlan($event)" />
+      @if (dayOptions().length > 0) {
+        <df-select label="Day" [options]="dayOptions()" [ngModel]="String(selectedDayIndex())" (ngModelChange)="changeDay($event)" />
+      }
+    </div>
+  }
+
+  @if (error(); as message) {
+    <p class="workouts-page__error" role="alert">{{ message }}</p>
+  }
+
+  <div class="workouts-page__cards">
+    @for (entry of sortedExercises(); track entry.exerciseId) {
+      <df-exercise-card
+        [entry]="entry"
+        (logRequested)="openLogSheetForCard(entry)"
+        (editSetRequested)="openEditSheet(entry, $event)"
+        (deleteSetRequested)="deleteSet($event)"
+      />
+    } @empty {
+      <df-empty-state
+        [icon]="targetIcon"
+        title="Nothing planned for this day"
+        body="Add an exercise to start logging, or manage your plans to fill this day in advance."
+      >
+        <button dfButton type="button" variant="primary" (click)="openAddExercise()">
+          <lucide-icon [img]="plusIcon" [size]="16" aria-hidden="true" />
+          Add exercise
+        </button>
+      </df-empty-state>
+    }
+  </div>
+
+  @if (sortedExercises().length > 0) {
+    <button dfButton type="button" variant="secondary" [fullWidth]="true" (click)="openAddExercise()">
+      <lucide-icon [img]="plusIcon" [size]="16" aria-hidden="true" />
+      Add another exercise
+    </button>
+  }
+}
+
+<df-log-set-sheet
+  [open]="logSheetOpen()"
+  [exerciseId]="logSheetContext()?.id ?? null"
+  [exerciseName]="logSheetContext()?.name ?? ''"
+  [equipment]="logSheetContext()?.equipment ?? 'BARBELL'"
+  [date]="viewedDate()"
+  [planId]="selectedPlan()?.id ?? null"
+  [dayIndex]="selectedPlan() ? selectedDayIndex() : null"
+  [editingSet]="editingSet()"
+  (closed)="closeLogSheet()"
+  (saved)="onSetSaved($event)"
+/>
+
+<df-exercise-picker-sheet [open]="pickerOpen()" (closed)="pickerOpen.set(false)" (picked)="onExercisePicked($event)" />
+
+<df-plan-manager-sheet
+  [open]="planManagerOpen()"
+  (closed)="planManagerOpen.set(false)"
+  (changed)="onPlansChanged()"
+/>
+
+<df-rest-timer />
