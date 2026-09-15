@@ -29,6 +29,14 @@ public final class GoalDtos {
 
     public record ExtendGoalRequest(@NotNull LocalDate newEndDate) {}
 
+    /** Every field optional: a PATCH changes only what it names. */
+    public record UpdateGoalRequest(
+            @Size(max = 120) String title,
+            @Size(max = 500) String description,
+            LocalDate targetDate,
+            Integer rewardPoints,
+            BigDecimal targetValue) {}
+
     public record GoalResponse(
             UUID id,
             String title,

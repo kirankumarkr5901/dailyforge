@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
-import { Frown, LucideAngularModule, Plus, Sparkles, Target, Trash2 } from 'lucide-angular';
+import { Frown, LucideAngularModule, Plus, Sparkles, SquarePen, Target, Trash2 } from 'lucide-angular';
 
 import { CdkDrag, CdkDragDrop, CdkDragPlaceholder, CdkDropList, moveItemInArray } from '@angular/cdk/drag-drop';
 
@@ -79,6 +79,7 @@ export class HabitsPageComponent {
   protected readonly positiveIcon = Sparkles;
   protected readonly negativeIcon = Frown;
   protected readonly deleteIcon = Trash2;
+  protected readonly editIcon = SquarePen;
 
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
@@ -164,6 +165,8 @@ export class HabitsPageComponent {
   protected readonly activityTypes = signal<ActivityType[]>([]);
   protected readonly recentActivityLogs = signal<ActivityLog[]>([]);
   protected readonly activityFormOpen = signal(false);
+  /** The type the form is editing, or null when it is creating. */
+  protected readonly editingActivityType = signal<ActivityType | null>(null);
   protected readonly loggingActivityId = signal<string | null>(null);
 
   /**
@@ -207,6 +210,7 @@ export class HabitsPageComponent {
   }
 
   protected openActivityForm(): void {
+    this.editingActivityType.set(null);
     this.activityFormOpen.set(true);
   }
 
@@ -214,10 +218,19 @@ export class HabitsPageComponent {
     this.activityFormOpen.set(false);
   }
 
-  protected async onActivityTypeCreated(type: ActivityType): Promise<void> {
+  protected openActivityEdit(type: ActivityType): void {
+    this.editingActivityType.set(type);
+    this.activityFormOpen.set(true);
+  }
+
+  /** One handler for both outcomes; the form knows which it was doing, the list does not need to. */
+  protected async onActivityTypeSaved(type: ActivityType): Promise<void> {
+    const wasEditing = this.editingActivityType() !== null;
     this.closeActivityForm();
-    this.activityTypes.update((types) => [...types, type]);
-    this.toasts.show('Activity created.');
+    this.activityTypes.update((types) =>
+      wasEditing ? types.map((t) => (t.id === type.id ? type : t)) : [...types, type],
+    );
+    this.toasts.show(wasEditing ? 'Activity updated.' : 'Activity created.');
   }
 
   protected async logActivity(type: ActivityType): Promise<void> {

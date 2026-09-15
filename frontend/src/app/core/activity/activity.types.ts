@@ -14,6 +14,14 @@ export interface ActivityType {
   sortOrder: number;
 }
 
+/** Every field optional: a PATCH changes only what it names. */
+export interface UpdateActivityTypePayload {
+  name?: string;
+  polarity?: ActivityPolarity;
+  points?: number;
+  icon?: string;
+}
+
 export interface CreateActivityTypePayload {
   name: string;
   polarity: ActivityPolarity;

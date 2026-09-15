@@ -3,6 +3,7 @@ package com.dailyforge.goal.api;
 import com.dailyforge.common.security.CurrentUser;
 import com.dailyforge.goal.api.GoalDtos.CreateGoalRequest;
 import com.dailyforge.goal.api.GoalDtos.ExtendGoalRequest;
+import com.dailyforge.goal.api.GoalDtos.UpdateGoalRequest;
 import com.dailyforge.goal.api.GoalDtos.GoalResponse;
 import com.dailyforge.goal.domain.GoalService;
 import com.dailyforge.goal.domain.GoalStatus;
@@ -71,6 +72,19 @@ public class GoalController {
     @PostMapping("/{id}/extend")
     public GoalResponse extend(@PathVariable UUID id, @Valid @RequestBody ExtendGoalRequest request) {
         return GoalResponse.of(goalService.extend(id, currentUser.require(), request.newEndDate()));
+    }
+
+    @PatchMapping("/{id}")
+    public GoalResponse update(@PathVariable UUID id, @Valid @RequestBody UpdateGoalRequest request) {
+        return GoalResponse.of(
+                goalService.update(
+                        id,
+                        currentUser.require(),
+                        request.title() != null ? request.title().trim() : null,
+                        request.description(),
+                        request.targetDate(),
+                        request.rewardPoints(),
+                        request.targetValue()));
     }
 
     @PatchMapping("/{id}/archive")

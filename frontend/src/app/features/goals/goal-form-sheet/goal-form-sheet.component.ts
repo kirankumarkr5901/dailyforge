@@ -47,6 +47,12 @@ export class GoalFormSheetComponent {
 
   readonly open = input.required<boolean>();
   readonly date = input<LogicalDate | null>(null);
+  /**
+   * The goal being edited, or null to create one. Editing locks kind, period, start
+   * date and the habit/exercise it measures: those decide what the progress so far
+   * *means*, and the backend refuses to change them for the same reason.
+   */
+  readonly editing = input<Goal | null>(null);
 
   readonly closed = output<void>();
   readonly saved = output<Goal>();
@@ -84,12 +90,25 @@ export class GoalFormSheetComponent {
     }
   });
 
+  protected readonly isEditing = computed(() => this.editing() !== null);
+
   constructor() {
     effect(() => {
       if (!this.open()) {
         return;
       }
       this.reset();
+      const goal = this.editing();
+      if (goal) {
+        this.title.set(goal.title);
+        this.kind.set(goal.kind);
+        this.periodType.set(goal.periodType);
+        this.targetDate.set(goal.endDate ?? '');
+        this.rewardPoints.set(goal.rewardPoints);
+        this.habitId.set(goal.habitId ?? '');
+        this.exerciseId.set(goal.exerciseId ?? '');
+        this.targetValue.set(goal.targetValue ?? 1);
+      }
       void this.loadOptions();
     });
   }
@@ -120,18 +139,26 @@ export class GoalFormSheetComponent {
     this.saving.set(true);
     this.error.set(null);
     try {
+      const editing = this.editing();
       const goal = await firstValueFrom(
-        this.api.create({
-          title: this.title().trim(),
-          kind: this.kind(),
-          periodType: this.periodType(),
-          startDate: this.date()!,
-          targetDate: this.periodType() === 'TARGET_DATE' ? this.targetDate() : undefined,
-          rewardPoints: this.rewardPoints(),
-          habitId: this.kind() === 'HABIT_ADHERENCE' ? this.habitId() : undefined,
-          exerciseId: this.kind() === 'EXERCISE_TARGET' ? this.exerciseId() : undefined,
-          targetValue: this.kind() !== 'CUSTOM' ? this.targetValue() : undefined,
-        }),
+        editing
+          ? this.api.update(editing.id, {
+              title: this.title().trim(),
+              targetDate: this.periodType() === 'TARGET_DATE' ? this.targetDate() : undefined,
+              rewardPoints: this.rewardPoints(),
+              targetValue: this.kind() !== 'CUSTOM' ? this.targetValue() : undefined,
+            })
+          : this.api.create({
+              title: this.title().trim(),
+              kind: this.kind(),
+              periodType: this.periodType(),
+              startDate: this.date()!,
+              targetDate: this.periodType() === 'TARGET_DATE' ? this.targetDate() : undefined,
+              rewardPoints: this.rewardPoints(),
+              habitId: this.kind() === 'HABIT_ADHERENCE' ? this.habitId() : undefined,
+              exerciseId: this.kind() === 'EXERCISE_TARGET' ? this.exerciseId() : undefined,
+              targetValue: this.kind() !== 'CUSTOM' ? this.targetValue() : undefined,
+            }),
       );
       this.saved.emit(goal);
     } catch (error) {

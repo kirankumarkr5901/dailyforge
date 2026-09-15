@@ -34,7 +34,18 @@
           <df-card>
             <div class="goals-page__goal-header">
               <h3 class="goals-page__goal-title">{{ goal.title }}</h3>
-              <span class="goals-page__goal-reward">+{{ goal.rewardPoints }} pts</span>
+              <span class="goals-page__goal-header-side">
+                <span class="goals-page__goal-reward">+{{ goal.rewardPoints }} pts</span>
+                <button
+                  dfIconButton
+                  type="button"
+                  [label]="'Edit ' + goal.title"
+                  variant="ghost"
+                  [icon]="editIcon"
+                  [size]="16"
+                  (click)="openEdit(goal)"
+                ></button>
+              </span>
             </div>
 
             @if (goal.kind !== 'CUSTOM') {
@@ -95,4 +106,10 @@
   }
 }
 
-<df-goal-form-sheet [open]="formOpen()" [date]="todayDate()" (closed)="closeForm()" (saved)="onCreated()" />
+<df-goal-form-sheet
+  [open]="formOpen()"
+  [date]="todayDate()"
+  [editing]="editingGoal()"
+  (closed)="closeForm()"
+  (saved)="onSaved()"
+/>

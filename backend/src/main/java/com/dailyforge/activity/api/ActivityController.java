@@ -6,6 +6,7 @@ import com.dailyforge.activity.api.ActivityDtos.CreateActivityTypeRequest;
 import com.dailyforge.activity.api.ActivityDtos.DeleteLogResponse;
 import com.dailyforge.activity.api.ActivityDtos.LogActivityRequest;
 import com.dailyforge.activity.api.ActivityDtos.LogWriteResponse;
+import com.dailyforge.activity.api.ActivityDtos.UpdateActivityTypeRequest;
 import com.dailyforge.activity.domain.ActivityService;
 import com.dailyforge.common.security.CurrentUser;
 import jakarta.validation.Valid;
@@ -15,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -44,6 +46,19 @@ public class ActivityController {
     public ActivityTypeResponse create(@Valid @RequestBody CreateActivityTypeRequest request) {
         var type =
                 activities.create(currentUser.require(), request.name().trim(), request.polarity(), request.points(), request.icon());
+        return ActivityTypeResponse.of(type);
+    }
+
+    @PatchMapping("/activities/{id}")
+    public ActivityTypeResponse update(@PathVariable UUID id, @Valid @RequestBody UpdateActivityTypeRequest request) {
+        var type =
+                activities.update(
+                        id,
+                        currentUser.require(),
+                        request.name() != null ? request.name().trim() : null,
+                        request.polarity(),
+                        request.points(),
+                        request.icon());
         return ActivityTypeResponse.of(type);
     }
 

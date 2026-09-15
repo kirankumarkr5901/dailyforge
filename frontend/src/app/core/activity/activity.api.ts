@@ -8,8 +8,7 @@ import {
   CreateActivityTypePayload,
   DeleteLogResponse,
   LogActivityPayload,
-  LogWriteResponse,
-} from './activity.types';
+  LogWriteResponse, UpdateActivityTypePayload } from './activity.types';
 
 @Injectable({ providedIn: 'root' })
 export class ActivityApi {
@@ -22,6 +21,11 @@ export class ActivityApi {
 
   create(payload: CreateActivityTypePayload): Observable<ActivityType> {
     return this.http.post<ActivityType>(`${this.base}/activities`, payload);
+  }
+
+  /** Edits an activity type. Every field optional: a PATCH changes only what it names. */
+  update(id: string, payload: UpdateActivityTypePayload): Observable<ActivityType> {
+    return this.http.patch<ActivityType>(`${this.base}/activities/${id}`, payload);
   }
 
   archive(id: string): Observable<void> {
