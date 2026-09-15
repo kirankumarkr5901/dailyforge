@@ -2,7 +2,16 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { CreateApplicationPayload, JobApplication, JobMetrics, JobStatus, TransitionPayload } from './job.types';
+import { ifMatch } from '../sync/if-match';
+import {
+  CreateApplicationPayload,
+  JobApplication,
+  JobMetrics,
+  JobStatus,
+  Referral,
+  TransitionPayload,
+  UpdateApplicationPayload,
+} from './job.types';
 
 @Injectable({ providedIn: 'root' })
 export class JobApi {
@@ -19,6 +28,19 @@ export class JobApi {
 
   create(payload: CreateApplicationPayload): Observable<JobApplication> {
     return this.http.post<JobApplication>(`${this.base}/jobs`, payload);
+  }
+
+  /**
+   * Edits an application. `version` is the copy being edited — the server refuses the
+   * write if another device has changed it since (see StaleWrite on the backend).
+   */
+  update(id: string, payload: UpdateApplicationPayload, version?: number): Observable<JobApplication> {
+    return this.http.patch<JobApplication>(`${this.base}/jobs/${id}`, payload, ifMatch(version));
+  }
+
+  /** Referrals only, oldest ask first, each with how long it has been waiting. */
+  referrals(): Observable<Referral[]> {
+    return this.http.get<Referral[]>(`${this.base}/jobs/referrals`);
   }
 
   transition(id: string, payload: TransitionPayload): Observable<JobApplication> {

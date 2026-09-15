@@ -27,6 +27,96 @@
     <p class="jobs-page__error" role="alert">{{ message }}</p>
   }
 
+  <!-- Two boards, one route. A referral asks a different question from an application —
+       "has this gone quiet on me", not "where is this up to" — and a handful of urgent
+       referrals should not have to be found among forty applications. -->
+  <div class="jobs-page__switch" role="tablist" aria-label="Applications or referrals">
+    <button
+      type="button"
+      role="tab"
+      class="jobs-page__switch-tab"
+      [class.jobs-page__switch-tab--selected]="view() === 'applications'"
+      [attr.aria-selected]="view() === 'applications'"
+      (click)="view.set('applications')"
+    >
+      Applications
+    </button>
+    <button
+      type="button"
+      role="tab"
+      class="jobs-page__switch-tab"
+      [class.jobs-page__switch-tab--selected]="view() === 'referrals'"
+      [attr.aria-selected]="view() === 'referrals'"
+      (click)="view.set('referrals')"
+    >
+      Referrals
+      @if (referralsNeedingAction() > 0) {
+        <span class="jobs-page__switch-badge">{{ referralsNeedingAction() }}</span>
+      }
+    </button>
+  </div>
+
+  @if (view() === 'referrals') {
+    @if (referrals().length === 0) {
+      <df-empty-state
+        [icon]="referralIcon"
+        title="No referrals yet"
+        body="Add an application with a referral source to start the clock on it, and this list will tell you when to chase it and when to stop waiting."
+      >
+        <button dfButton type="button" variant="primary" (click)="openForm()">New application</button>
+      </df-empty-state>
+    } @else {
+      <div class="jobs-page__referral-filter" role="group" aria-label="Filter referrals by what to do next">
+        <button
+          type="button"
+          class="jobs-page__referral-chip"
+          [class.jobs-page__referral-chip--selected]="referralFilter() === null"
+          (click)="referralFilter.set(null)"
+        >
+          All <span class="jobs-page__referral-count">{{ referrals().length }}</span>
+        </button>
+        <button
+          type="button"
+          class="jobs-page__referral-chip jobs-page__referral-chip--urgent"
+          [class.jobs-page__referral-chip--selected]="referralFilter() === 'APPLY_DIRECTLY'"
+          (click)="referralFilter.set('APPLY_DIRECTLY')"
+        >
+          Apply now <span class="jobs-page__referral-count">{{ referralCounts().APPLY_DIRECTLY }}</span>
+        </button>
+        <button
+          type="button"
+          class="jobs-page__referral-chip jobs-page__referral-chip--soon"
+          [class.jobs-page__referral-chip--selected]="referralFilter() === 'FOLLOW_UP'"
+          (click)="referralFilter.set('FOLLOW_UP')"
+        >
+          Follow up <span class="jobs-page__referral-count">{{ referralCounts().FOLLOW_UP }}</span>
+        </button>
+        <button
+          type="button"
+          class="jobs-page__referral-chip"
+          [class.jobs-page__referral-chip--selected]="referralFilter() === 'WAITING'"
+          (click)="referralFilter.set('WAITING')"
+        >
+          Waiting <span class="jobs-page__referral-count">{{ referralCounts().WAITING }}</span>
+        </button>
+      </div>
+
+      <div class="jobs-page__list">
+        @for (referral of visibleReferrals(); track referral.application.id) {
+          <df-referral-card [referral]="referral" />
+        } @empty {
+          <df-empty-state
+            [icon]="referralIcon"
+            title="Nothing in that state"
+            body="Try a different filter, or show every referral."
+          >
+            <button dfButton type="button" variant="secondary" (click)="referralFilter.set(null)">Show all</button>
+          </df-empty-state>
+        }
+      </div>
+    }
+  } @else {
+
   @if (metrics(); as m) {
     <df-card class="jobs-page__metrics">
       <div class="jobs-page__metric">
@@ -103,6 +193,8 @@
         }
       </div>
     }
+  }
+
   }
 }
 

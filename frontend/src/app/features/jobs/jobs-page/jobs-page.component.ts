@@ -2,14 +2,14 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } 
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
-import { Briefcase, LucideAngularModule, Plus } from 'lucide-angular';
+import { Briefcase, Handshake, LucideAngularModule, Plus } from 'lucide-angular';
 
 import { AuthApi } from '../../../core/auth/auth.api';
 import { AuthSheetService } from '../../../core/auth/auth-sheet.service';
 import { SessionStore } from '../../../core/auth/session.store';
 import { SyncStore } from '../../../core/sync/sync.store';
 import { JobApi } from '../../../core/job/job.api';
-import { InterviewStage, JobApplication, JobMetrics, JobStatus } from '../../../core/job/job.types';
+import { InterviewStage, JobApplication, JobMetrics, JobStatus, Referral, ReferralState } from '../../../core/job/job.types';
 import { LogicalDate, formatLong } from '../../../core/time/logical-date';
 import { DfButtonComponent } from '../../../shared/ui/df-button/df-button.component';
 import { DfCardComponent } from '../../../shared/ui/df-card/df-card.component';
@@ -18,6 +18,7 @@ import { DfSelectComponent, DfSelectOption } from '../../../shared/ui/df-select/
 import { DfSkeletonComponent } from '../../../shared/ui/df-skeleton/df-skeleton.component';
 import { ToastService } from '../../../shared/ui/df-toast/toast.service';
 import { JobFormSheetComponent } from '../job-form-sheet/job-form-sheet.component';
+import { ReferralCardComponent } from '../referral-card/referral-card.component';
 
 const STATUS_LABELS: Record<JobStatus, string> = {
   APPLIED: 'Applied',
@@ -64,6 +65,14 @@ const ROW_STATUS_OPTIONS: readonly DfSelectOption[] = (Object.keys(STATUS_LABELS
   status === 'INTERVIEW' ? INTERVIEW_OPTIONS : [{ value: status, label: STATUS_LABELS[status] }],
 );
 
+/**
+ * Most urgent first. The API returns referrals oldest-ask-first, which is close but not
+ * the same thing: one asked eight days ago with no date recorded should not outrank one
+ * that crossed the "apply anyway" line yesterday. Rank by what to do about it, then by
+ * how long it has waited.
+ */
+const REFERRAL_URGENCY: Record<ReferralState, number> = { APPLY_DIRECTLY: 0, FOLLOW_UP: 1, WAITING: 2 };
+
 /** The job pipeline (spec §8.7). Stage transitions are a per-row status change rather than a dedicated stepper sheet. */
 @Component({
   selector: 'df-jobs-page',
@@ -76,6 +85,7 @@ const ROW_STATUS_OPTIONS: readonly DfSelectOption[] = (Object.keys(STATUS_LABELS
     DfSelectComponent,
     DfSkeletonComponent,
     JobFormSheetComponent,
+    ReferralCardComponent,
   ],
   templateUrl: './jobs-page.component.html',
   styleUrl: './jobs-page.component.scss',
@@ -92,6 +102,7 @@ export class JobsPageComponent {
 
   protected readonly plusIcon = Plus;
   protected readonly briefcaseIcon = Briefcase;
+  protected readonly referralIcon = Handshake;
   protected readonly statusLabels = STATUS_LABELS;
   protected readonly statusOptions = NEXT_STATUS_OPTIONS;
   protected readonly rowStatusOptions = ROW_STATUS_OPTIONS;
@@ -105,6 +116,12 @@ export class JobsPageComponent {
   protected readonly statusFilter = signal<JobStatus | ''>('');
   protected readonly formOpen = signal(false);
 
+  /** Which board is showing. Applications is the default: it is the bigger list. */
+  protected readonly view = signal<'applications' | 'referrals'>('applications');
+  protected readonly referrals = signal<Referral[]>([]);
+  /** null means every referral; otherwise only those in that state. */
+  protected readonly referralFilter = signal<ReferralState | null>(null);
+
   constructor() {
     let wasAuthenticated = false;
     effect(() => {
@@ -115,6 +132,7 @@ export class JobsPageComponent {
       if (!isAuthenticated && this.session.isResolved()) {
         this.applications.set([]);
         this.metrics.set(null);
+        this.referrals.set([]);
         this.loading.set(false);
       }
       wasAuthenticated = isAuthenticated;
@@ -130,14 +148,16 @@ export class JobsPageComponent {
     this.loading.set(true);
     this.error.set(null);
     try {
-      const [today, apps, metrics] = await Promise.all([
+      const [today, apps, metrics, referrals] = await Promise.all([
         firstValueFrom(this.authApi.today()),
         firstValueFrom(this.api.list()),
         firstValueFrom(this.api.metrics()),
+        firstValueFrom(this.api.referrals()),
       ]);
       this.todayDate.set(today.date);
       this.applications.set(apps);
       this.metrics.set(metrics);
+      this.referrals.set(referrals);
     } catch {
       this.error.set('Could not load your applications. Check your connection and try again.');
     } finally {
@@ -146,10 +166,41 @@ export class JobsPageComponent {
   }
 
   private async refresh(): Promise<void> {
-    const [apps, metrics] = await Promise.all([firstValueFrom(this.api.list()), firstValueFrom(this.api.metrics())]);
+    const [apps, metrics, referrals] = await Promise.all([
+      firstValueFrom(this.api.list()),
+      firstValueFrom(this.api.metrics()),
+      firstValueFrom(this.api.referrals()),
+    ]);
     this.applications.set(apps);
     this.metrics.set(metrics);
+    this.referrals.set(referrals);
   }
+
+  /** Every referral, most urgent first — the order the list is read in. */
+  protected readonly sortedReferrals = computed<Referral[]>(() =>
+    [...this.referrals()].sort(
+      (a, b) => REFERRAL_URGENCY[a.state] - REFERRAL_URGENCY[b.state] || b.daysWaiting - a.daysWaiting,
+    ),
+  );
+
+  protected readonly visibleReferrals = computed<Referral[]>(() => {
+    const filter = this.referralFilter();
+    return filter ? this.sortedReferrals().filter((r) => r.state === filter) : this.sortedReferrals();
+  });
+
+  /** How many sit in each state, so the filter can say so without the user opening it. */
+  protected readonly referralCounts = computed<Record<ReferralState, number>>(() => {
+    const counts: Record<ReferralState, number> = { WAITING: 0, FOLLOW_UP: 0, APPLY_DIRECTLY: 0 };
+    for (const referral of this.referrals()) {
+      counts[referral.state]++;
+    }
+    return counts;
+  });
+
+  /** The one number worth surfacing on the tab itself: what is asking for action now. */
+  protected readonly referralsNeedingAction = computed(
+    () => this.referralCounts().FOLLOW_UP + this.referralCounts().APPLY_DIRECTLY,
+  );
 
   protected filteredApplications() {
     const filter = this.statusFilter();

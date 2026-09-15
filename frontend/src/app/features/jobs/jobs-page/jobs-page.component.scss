@@ -102,3 +102,125 @@
   font-size: var(--text-xs);
   font-weight: 600;
 }
+
+/* Two boards, one route — same switch the habits page uses for habits and activities,
+ * so the gesture means the same thing wherever it appears. */
+.jobs-page__switch {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.jobs-page__switch-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  flex: 1;
+  min-height: var(--tap-min);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-pill);
+  background: var(--surface-raised);
+  color: var(--ink);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+}
+
+.jobs-page__switch-tab:hover:not(.jobs-page__switch-tab--selected) {
+  background: var(--surface-sunken);
+}
+
+.jobs-page__switch-tab:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.jobs-page__switch-tab--selected {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--surface);
+}
+
+/* How many referrals are asking for something right now. Carried on the tab because it
+ * is the reason to look at the other board at all. */
+.jobs-page__switch-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-pill);
+  background: var(--penalty);
+  color: #fff;
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.jobs-page__referral-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.jobs-page__referral-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--tap-min);
+  padding-inline: var(--space-3);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-pill);
+  background: var(--surface-raised);
+  color: var(--ink);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+}
+
+.jobs-page__referral-chip:hover:not(.jobs-page__referral-chip--selected) {
+  background: var(--surface-sunken);
+}
+
+.jobs-page__referral-chip:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* The two chips that mean "something is waiting on you" carry their state's colour even
+ * unselected, so the filter row itself reads as a summary. */
+.jobs-page__referral-chip--urgent .jobs-page__referral-count {
+  background: var(--penalty-wash);
+  color: var(--penalty-ink);
+}
+
+.jobs-page__referral-chip--soon .jobs-page__referral-count {
+  background: var(--heat-wash);
+  color: var(--heat-ink);
+}
+
+.jobs-page__referral-chip--selected {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--surface);
+}
+
+.jobs-page__referral-chip--selected .jobs-page__referral-count {
+  background: transparent;
+  color: inherit;
+}
+
+.jobs-page__referral-count {
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--surface-sunken);
+  color: var(--ink-muted);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+}

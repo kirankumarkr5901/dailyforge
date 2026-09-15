@@ -4,9 +4,11 @@ import com.dailyforge.job.domain.InterviewStage;
 import com.dailyforge.job.domain.JobApplication;
 import com.dailyforge.job.domain.JobEvent;
 import com.dailyforge.job.domain.JobService.Metrics;
+import com.dailyforge.job.domain.JobService.Referral;
 import com.dailyforge.job.domain.JobService.RejectionOrigin;
 import com.dailyforge.job.domain.JobSource;
 import com.dailyforge.job.domain.JobStatus;
+import com.dailyforge.job.domain.ReferralState;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -28,6 +30,8 @@ public final class JobDtos {
             @Size(max = 80) String resumeVersion,
             @NotNull JobSource source,
             @Size(max = 120) String referrerName,
+            @Size(max = 80) String referralId,
+            LocalDate referralRequestedOn,
             @Size(max = 1000) String note,
             @NotNull LocalDate appliedOn) {}
 
@@ -39,6 +43,8 @@ public final class JobDtos {
             @Size(max = 500) String jobUrl,
             @Size(max = 80) String resumeVersion,
             @Size(max = 120) String referrerName,
+            @Size(max = 80) String referralId,
+            LocalDate referralRequestedOn,
             @Size(max = 1000) String note,
             LocalDate nextFollowUpOn) {}
 
@@ -61,6 +67,8 @@ public final class JobDtos {
             String resumeVersion,
             JobSource source,
             String referrerName,
+            String referralId,
+            LocalDate referralRequestedOn,
             JobStatus status,
             int currentRound,
             LocalDate nextFollowUpOn,
@@ -92,6 +100,8 @@ public final class JobDtos {
                     app.getResumeVersion(),
                     app.getSource(),
                     app.getReferrerName(),
+                    app.getReferralId(),
+                    app.getReferralRequestedOn(),
                     app.getStatus(),
                     app.getCurrentRound(),
                     app.getNextFollowUpOn(),
@@ -139,6 +149,26 @@ public final class JobDtos {
                     metrics.averageDaysToFirstResponse(),
                     metrics.interviewsPerApplication(),
                     metrics.needsFollowUp().stream().map(ApplicationResponse::of).toList());
+        }
+    }
+
+    /**
+     * A referral as the referral list needs it: the application, plus how long it has
+     * been waiting and what that means.
+     *
+     * {@code state} is deliberately not a colour. The frontend maps the three states to
+     * the theme's own tokens, and writes the suggestion copy, so the wording can change
+     * without an API change and the API stays meaningful to anything that is not a
+     * screen.
+     */
+    public record ReferralResponse(
+            ApplicationResponse application,
+            long daysWaiting,
+            ReferralState state) {
+
+        public static ReferralResponse of(Referral referral) {
+            return new ReferralResponse(
+                    ApplicationResponse.of(referral.application()), referral.daysWaiting(), referral.state());
         }
     }
 }

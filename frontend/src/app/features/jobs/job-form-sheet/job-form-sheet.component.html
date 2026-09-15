@@ -9,6 +9,32 @@
       <df-input label="Referrer name (optional)" [ngModel]="referrerName()" (ngModelChange)="referrerName.set($event)" />
     }
 
+    <df-input
+      label="Application link (optional)"
+      type="url"
+      placeholder="https://"
+      [ngModel]="jobUrl()"
+      (ngModelChange)="jobUrl.set($event)"
+    />
+
+    <!-- The referral clock: what you were given to quote, and when you asked. Only a
+         referral source has either, and the ask date is what the referral board counts
+         from — so it is offered here rather than assumed to be the day you logged it. -->
+    @if (isReferral()) {
+      <df-input
+        label="Referral ID (optional)"
+        placeholder="e.g. REF-8821"
+        [ngModel]="referralId()"
+        (ngModelChange)="referralId.set($event)"
+      />
+      <df-input
+        label="Referral asked on"
+        type="date"
+        [ngModel]="referralRequestedOn() || date()"
+        (ngModelChange)="referralRequestedOn.set($event)"
+      />
+    }
+
     <df-input label="Note (optional)" [ngModel]="note()" (ngModelChange)="note.set($event)" />
 
     @if (error(); as message) {
