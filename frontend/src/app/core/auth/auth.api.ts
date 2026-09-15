@@ -76,4 +76,9 @@ export class AuthApi {
   updateSettings(payload: UpdateSettingsPayload): Observable<UserSettings> {
     return this.http.patch<UserSettings>(`${this.base}/me/settings`, payload);
   }
+
+  /** The signed-in user's current local date (spec §4.2) — never computed client-side. */
+  today(): Observable<{ date: string }> {
+    return this.http.get<{ date: string }>(`${this.base}/me/today`);
+  }
 }

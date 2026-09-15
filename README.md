@@ -24,9 +24,11 @@ Google sign-in is built but **dark by default**: it appears only when `GOOGLE_CL
 
 Plan-day reordering is up/down rather than drag-and-drop, and an elite exercise's multi-day placement has no dedicated assignment picker yet — both are reachable through the ordinary add/move actions, matching the same trade the habit planner made at M3. The exercise history chart is a plain list for now; a charting library is not yet part of the stack.
 
-Screens for M5–M7 are routed to a placeholder naming the milestone that builds them, so the navigation is real and testable now.
+**M5 — Runs. Complete.** The run tracker (spec §6, §5.4, §8.5): logging a run with distance, duration and type — auto-assigned and locked to `LONG` at 10 km, per the plan — the distance and milestone calculator (recomputed from a user's whole run history on every change, so editing or deleting a run correctly promotes the next-earliest one to "first ever" at a threshold), and PR sections by distance, by pace, and by bracket. A new `GET /me/today` endpoint gives any screen the server's own answer to "what day is it" without computing one client-side, closing a gap the habit and workout boards had each been solving on their own.
 
-Milestones M5–M9 are listed in spec §11. **M5 is the run tracker.**
+Screens for M6–M7 are routed to a placeholder naming the milestone that builds them, so the navigation is real and testable now.
+
+Milestones M6–M9 are listed in spec §11. **M6 is Home** (score, quote, heatmap, activity log).
 
 ## Requirements
 

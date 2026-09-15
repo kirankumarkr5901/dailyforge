@@ -1,0 +1,82 @@
+<df-sheet
+  [open]="open()"
+  (openChange)="$event ? null : close()"
+  [heading]="isEditing() ? 'Edit run' : 'Log a run'"
+>
+  <div class="run-form">
+    <df-stepper-input
+      label="Distance"
+      suffix="km"
+      [min]="0"
+      [max]="200"
+      [step]="0.1"
+      [decimals]="1"
+      [ngModel]="distanceKm()"
+      (ngModelChange)="distanceKm.set($event)"
+    />
+
+    <div class="run-form__duration">
+      <df-stepper-input
+        label="Minutes"
+        [min]="0"
+        [max]="1440"
+        [ngModel]="minutes()"
+        (ngModelChange)="minutes.set($event)"
+      />
+      <df-stepper-input
+        label="Seconds"
+        [min]="0"
+        [max]="59"
+        [ngModel]="seconds()"
+        (ngModelChange)="seconds.set($event)"
+      />
+    </div>
+
+    <p class="run-form__pace">Pace: {{ paceLabel() }}</p>
+
+    <div class="run-form__field">
+      <span class="run-form__label">Type</span>
+      @if (isLong()) {
+        <p class="run-form__hint">Long — locked automatically at 10 km or more.</p>
+      } @else {
+        <div class="run-form__toggle-row">
+          <button
+            type="button"
+            class="run-form__toggle"
+            [class.run-form__toggle--selected]="type() === 'INTERVAL'"
+            (click)="type.set('INTERVAL')"
+          >
+            Interval
+          </button>
+          <button
+            type="button"
+            class="run-form__toggle"
+            [class.run-form__toggle--selected]="type() === 'TEMPO'"
+            (click)="type.set('TEMPO')"
+          >
+            Tempo
+          </button>
+        </div>
+      }
+    </div>
+
+    <df-input label="Note (optional)" [ngModel]="note()" (ngModelChange)="note.set($event)" />
+
+    @if (error(); as message) {
+      <p class="run-form__error" role="alert">{{ message }}</p>
+    }
+
+    <button
+      dfButton
+      type="button"
+      variant="primary"
+      size="lg"
+      [fullWidth]="true"
+      [loading]="saving()"
+      [disabled]="saving()"
+      (click)="save()"
+    >
+      {{ isEditing() ? 'Save changes' : 'Log run' }}
+    </button>
+  </div>
+</df-sheet>
