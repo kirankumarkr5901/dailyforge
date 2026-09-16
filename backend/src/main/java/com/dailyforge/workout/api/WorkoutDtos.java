@@ -199,7 +199,15 @@ public final class WorkoutDtos {
             /** Only an exercise the viewer owns can be edited; the shared catalogue cannot. */
             boolean ownedByMe,
             /** Echoed back as If-Match when editing, so a stale device cannot overwrite. */
-            long version) {}
+            long version,
+            /**
+             * When the user said they were finished with this exercise, or null.
+             *
+             * The third state the board needs: sets logged says work started, this says
+             * it finished. No set count can stand in for it — three sets is a full job
+             * for one lift and a warm-up for another.
+             */
+            java.time.Instant completedAt) {}
 
     public record SessionResponse(
             UUID id, LocalDate date, UUID planId, Integer dayIndex, boolean completed, List<ExerciseBoardEntry> exercises) {}

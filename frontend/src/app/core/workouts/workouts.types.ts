@@ -92,6 +92,13 @@ export interface ExerciseBoardEntry {
   ownedByMe: boolean;
   /** Echoed back as If-Match when editing. */
   version: number;
+  /**
+   * When you said you were finished with this exercise, or null.
+   *
+   * The third state the board needs: sets logged says the work started, this says it
+   * finished. No set count can stand in for it.
+   */
+  completedAt: string | null;
 }
 
 export interface WorkoutSession {

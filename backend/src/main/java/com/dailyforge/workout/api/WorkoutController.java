@@ -14,12 +14,14 @@ import com.dailyforge.workout.api.WorkoutDtos.SetWriteResponse;
 import com.dailyforge.workout.api.WorkoutDtos.UpdateSetRequest;
 import com.dailyforge.points.domain.PointsResult;
 import com.dailyforge.workout.domain.WorkoutBoardService;
+import com.dailyforge.workout.domain.WorkoutCompletionService;
 import com.dailyforge.workout.domain.WorkoutSession;
 import com.dailyforge.workout.domain.WorkoutSetService;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -29,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /** Sessions and sets — the tracker itself (spec §8.3). */
@@ -41,18 +44,21 @@ public class WorkoutController {
     private final CurrentUser currentUser;
     private final DayService dayService;
     private final IdentityService identity;
+    private final WorkoutCompletionService completionService;
 
     public WorkoutController(
             WorkoutSetService setService,
             WorkoutBoardService board,
             CurrentUser currentUser,
             DayService dayService,
-            IdentityService identity) {
+            IdentityService identity,
+            WorkoutCompletionService completionService) {
         this.setService = setService;
         this.board = board;
         this.currentUser = currentUser;
         this.dayService = dayService;
         this.identity = identity;
+        this.completionService = completionService;
     }
 
     /**
@@ -83,9 +89,27 @@ public class WorkoutController {
                                                 PrResponse.of(be.lifetimePr()),
                                                 be.sets().stream().map(SetResponse::of).toList(),
                                                 be.exercise().isOwnedBy(userId),
-                                                be.exercise().getVersion()))
+                                                be.exercise().getVersion(),
+                                                be.completedAt()))
                         .toList();
         return new SessionResponse(session.getId(), session.getOccurredOn(), session.getPlanId(), session.getDayIndex(), session.isCompleted(), exercises);
+    }
+
+    /**
+     * "I am finished with this exercise." Carries no points: the work was already paid
+     * for when the sets were logged, and paying again for saying so would pay twice for
+     * one effort.
+     */
+    @PostMapping("/sessions/{sessionId}/exercises/{exerciseId}/complete")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void completeExercise(@PathVariable UUID sessionId, @PathVariable UUID exerciseId) {
+        completionService.markComplete(sessionId, exerciseId, currentUser.require());
+    }
+
+    @DeleteMapping("/sessions/{sessionId}/exercises/{exerciseId}/complete")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void reopenExercise(@PathVariable UUID sessionId, @PathVariable UUID exerciseId) {
+        completionService.clearComplete(sessionId, exerciseId, currentUser.require());
     }
 
     @PostMapping("/sets")

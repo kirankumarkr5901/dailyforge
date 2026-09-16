@@ -5,7 +5,7 @@
       <df-chip tone="equipment" [equipment]="equipmentTone(entry().equipment)">{{ equipmentLabel(entry().equipment) }}</df-chip>
     </div>
     <span class="exercise-card__header-actions">
-      @if (done()) {
+      @if (state() === 'done') {
         <span class="exercise-card__done-badge" aria-hidden="true">
           <lucide-icon [img]="doneIcon" [size]="18" />
         </span>
@@ -76,8 +76,32 @@
     </ul>
   }
 
-  <button dfButton type="button" variant="secondary" [fullWidth]="true" (click)="logRequested.emit()">
-    <lucide-icon [img]="plusIcon" [size]="16" aria-hidden="true" />
-    Log
-  </button>
+  @switch (state()) {
+    @case ('done') {
+      <button dfButton type="button" variant="ghost" [fullWidth]="true" (click)="reopenRequested.emit()">
+        <lucide-icon [img]="reopenIcon" [size]="16" aria-hidden="true" />
+        Not finished after all
+      </button>
+    }
+    @case ('in-progress') {
+      <!-- Two things you might do next, and they are not the same weight: another set is
+           the common one, finishing is the deliberate one. -->
+      <div class="exercise-card__actions">
+        <button dfButton type="button" variant="secondary" (click)="logRequested.emit()">
+          <lucide-icon [img]="plusIcon" [size]="16" aria-hidden="true" />
+          Log another set
+        </button>
+        <button dfButton type="button" variant="primary" (click)="completeRequested.emit()">
+          <lucide-icon [img]="doneIcon" [size]="16" aria-hidden="true" />
+          Complete
+        </button>
+      </div>
+    }
+    @default {
+      <button dfButton type="button" variant="secondary" [fullWidth]="true" (click)="logRequested.emit()">
+        <lucide-icon [img]="plusIcon" [size]="16" aria-hidden="true" />
+        Log
+      </button>
+    }
+  }
 </df-card>

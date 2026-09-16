@@ -131,6 +131,16 @@ export class WorkoutsApi {
     return this.http.get<WorkoutSession>(`${this.base}/workouts/session`, { params });
   }
 
+  /** "I am finished with this exercise for this session." Carries no points. */
+  completeExercise(sessionId: string, exerciseId: string): Observable<void> {
+    return this.http.post<void>(`${this.base}/workouts/sessions/${sessionId}/exercises/${exerciseId}/complete`, {});
+  }
+
+  /** Takes the mark back. */
+  reopenExercise(sessionId: string, exerciseId: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/workouts/sessions/${sessionId}/exercises/${exerciseId}/complete`);
+  }
+
   logSet(payload: LogSetPayload): Observable<SetWriteResponse> {
     return this.http.post<SetWriteResponse>(`${this.base}/workouts/sets`, payload);
   }
