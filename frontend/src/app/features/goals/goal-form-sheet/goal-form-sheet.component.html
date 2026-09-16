@@ -1,0 +1,56 @@
+<df-sheet [open]="open()" (openChange)="$event ? null : close()" heading="New goal">
+  <div class="goal-form">
+    <df-input label="Title" placeholder="e.g. Read on 20 days" [ngModel]="title()" (ngModelChange)="title.set($event)" />
+    <df-select label="Kind" [options]="kindOptions" [ngModel]="kind()" (ngModelChange)="kind.set($event)" />
+    <df-select label="Period" [options]="periodOptions" [ngModel]="periodType()" (ngModelChange)="periodType.set($event)" />
+
+    @if (periodType() === 'TARGET_DATE') {
+      <df-input
+        label="Target date"
+        placeholder="YYYY-MM-DD"
+        hint="e.g. 2026-12-31"
+        [ngModel]="targetDate()"
+        (ngModelChange)="targetDate.set($event)"
+      />
+    }
+
+    @if (kind() === 'HABIT_ADHERENCE') {
+      <df-select label="Habit" [options]="habitOptions()" [ngModel]="habitId()" (ngModelChange)="habitId.set($event)" />
+    }
+
+    @if (kind() === 'EXERCISE_TARGET') {
+      <df-select label="Exercise" [options]="exerciseOptions()" [ngModel]="exerciseId()" (ngModelChange)="exerciseId.set($event)" />
+    }
+
+    @if (kind() !== 'CUSTOM') {
+      <df-stepper-input
+        [label]="targetValueLabel()"
+        [min]="1"
+        [max]="1000"
+        [decimals]="kind() === 'HABIT_ADHERENCE' ? 0 : 1"
+        [step]="kind() === 'HABIT_ADHERENCE' ? 1 : 0.5"
+        [ngModel]="targetValue()"
+        (ngModelChange)="targetValue.set($event)"
+      />
+    }
+
+    <df-stepper-input label="Reward points" [min]="0" [max]="1000" [ngModel]="rewardPoints()" (ngModelChange)="rewardPoints.set($event)" />
+
+    @if (error(); as message) {
+      <p class="goal-form__error" role="alert">{{ message }}</p>
+    }
+
+    <button
+      dfButton
+      type="button"
+      variant="primary"
+      size="lg"
+      [fullWidth]="true"
+      [loading]="saving()"
+      [disabled]="saving() || !title().trim()"
+      (click)="save()"
+    >
+      Create goal
+    </button>
+  </div>
+</df-sheet>

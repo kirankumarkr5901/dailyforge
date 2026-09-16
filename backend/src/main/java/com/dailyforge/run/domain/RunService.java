@@ -94,6 +94,12 @@ public class RunService {
         return runs.findByIdAndUserIdAndDeletedAtIsNull(id, userId).orElseThrow(() -> ApiException.notFound("That run"));
     }
 
+    /** A run-distance goal's progress (spec §8.6: "60 km this month") — the sum over a period. */
+    @Transactional(readOnly = true)
+    public int totalDistanceMeters(UUID userId, LocalDate from, LocalDate to) {
+        return list(userId, from, to).stream().mapToInt(Run::getDistanceMeters).sum();
+    }
+
     private void requireValidType(int distanceMeters, RunType requestedType) {
         if (!Run.isLongDistance(distanceMeters) && requestedType == RunType.LONG) {
             throw ApiException.outOfRange("type", "Long is reserved for runs of 10 km or more.");

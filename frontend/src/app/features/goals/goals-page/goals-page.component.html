@@ -1,0 +1,81 @@
+<div class="goals-page__header">
+  <h1 class="goals-page__title">Goals</h1>
+
+  @if (session.isAuthenticated()) {
+    <button dfButton type="button" variant="primary" (click)="openForm()">
+      <lucide-icon [img]="plusIcon" [size]="16" aria-hidden="true" />
+      New goal
+    </button>
+  }
+</div>
+
+@if (!session.isResolved() || (session.isAuthenticated() && loading() && goals().length === 0)) {
+  <df-card>
+    <df-skeleton height="6rem" />
+    <df-skeleton height="6rem" />
+  </df-card>
+} @else if (!session.isAuthenticated()) {
+  <df-empty-state [icon]="awardIcon" title="You are browsing as a guest" body="Sign in to set goals that track themselves from what you log.">
+    <button dfButton type="button" variant="primary" (click)="signIn()">Sign in</button>
+  </df-empty-state>
+} @else {
+  @if (error(); as message) {
+    <p class="goals-page__error" role="alert">{{ message }}</p>
+  }
+
+  @if (goals().length === 0) {
+    <df-empty-state [icon]="awardIcon" title="No goals yet" body="Create a goal and its progress will track itself from what you log.">
+      <button dfButton type="button" variant="primary" (click)="openForm()">New goal</button>
+    </df-empty-state>
+  } @else {
+    @if (activeGoals().length > 0) {
+      <div class="goals-page__list">
+        @for (goal of activeGoals(); track goal.id) {
+          <df-card>
+            <div class="goals-page__goal-header">
+              <h3 class="goals-page__goal-title">{{ goal.title }}</h3>
+              <span class="goals-page__goal-reward">+{{ goal.rewardPoints }} pts</span>
+            </div>
+
+            @if (goal.kind !== 'CUSTOM') {
+              <div class="goals-page__progress-track">
+                <div class="goals-page__progress-fill" [style.width.%]="goal.progressFraction * 100"></div>
+              </div>
+              <p class="goals-page__progress-label">{{ goal.currentValue }} / {{ goal.targetValue }}</p>
+            } @else {
+              <button dfButton type="button" variant="secondary" [fullWidth]="true" (click)="complete(goal)">
+                Mark complete
+              </button>
+            }
+          </df-card>
+        }
+      </div>
+    }
+
+    @if (otherGoals().length > 0) {
+      <h2 class="goals-page__section-title">History</h2>
+      <div class="goals-page__list">
+        @for (goal of otherGoals(); track goal.id) {
+          <df-card>
+            <div class="goals-page__goal-header">
+              <h3 class="goals-page__goal-title">{{ goal.title }}</h3>
+              <span class="goals-page__status">{{ goal.status }}</span>
+            </div>
+
+            <div class="goals-page__goal-actions">
+              @if (goal.status === 'COMPLETED') {
+                <button dfButton type="button" variant="ghost" (click)="reopen(goal)">Reopen</button>
+              }
+              @if (goal.status === 'FAILED') {
+                <button dfButton type="button" variant="ghost" (click)="extend(goal)">Extend a week</button>
+                <button dfButton type="button" variant="ghost" (click)="archive(goal)">Archive</button>
+              }
+            </div>
+          </df-card>
+        }
+      </div>
+    }
+  }
+}
+
+<df-goal-form-sheet [open]="formOpen()" [date]="todayDate()" (closed)="closeForm()" (saved)="onCreated()" />

@@ -30,9 +30,15 @@ Plan-day reordering is up/down rather than drag-and-drop, and an elite exercise'
 
 The seeded quote pool is a deliberately smaller, honestly-labelled starter set (30 quotes, `verified_at` left null on all of them) rather than the spec's ~200 attribution-checked target — verifying each quote against a primary source is an editorial task, not one this session could respectably shortcut. The mechanism spec §8.1 actually asks for — deterministic per-user-per-day selection, source-tracked, no runtime fetch — is fully built; the pool just needs a human pass to grow and verify before real use.
 
-Screens for M7 are routed to a placeholder naming the milestone that builds them, so the navigation is real and testable now.
+**M7 — Goals, Jobs, and Body metrics. Complete.** The last three trackers (spec §8.6–§8.8), rounding out the app's own drawer menu.
 
-Milestone M7 is listed in spec §11: **Goals, Jobs, and Body metrics.**
+- **Goals** (spec §5.4, §8.6): five kinds — habit adherence, exercise target, run distance, body metric, and a manually-completed custom goal — each recomputed on read from the module that owns its source data (habit, workout, run, or the new body module below), the same on-demand pattern M4 and M5 used for a PR view, just spanning four different modules instead of one. Completing a goal is a real source-tracked award, reversed cleanly on reopen. Expired goals fail at rollover with no penalty, via the same `RolloverParticipant` extension point M3 built.
+- **Jobs** (spec §8.7): the full application pipeline with a real event-sourced timeline (every stage transition is an appended `job_event`, never an overwrite), and metrics — response rate, average days to first response, interviews per application — computed from that same event history. Points stay off by default (`JOB_STAGE_ADVANCE`, spec §13.9's own reasoning).
+- **Body metrics** (spec §8.8): weight logging with BMI shown as a labelled band, never a bare number, and deltas that show direction with a plain arrow — never colour, since the spec is explicit that a weight gain is not a failure.
+
+The target-date field in the goal form is a plain text field (`YYYY-MM-DD`) rather than a date picker, and job stage transitions are a per-application status dropdown rather than the spec's own stepper visual — both trade a nicety for shipping the underlying mechanism correctly, the same kind of call M3's habit-reorder buttons made.
+
+With M7 merged, every tracker named in spec §11 is built. Rewards (§8.9) is the one remaining page the plan's own first line promises; it was scoped as a later addition (§13.8) and is not yet started.
 
 ## Requirements
 
