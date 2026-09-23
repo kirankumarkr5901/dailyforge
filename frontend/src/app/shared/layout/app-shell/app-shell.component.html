@@ -4,7 +4,7 @@
       <a class="shell__wordmark" routerLink="/home">DailyForge</a>
 
       <div class="shell__header-right">
-        <df-score-pill [total]="score()" />
+        <df-score-pill [total]="points.total()" />
 
         @if (session.isResolved()) {
           @if (session.isAuthenticated()) {

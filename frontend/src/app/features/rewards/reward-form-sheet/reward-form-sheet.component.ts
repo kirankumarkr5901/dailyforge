@@ -5,17 +5,32 @@ import { firstValueFrom } from 'rxjs';
 
 import { ApiError } from '../../../core/api/api.types';
 import { RewardApi } from '../../../core/reward/reward.api';
-import { Reward } from '../../../core/reward/reward.types';
+import { Reward, RewardTier } from '../../../core/reward/reward.types';
 import { DfButtonComponent } from '../../../shared/ui/df-button/df-button.component';
 import { DfInputComponent } from '../../../shared/ui/df-input/df-input.component';
+import { DfSelectComponent, DfSelectOption } from '../../../shared/ui/df-select/df-select.component';
 import { DfSheetComponent } from '../../../shared/ui/df-sheet/df-sheet.component';
 import { DfStepperInputComponent } from '../../../shared/ui/df-stepper-input/df-stepper-input.component';
 import { DfSwitchComponent } from '../../../shared/ui/df-switch/df-switch.component';
 
+const TIER_OPTIONS: readonly DfSelectOption[] = [
+  { value: 'MICRO', label: 'Micro — daily' },
+  { value: 'WEEKLY', label: 'Weekly' },
+  { value: 'MONTHLY', label: 'Monthly' },
+];
+
 /** A new reward — something points can be spent on (spec §8.9). */
 @Component({
   selector: 'df-reward-form-sheet',
-  imports: [FormsModule, DfButtonComponent, DfInputComponent, DfSheetComponent, DfStepperInputComponent, DfSwitchComponent],
+  imports: [
+    FormsModule,
+    DfButtonComponent,
+    DfInputComponent,
+    DfSelectComponent,
+    DfSheetComponent,
+    DfStepperInputComponent,
+    DfSwitchComponent,
+  ],
   templateUrl: './reward-form-sheet.component.html',
   styleUrl: './reward-form-sheet.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -28,8 +43,11 @@ export class RewardFormSheetComponent {
   readonly closed = output<void>();
   readonly saved = output<Reward>();
 
+  protected readonly tierOptions = TIER_OPTIONS;
+
   protected readonly name = signal('');
   protected readonly cost = signal(100);
+  protected readonly tier = signal<RewardTier>('MICRO');
   protected readonly isRepeatable = signal(true);
   protected readonly hasStock = signal(false);
   protected readonly stock = signal(1);
@@ -48,6 +66,7 @@ export class RewardFormSheetComponent {
           name: this.name().trim(),
           cost: this.cost(),
           icon: 'gift',
+          tier: this.tier(),
           isRepeatable: this.isRepeatable(),
           stock: this.hasStock() ? this.stock() : undefined,
         }),
@@ -68,6 +87,7 @@ export class RewardFormSheetComponent {
   private reset(): void {
     this.name.set('');
     this.cost.set(100);
+    this.tier.set('MICRO');
     this.isRepeatable.set(true);
     this.hasStock.set(false);
     this.stock.set(1);

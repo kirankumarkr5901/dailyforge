@@ -6,6 +6,7 @@ import { AuthSheetService } from '../../../core/auth/auth-sheet.service';
 import { SessionStore } from '../../../core/auth/session.store';
 import { HomeApi } from '../../../core/home/home.api';
 import { HomeSummary } from '../../../core/home/home.types';
+import { PointsStore } from '../../../core/points/points.store';
 import { LedgerEntry, PointsCategory } from '../../../core/points/points.types';
 import { LogicalDate, formatLong } from '../../../core/time/logical-date';
 import { DfButtonComponent } from '../../../shared/ui/df-button/df-button.component';
@@ -58,6 +59,7 @@ export class HomePageComponent {
 
   protected readonly session = inject(SessionStore);
   protected readonly authSheet = inject(AuthSheetService);
+  protected readonly points = inject(PointsStore);
 
   protected readonly quoteIcon = QuoteIcon;
   protected readonly targetIcon = Target;
@@ -117,6 +119,10 @@ export class HomePageComponent {
     this.error.set(null);
     try {
       this.summary.set(await firstValueFrom(this.api.summary()));
+      // The header pill and this page's own score card must never disagree — both read
+      // the shared store now, refreshed here so a stale header pill self-corrects the
+      // moment the visitor lands on Home.
+      void this.points.refresh();
     } catch {
       this.error.set('Could not load your home page. Check your connection and try again.');
     } finally {

@@ -1,12 +1,12 @@
-import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { Gift, LucideAngularModule, Plus, Trash2 } from 'lucide-angular';
 
 import { AuthSheetService } from '../../../core/auth/auth-sheet.service';
 import { SessionStore } from '../../../core/auth/session.store';
-import { PointsApi } from '../../../core/points/points.api';
+import { PointsStore } from '../../../core/points/points.store';
 import { RewardApi } from '../../../core/reward/reward.api';
-import { Reward } from '../../../core/reward/reward.types';
+import { Reward, RewardTier } from '../../../core/reward/reward.types';
 import { DfButtonComponent } from '../../../shared/ui/df-button/df-button.component';
 import { DfCardComponent } from '../../../shared/ui/df-card/df-card.component';
 import { DfEmptyStateComponent } from '../../../shared/ui/df-empty-state/df-empty-state.component';
@@ -40,8 +40,9 @@ import { RewardFormSheetComponent } from '../reward-form-sheet/reward-form-sheet
 })
 export class RewardsPageComponent {
   private readonly api = inject(RewardApi);
-  private readonly pointsApi = inject(PointsApi);
   private readonly toasts = inject(ToastService);
+
+  protected readonly points = inject(PointsStore);
 
   protected readonly session = inject(SessionStore);
   protected readonly authSheet = inject(AuthSheetService);
@@ -53,9 +54,26 @@ export class RewardsPageComponent {
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
   protected readonly rewards = signal<Reward[]>([]);
-  protected readonly total = signal(0);
   protected readonly formOpen = signal(false);
   protected readonly redeemingId = signal<string | null>(null);
+
+  private static readonly TIER_ORDER: readonly RewardTier[] = ['MICRO', 'WEEKLY', 'MONTHLY'];
+  private static readonly TIER_LABELS: Record<RewardTier, string> = {
+    MICRO: 'Micro — daily',
+    WEEKLY: 'Weekly',
+    MONTHLY: 'Monthly',
+  };
+
+  /** Three sections, owner feedback's own order — a small daily treat first, a monthly
+   * splurge last. A tier with nothing in it is skipped rather than shown empty. */
+  protected readonly tierSections = computed<{ tier: RewardTier; label: string; rewards: Reward[] }[]>(() => {
+    const all = this.rewards();
+    return RewardsPageComponent.TIER_ORDER.map((tier) => ({
+      tier,
+      label: RewardsPageComponent.TIER_LABELS[tier],
+      rewards: all.filter((r) => r.tier === tier),
+    })).filter((section) => section.rewards.length > 0);
+  });
 
   constructor() {
     let wasAuthenticated = false;
@@ -76,9 +94,8 @@ export class RewardsPageComponent {
     this.loading.set(true);
     this.error.set(null);
     try {
-      const [rewards, snapshot] = await Promise.all([firstValueFrom(this.api.list()), firstValueFrom(this.pointsApi.snapshot())]);
+      const [rewards] = await Promise.all([firstValueFrom(this.api.list()), this.points.refresh()]);
       this.rewards.set(rewards);
-      this.total.set(snapshot.total);
     } catch {
       this.error.set('Could not load your rewards. Check your connection and try again.');
     } finally {
@@ -87,9 +104,7 @@ export class RewardsPageComponent {
   }
 
   private async refresh(): Promise<void> {
-    const [rewards, snapshot] = await Promise.all([firstValueFrom(this.api.list()), firstValueFrom(this.pointsApi.snapshot())]);
-    this.rewards.set(rewards);
-    this.total.set(snapshot.total);
+    this.rewards.set(await firstValueFrom(this.api.list()));
   }
 
   protected openForm(): void {
@@ -107,7 +122,7 @@ export class RewardsPageComponent {
   }
 
   protected canAfford(reward: Reward): boolean {
-    return this.total() >= reward.cost && !this.isOutOfStock(reward);
+    return this.points.total() >= reward.cost && !this.isOutOfStock(reward);
   }
 
   protected isOutOfStock(reward: Reward): boolean {
@@ -118,7 +133,7 @@ export class RewardsPageComponent {
     if (this.isOutOfStock(reward)) {
       return 'Out of stock';
     }
-    return `Costs ${reward.cost}. You have ${this.total()}.`;
+    return `Costs ${reward.cost}. You have ${this.points.total()}.`;
   }
 
   protected async redeem(reward: Reward): Promise<void> {
@@ -128,6 +143,7 @@ export class RewardsPageComponent {
     this.redeemingId.set(reward.id);
     try {
       const response = await firstValueFrom(this.api.redeem(reward.id));
+      this.points.applyEnvelope(response.points);
       await this.refresh();
       const redemptionId = response.redemptionId;
       this.toasts.show(`Redeemed ${reward.name}. ${response.points.delta} pts`, {
@@ -144,7 +160,8 @@ export class RewardsPageComponent {
 
   private async undoRedeem(redemptionId: string): Promise<void> {
     try {
-      await firstValueFrom(this.api.refund(redemptionId));
+      const response = await firstValueFrom(this.api.refund(redemptionId));
+      this.points.applyEnvelope(response.points);
       await this.refresh();
       this.toasts.show('Redemption refunded.');
     } catch {

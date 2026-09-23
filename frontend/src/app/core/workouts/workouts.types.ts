@@ -4,7 +4,7 @@ import { LogicalDate } from '../time/logical-date';
 import { PointsEnvelope } from '../points/points.types';
 
 export type ExerciseKind = 'STRENGTH' | 'CARDIO';
-export type Equipment = 'DUMBBELL' | 'BARBELL' | 'BODYWEIGHT' | 'MACHINE' | 'NONE';
+export type Equipment = 'DUMBBELL' | 'BARBELL' | 'BODYWEIGHT' | 'MACHINE' | 'CABLE' | 'NONE';
 export type WeightMode = 'SINGLE' | 'COMBINED';
 
 export interface Exercise {
@@ -30,6 +30,8 @@ export interface PlanExercise {
   id: string;
   exerciseId: string;
   exerciseName: string;
+  muscleGroups: string[];
+  isElite: boolean;
   dayIndex: number;
   sortOrder: number;
   targetSets: number | null;
@@ -68,6 +70,8 @@ export interface ExerciseBoardEntry {
   name: string;
   kind: ExerciseKind;
   equipment: Equipment;
+  muscleGroups: string[];
+  isElite: boolean;
   recentPr: Pr | null;
   lifetimePr: Pr | null;
   sets: WorkoutSet[];
@@ -107,4 +111,9 @@ export interface SetWriteResponse {
 
 export interface DeleteSetResponse {
   points: PointsEnvelope;
+}
+
+export interface ExerciseHistoryEntry {
+  date: LogicalDate;
+  set: WorkoutSet;
 }

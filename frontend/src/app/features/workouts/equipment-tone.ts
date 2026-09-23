@@ -10,6 +10,8 @@ export function equipmentTone(equipment: Equipment): DfEquipment {
       return 'dumbbell';
     case 'MACHINE':
       return 'machine';
+    case 'CABLE':
+      return 'cable';
     case 'BODYWEIGHT':
       return 'bodyweight';
     default:
@@ -25,6 +27,8 @@ export function equipmentLabel(equipment: Equipment): string {
       return 'Dumbbell';
     case 'MACHINE':
       return 'Machine';
+    case 'CABLE':
+      return 'Cable';
     case 'BODYWEIGHT':
       return 'Bodyweight';
     default:

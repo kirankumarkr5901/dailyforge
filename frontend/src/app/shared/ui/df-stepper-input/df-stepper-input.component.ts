@@ -11,7 +11,11 @@ let nextId = 0;
  * 44px targets, a keyboard-typable field between them, and clamping that silently
  * respects min and max rather than letting an impossible value reach the server.
  *
- * Decimals matter: weights are entered as 22.5, reps never are.
+ * Decimals matter: weights are entered as 22.5, reps never are. `decimals` is a
+ * precision ceiling for rounding, not a format to force on every value — a whole-number
+ * weight like 60 displays as "60", not "60.0"; a typed 62.5 is not reformatted back to
+ * "62.5" on every keystroke while the field is still focused, only once it settles on
+ * blur or a nudge. The field never invents precision the user did not ask for.
  */
 @Component({
   selector: 'df-stepper-input',
@@ -44,7 +48,9 @@ export class DfStepperInputComponent implements ControlValueAccessor {
   protected readonly value = signal(0);
   protected readonly disabled = signal(false);
 
-  protected readonly display = computed(() => this.value().toFixed(this.decimals()));
+  /** What the input actually shows. Only re-synced from `value` on blur or a nudge —
+   * never on every keystroke, so typing "62.5" is never fought mid-digit. */
+  protected readonly display = signal('0');
   protected readonly atMin = computed(() => this.value() <= this.min());
   protected readonly atMax = computed(() => this.value() >= this.max());
 
@@ -52,7 +58,9 @@ export class DfStepperInputComponent implements ControlValueAccessor {
   private onTouched: () => void = () => {};
 
   writeValue(value: number | null): void {
-    this.value.set(this.clamp(value ?? this.min()));
+    const clamped = this.clamp(value ?? this.min());
+    this.value.set(clamped);
+    this.display.set(this.naturalDisplay(clamped));
   }
 
   registerOnChange(fn: (value: number) => void): void {
@@ -69,22 +77,28 @@ export class DfStepperInputComponent implements ControlValueAccessor {
 
   protected nudge(direction: 1 | -1): void {
     this.commit(this.value() + direction * this.step());
+    this.display.set(this.naturalDisplay(this.value()));
   }
 
+  /** Live text only — the numeric value updates so the parent sees it as the user
+   * types, but the field's own displayed text is left alone until blur. */
   protected handleInput(event: Event): void {
     const raw = (event.target as HTMLInputElement).value;
     const parsed = Number.parseFloat(raw);
     if (!Number.isNaN(parsed)) {
-      this.commit(parsed);
+      const clamped = this.clamp(parsed);
+      this.value.set(clamped);
+      this.onChange(clamped);
     }
   }
 
-  /** Re-clamps on blur, so a typed out-of-range value corrects itself visibly. */
+  /** Re-clamps and reformats on blur, so a typed out-of-range value corrects itself
+   * visibly and a stray trailing "." or extra zero settles to a clean number. */
   protected handleBlur(event: Event): void {
     const input = event.target as HTMLInputElement;
     const parsed = Number.parseFloat(input.value);
     this.commit(Number.isNaN(parsed) ? this.min() : parsed);
-    input.value = this.display();
+    this.display.set(this.naturalDisplay(this.value()));
     this.onTouched();
   }
 
@@ -98,5 +112,11 @@ export class DfStepperInputComponent implements ControlValueAccessor {
     const bounded = Math.min(this.max(), Math.max(this.min(), value));
     const factor = 10 ** this.decimals();
     return Math.round(bounded * factor) / factor;
+  }
+
+  /** A whole number reads as "60", not "60.0" — decimals only appear when the value
+   * actually has them, up to the field's own precision ceiling. */
+  private naturalDisplay(value: number): string {
+    return String(Number(value.toFixed(this.decimals())));
   }
 }

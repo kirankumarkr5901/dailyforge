@@ -6,6 +6,7 @@ import { LucideAngularModule, Plus, Settings2, Target } from 'lucide-angular';
 import { AuthSheetService } from '../../../core/auth/auth-sheet.service';
 import { PendingActionService } from '../../../core/auth/pending-action.service';
 import { SessionStore } from '../../../core/auth/session.store';
+import { PointsStore } from '../../../core/points/points.store';
 import { Celebration } from '../../../core/points/points.types';
 import { LogicalDate } from '../../../core/time/logical-date';
 import { WorkoutsApi } from '../../../core/workouts/workouts.api';
@@ -23,8 +24,10 @@ import { DfEmptyStateComponent } from '../../../shared/ui/df-empty-state/df-empt
 import { DfSelectComponent, DfSelectOption } from '../../../shared/ui/df-select/df-select.component';
 import { DfSkeletonComponent } from '../../../shared/ui/df-skeleton/df-skeleton.component';
 import { DfCardComponent } from '../../../shared/ui/df-card/df-card.component';
+import { DfCelebrationComponent } from '../../../shared/ui/df-celebration/df-celebration.component';
 import { ToastService } from '../../../shared/ui/df-toast/toast.service';
 import { ExerciseCardComponent } from '../exercise-card/exercise-card.component';
+import { ExerciseHistorySheetComponent } from '../exercise-history-sheet/exercise-history-sheet.component';
 import { ExercisePickerSheetComponent } from '../exercise-picker-sheet/exercise-picker-sheet.component';
 import { LogSetSheetComponent } from '../log-set-sheet/log-set-sheet.component';
 import { PlanManagerSheetComponent } from '../plan-manager-sheet/plan-manager-sheet.component';
@@ -43,11 +46,13 @@ import { RestTimerService } from '../rest-timer/rest-timer.service';
     LucideAngularModule,
     DfButtonComponent,
     DfCardComponent,
+    DfCelebrationComponent,
     DfDateStepperComponent,
     DfEmptyStateComponent,
     DfSelectComponent,
     DfSkeletonComponent,
     ExerciseCardComponent,
+    ExerciseHistorySheetComponent,
     ExercisePickerSheetComponent,
     LogSetSheetComponent,
     PlanManagerSheetComponent,
@@ -59,6 +64,7 @@ import { RestTimerService } from '../rest-timer/rest-timer.service';
 })
 export class WorkoutsPageComponent {
   private readonly api = inject(WorkoutsApi);
+  private readonly points = inject(PointsStore);
   private readonly toasts = inject(ToastService);
   private readonly restTimer = inject(RestTimerService);
   private readonly pendingAction = inject(PendingActionService);
@@ -86,6 +92,11 @@ export class WorkoutsPageComponent {
   protected readonly logSheetOpen = signal(false);
   protected readonly logSheetContext = signal<{ id: string; name: string; equipment: Equipment } | null>(null);
   protected readonly editingSet = signal<WorkoutSet | null>(null);
+  protected readonly celebrationTrigger = signal(0);
+  protected readonly historySheetOpen = signal(false);
+  protected readonly historyContext = signal<{ id: string; name: string; equipment: Equipment } | null>(null);
+  /** null means "every muscle group" — the default, unfiltered view. */
+  protected readonly muscleFilter = signal<string | null>(null);
 
   protected readonly selectedPlan = computed(() => this.plans().find((p) => p.id === this.selectedPlanId()) ?? null);
 
@@ -106,6 +117,54 @@ export class WorkoutsPageComponent {
     const exercises = this.workoutSession()?.exercises ?? [];
     return [...exercises].sort((a, b) => Number(a.sets.length > 0) - Number(b.sets.length > 0));
   });
+
+  /** Every muscle group any exercise on today's board targets, for the filter chips —
+   * membership, not just an exercise's primary (grouping) group, so filtering by
+   * "triceps" still finds a chest-primary exercise that also works triceps. */
+  protected readonly availableMuscleGroups = computed<string[]>(() => {
+    const groups = new Set<string>();
+    for (const entry of this.sortedExercises()) {
+      for (const group of entry.muscleGroups) {
+        groups.add(group);
+      }
+    }
+    return [...groups].sort();
+  });
+
+  protected readonly filteredExercises = computed<ExerciseBoardEntry[]>(() => {
+    const filter = this.muscleFilter();
+    const exercises = this.sortedExercises();
+    return filter ? exercises.filter((entry) => entry.muscleGroups.includes(filter)) : exercises;
+  });
+
+  /** Grouped by primary muscle group (spec §11's "exercises grouped by muscle group,
+   * each as a log card") — an exercise with several targets groups under its first one,
+   * so it appears exactly once rather than being duplicated across sections. Ungrouped
+   * exercises (no muscle data at all) land in a trailing "Other" section instead of
+   * scattering wherever they first appear. Done-sinks-to-bottom is preserved within
+   * each group, since the grouping only buckets the already-sorted list. */
+  protected readonly muscleGroupSections = computed<{ group: string; exercises: ExerciseBoardEntry[] }[]>(() => {
+    const order: string[] = [];
+    const buckets = new Map<string, ExerciseBoardEntry[]>();
+    for (const entry of this.filteredExercises()) {
+      const group = entry.muscleGroups[0] ?? 'Other';
+      if (!buckets.has(group)) {
+        buckets.set(group, []);
+        order.push(group);
+      }
+      buckets.get(group)!.push(entry);
+    }
+    const otherIndex = order.indexOf('Other');
+    if (otherIndex !== -1 && otherIndex !== order.length - 1) {
+      order.splice(otherIndex, 1);
+      order.push('Other');
+    }
+    return order.map((group) => ({ group, exercises: buckets.get(group)! }));
+  });
+
+  protected setMuscleFilter(group: string | null): void {
+    this.muscleFilter.set(group);
+  }
 
   constructor() {
     let wasAuthenticated = false;
@@ -157,17 +216,20 @@ export class WorkoutsPageComponent {
 
   protected async changeDate(date: LogicalDate): Promise<void> {
     this.viewedDate.set(date);
+    this.muscleFilter.set(null);
     await this.refreshSession(date);
   }
 
   protected async changePlan(planId: string): Promise<void> {
     this.selectedPlanId.set(planId || null);
     this.selectedDayIndex.set(1);
+    this.muscleFilter.set(null);
     await this.refreshSession();
   }
 
   protected async changeDay(dayIndex: string): Promise<void> {
     this.selectedDayIndex.set(Number(dayIndex));
+    this.muscleFilter.set(null);
     await this.refreshSession();
   }
 
@@ -181,6 +243,15 @@ export class WorkoutsPageComponent {
     this.editingSet.set(set);
     this.logSheetContext.set({ id: entry.exerciseId, name: entry.name, equipment: entry.equipment });
     this.logSheetOpen.set(true);
+  }
+
+  protected openHistorySheet(entry: ExerciseBoardEntry): void {
+    this.historyContext.set({ id: entry.exerciseId, name: entry.name, equipment: entry.equipment });
+    this.historySheetOpen.set(true);
+  }
+
+  protected closeHistorySheet(): void {
+    this.historySheetOpen.set(false);
   }
 
   protected openAddExercise(): void {
@@ -205,7 +276,10 @@ export class WorkoutsPageComponent {
     this.logSheetContext.set(null);
   }
 
-  protected async onSetSaved(response: SetWriteResponse): Promise<void> {
+  protected async onSetSaved(responses: SetWriteResponse[]): Promise<void> {
+    for (const response of responses) {
+      this.points.applyEnvelope(response.points);
+    }
     const wasEditing = this.editingSet() !== null;
     this.closeLogSheet();
     await this.refreshSession();
@@ -214,9 +288,13 @@ export class WorkoutsPageComponent {
       this.restTimer.start();
     }
 
-    const delta = response.points.delta;
-    const note = this.celebrationNote(response.points.celebrations);
-    let message = `${delta >= 0 ? '+' : ''}${delta} pts`;
+    const delta = responses.reduce((sum, r) => sum + r.points.delta, 0);
+    const celebrations = responses.flatMap((r) => r.points.celebrations);
+    const note = this.celebrationNote(celebrations);
+    let message =
+      responses.length > 1
+        ? `${responses.length} sets logged. ${delta >= 0 ? '+' : ''}${delta} pts`
+        : `${delta >= 0 ? '+' : ''}${delta} pts`;
     if (note) {
       message += ` — ${note}`;
     }
@@ -224,11 +302,16 @@ export class WorkoutsPageComponent {
       tone: delta > 0 ? 'earned' : delta < 0 ? 'penalty' : 'neutral',
       heatStep: delta !== 0 ? this.heatStepFor(Math.abs(delta)) : undefined,
     });
+
+    if (celebrations.some((c) => c.type === 'WORKOUT_COMPLETE')) {
+      this.celebrationTrigger.update((n) => n + 1);
+    }
   }
 
   protected async deleteSet(set: WorkoutSet): Promise<void> {
     try {
       const response = await firstValueFrom(this.api.deleteSet(set.id));
+      this.points.applyEnvelope(response.points);
       await this.refreshSession();
       this.toasts.show(`Set removed. ${response.points.delta} pts`, {
         tone: response.points.delta < 0 ? 'penalty' : 'neutral',

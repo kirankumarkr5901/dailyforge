@@ -1,6 +1,7 @@
 <df-sheet [open]="open()" (openChange)="$event ? null : close()" heading="New reward">
   <div class="reward-form">
     <df-input label="Name" placeholder="e.g. Movie night" [ngModel]="name()" (ngModelChange)="name.set($event)" />
+    <df-select label="Tier" [options]="tierOptions" [ngModel]="tier()" (ngModelChange)="tier.set($event)" />
     <df-stepper-input label="Cost" suffix="pts" [min]="1" [max]="100000" [ngModel]="cost()" (ngModelChange)="cost.set($event)" />
 
     <df-switch

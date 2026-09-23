@@ -54,8 +54,9 @@ public class RewardService {
     }
 
     @Transactional
-    public Reward create(UUID userId, String name, int cost, String icon, boolean repeatable, Integer stock) {
-        return rewards.save(Reward.create(userId, name, cost, icon, repeatable, stock));
+    public Reward create(
+            UUID userId, String name, int cost, String icon, RewardTier tier, boolean repeatable, Integer stock) {
+        return rewards.save(Reward.create(userId, name, cost, icon, tier, repeatable, stock));
     }
 
     @Transactional(readOnly = true)

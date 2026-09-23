@@ -1,7 +1,28 @@
-<div class="heatmap" role="group" aria-label="Activity heatmap, last 12 months">
-  @for (month of months(); track month.label) {
-    <div class="heatmap__month">
+<div class="heatmap" role="group" aria-label="Activity heatmap">
+  @if (viewedMonth(); as month) {
+    <div class="heatmap__nav">
+      <button
+        type="button"
+        class="heatmap__nav-arrow"
+        [disabled]="!canGoOlder()"
+        aria-label="Previous month"
+        (click)="olderMonth()"
+      >
+        <lucide-icon [img]="prevIcon" [size]="18" aria-hidden="true" />
+      </button>
       <h3 class="heatmap__month-title">{{ month.label }}</h3>
+      <button
+        type="button"
+        class="heatmap__nav-arrow"
+        [disabled]="!canGoNewer()"
+        aria-label="Next month"
+        (click)="newerMonth()"
+      >
+        <lucide-icon [img]="nextIcon" [size]="18" aria-hidden="true" />
+      </button>
+    </div>
+
+    <div class="heatmap__month">
       <div class="heatmap__weekdays" aria-hidden="true">
         <span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span>
       </div>

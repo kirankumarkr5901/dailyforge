@@ -75,6 +75,16 @@ public class WorkoutSetService {
         return sets.findAllBySessionIdAndDeletedAtIsNullOrderBySetNumberAsc(sessionId);
     }
 
+    /** One entry per set, newest first — the exercise history view. */
+    public record HistoryEntry(LocalDate date, WorkoutSet set) {}
+
+    @Transactional(readOnly = true)
+    public List<HistoryEntry> history(UUID userId, UUID exerciseId) {
+        return sets.findHistory(userId, exerciseId).stream()
+                .map(row -> new HistoryEntry((LocalDate) row[1], (WorkoutSet) row[0]))
+                .toList();
+    }
+
     /** A set write returns the set itself alongside the points envelope (spec §7). */
     public record SetWrite(WorkoutSet set, PointsResult points) {}
 

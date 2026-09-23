@@ -25,15 +25,23 @@ public final class WorkoutDtos {
 
     // ---------------------------------------------------------------- exercises
 
+    /**
+     * {@code isElite} is boxed, not a primitive {@code boolean}: the frontend's create
+     * form did not send it at all until the elite toggle was added, and Jackson cannot
+     * bind a missing JSON field to a primitive on a record's canonical constructor — it
+     * threw a body-parse error for every request that omitted it, not a validation
+     * error naming the field. A boxed {@code Boolean}, defaulted in the controller,
+     * degrades to "not elite" instead of rejecting the whole request.
+     */
     public record CreateExerciseRequest(
             @NotBlank @Size(max = 120) String name,
             @NotNull ExerciseKind kind,
             @NotNull Equipment equipment,
             List<String> muscleGroups,
-            boolean isElite) {}
+            Boolean isElite) {}
 
     public record UpdateExerciseRequest(
-            @Size(max = 120) String name, ExerciseKind kind, Equipment equipment, List<String> muscleGroups, boolean isElite) {}
+            @Size(max = 120) String name, ExerciseKind kind, Equipment equipment, List<String> muscleGroups, Boolean isElite) {}
 
     public record ExerciseResponse(
             UUID id,
@@ -71,14 +79,34 @@ public final class WorkoutDtos {
 
     public record MoveExerciseRequest(@NotNull Integer toDayIndex) {}
 
+    public record UpdatePlanExerciseRequest(Integer targetSets, Integer targetReps, @Size(max = 200) String notes) {}
+
     public record ReorderDayRequest(@NotNull List<UUID> orderedPlanExerciseIds) {}
 
     public record PlanExerciseResponse(
-            UUID id, UUID exerciseId, String exerciseName, int dayIndex, int sortOrder, Integer targetSets, Integer targetReps, String notes) {
+            UUID id,
+            UUID exerciseId,
+            String exerciseName,
+            List<String> muscleGroups,
+            boolean isElite,
+            int dayIndex,
+            int sortOrder,
+            Integer targetSets,
+            Integer targetReps,
+            String notes) {
 
-        public static PlanExerciseResponse of(PlanExercise pe, String exerciseName) {
+        public static PlanExerciseResponse of(PlanExercise pe, Exercise exercise) {
             return new PlanExerciseResponse(
-                    pe.getId(), pe.getExerciseId(), exerciseName, pe.getDayIndex(), pe.getSortOrder(), pe.getTargetSets(), pe.getTargetReps(), pe.getNotes());
+                    pe.getId(),
+                    pe.getExerciseId(),
+                    exercise.getName(),
+                    exercise.getMuscleGroups(),
+                    exercise.isElite(),
+                    pe.getDayIndex(),
+                    pe.getSortOrder(),
+                    pe.getTargetSets(),
+                    pe.getTargetReps(),
+                    pe.getNotes());
         }
     }
 
@@ -124,8 +152,22 @@ public final class WorkoutDtos {
         }
     }
 
+    public record HistoryEntryResponse(LocalDate date, SetResponse set) {
+        public static HistoryEntryResponse of(com.dailyforge.workout.domain.WorkoutSetService.HistoryEntry entry) {
+            return new HistoryEntryResponse(entry.date(), SetResponse.of(entry.set()));
+        }
+    }
+
     public record ExerciseBoardEntry(
-            UUID exerciseId, String name, ExerciseKind kind, Equipment equipment, PrResponse recentPr, PrResponse lifetimePr, List<SetResponse> sets) {}
+            UUID exerciseId,
+            String name,
+            ExerciseKind kind,
+            Equipment equipment,
+            List<String> muscleGroups,
+            boolean isElite,
+            PrResponse recentPr,
+            PrResponse lifetimePr,
+            List<SetResponse> sets) {}
 
     public record SessionResponse(
             UUID id, LocalDate date, UUID planId, Integer dayIndex, boolean completed, List<ExerciseBoardEntry> exercises) {}

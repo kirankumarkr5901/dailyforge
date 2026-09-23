@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 
 export type DfChipTone = 'neutral' | 'equipment' | 'done' | 'penalty' | 'earned';
-export type DfEquipment = 'barbell' | 'dumbbell' | 'machine' | 'bodyweight' | 'cardio';
+export type DfEquipment = 'barbell' | 'dumbbell' | 'machine' | 'cable' | 'bodyweight' | 'cardio';
 
 /**
  * A small label. Tones map to meaning, never to decoration.

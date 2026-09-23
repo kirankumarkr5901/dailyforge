@@ -7,6 +7,7 @@ import { AuthSheetService } from '../../../core/auth/auth-sheet.service';
 import { SessionStore } from '../../../core/auth/session.store';
 import { GoalApi } from '../../../core/goal/goal.api';
 import { Goal } from '../../../core/goal/goal.types';
+import { PointsStore } from '../../../core/points/points.store';
 import { LogicalDate } from '../../../core/time/logical-date';
 import { DfButtonComponent } from '../../../shared/ui/df-button/df-button.component';
 import { DfCardComponent } from '../../../shared/ui/df-card/df-card.component';
@@ -27,6 +28,7 @@ export class GoalsPageComponent {
   private readonly api = inject(GoalApi);
   private readonly authApi = inject(AuthApi);
   private readonly toasts = inject(ToastService);
+  private readonly points = inject(PointsStore);
 
   protected readonly session = inject(SessionStore);
   protected readonly authSheet = inject(AuthSheetService);
@@ -90,10 +92,17 @@ export class GoalsPageComponent {
     this.toasts.show('Goal created.');
   }
 
+  protected canClaim(goal: Goal): boolean {
+    return goal.targetValue != null && goal.currentValue >= goal.targetValue;
+  }
+
   protected async complete(goal: Goal): Promise<void> {
     try {
       await firstValueFrom(this.api.complete(goal.id));
       await this.refresh();
+      // The complete endpoint returns the goal, not a points envelope (unlike most
+      // mutating endpoints, spec §7) — a full resync rather than applyEnvelope.
+      void this.points.refresh();
       this.toasts.show(`+${goal.rewardPoints} pts — goal complete!`, { tone: 'earned' });
     } catch {
       this.toasts.show('Could not complete that goal. Try again.', { tone: 'penalty' });
@@ -104,6 +113,7 @@ export class GoalsPageComponent {
     try {
       await firstValueFrom(this.api.reopen(goal.id));
       await this.refresh();
+      void this.points.refresh();
       this.toasts.show('Goal reopened.');
     } catch {
       this.toasts.show('Could not reopen that goal. Try again.', { tone: 'penalty' });

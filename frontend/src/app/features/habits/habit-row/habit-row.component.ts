@@ -34,7 +34,7 @@ export interface HabitToggled {
   templateUrl: './habit-row.component.html',
   styleUrl: './habit-row.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'df-habit-row' },
+  host: { class: 'df-habit-row-host' },
 })
 export class HabitRowComponent {
   private readonly api = inject(HabitsApi);
@@ -107,7 +107,11 @@ export class HabitRowComponent {
     }
   }
 
-  protected requestEdit(): void {
+  protected requestEdit(event: Event): void {
+    // The whole card is the toggle target now (spec feedback: no separate checkbox to
+    // aim for) — the edit button sits inside it and must stop the click from also
+    // toggling completion.
+    event.stopPropagation();
     this.editRequested.emit(this.entry().id);
   }
 

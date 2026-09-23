@@ -14,6 +14,24 @@
 
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
     <link rel="manifest" href="manifest.webmanifest" />
+
+    <!-- Sets data-theme before first paint, matching ThemeService's own default (DARK)
+         and stored choice exactly — waiting for Angular to bootstrap would flash the
+         light palette on every load. SYSTEM leaves no attribute, the same as
+         ThemeService.apply(), so the prefers-color-scheme rules below decide instead. -->
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('dailyforge.theme');
+          var choice = stored === 'LIGHT' || stored === 'DARK' || stored === 'SYSTEM' ? stored : 'DARK';
+          if (choice !== 'SYSTEM') {
+            document.documentElement.setAttribute('data-theme', choice.toLowerCase());
+          }
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      })();
+    </script>
   </head>
   <body>
     <app-root></app-root>

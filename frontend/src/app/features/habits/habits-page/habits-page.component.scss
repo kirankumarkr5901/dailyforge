@@ -39,9 +39,5 @@
 .habits-page__list {
   display: flex;
   flex-direction: column;
-  padding: 0 var(--space-4);
-}
-
-.habits-page__list > * {
-  padding-inline: var(--space-2);
+  gap: var(--space-3);
 }

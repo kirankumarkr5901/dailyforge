@@ -25,6 +25,7 @@
     @if (kind() !== 'CUSTOM') {
       <df-stepper-input
         [label]="targetValueLabel()"
+        [hint]="kind() === 'HABIT_ADHERENCE' ? 'Consecutive days, not just days logged anywhere in the goal period.' : null"
         [min]="1"
         [max]="1000"
         [decimals]="kind() === 'HABIT_ADHERENCE' ? 0 : 1"

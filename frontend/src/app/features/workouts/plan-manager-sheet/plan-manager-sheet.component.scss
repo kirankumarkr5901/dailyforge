@@ -21,6 +21,37 @@
   font-size: var(--text-base);
 }
 
+.plan-manager__day-title--editable {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  border: none;
+  background: none;
+  color: var(--ink);
+  font-family: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.plan-manager__day-title--editable:hover {
+  color: var(--heat-2);
+}
+
+.plan-manager__day-title--editable lucide-icon {
+  color: var(--ink-muted);
+}
+
+.plan-manager__rename-row {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-2);
+}
+
+.plan-manager__rename-row df-input {
+  flex: 1;
+  min-width: 0;
+}
+
 .plan-manager__exercise {
   display: flex;
   align-items: center;
@@ -29,6 +60,75 @@
   padding-block: var(--space-2);
   border-top: 1px solid var(--line);
   font-size: var(--text-sm);
+}
+
+.plan-manager__exercise-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.plan-manager__exercise-name {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.plan-manager__exercise-name lucide-icon {
+  color: var(--heat-2);
+}
+
+.plan-manager__exercise-targets,
+.plan-manager__exercise-notes {
+  color: var(--ink-muted);
+  font-size: var(--text-xs);
+}
+
+.plan-manager__exercise-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex: none;
+}
+
+.plan-manager__move-select {
+  min-height: var(--tap-min);
+  padding-inline: var(--space-2);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-control);
+  background: var(--surface-raised);
+  color: var(--ink);
+  font-size: var(--text-xs);
+}
+
+/* Same fix as df-select's own option styling: the popup a browser renders for a
+ * native <select>'s options is a separate surface that paints white by default
+ * regardless of the control's own background. */
+.plan-manager__move-select option {
+  background: var(--surface-raised);
+  color: var(--ink);
+}
+
+.plan-manager__targets-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  margin-top: var(--space-2);
+  border-radius: var(--radius-card);
+  background: var(--surface-sunken);
+}
+
+.plan-manager__targets-form df-input {
+  flex: 1;
+  min-width: 120px;
+}
+
+.plan-manager__targets-form-actions {
+  display: flex;
+  gap: var(--space-2);
 }
 
 .plan-manager__empty {
@@ -41,4 +141,35 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
+}
+
+.plan-manager__archived-toggle {
+  align-self: flex-start;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.plan-manager__archived-list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  gap: var(--space-2);
+}
+
+.plan-manager__archived-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  font-size: var(--text-sm);
 }

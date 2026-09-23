@@ -5,8 +5,8 @@ import com.dailyforge.common.error.ErrorCode;
 import com.dailyforge.common.time.DayService;
 import com.dailyforge.body.domain.BodyMetricService;
 import com.dailyforge.goal.repo.GoalRepository;
-import com.dailyforge.habit.domain.HabitLogService;
 import com.dailyforge.habit.domain.HabitService;
+import com.dailyforge.habit.domain.HabitStreakService;
 import com.dailyforge.identity.domain.IdentityService;
 import com.dailyforge.points.domain.AwardCommand;
 import com.dailyforge.points.domain.PointsCategory;
@@ -39,7 +39,7 @@ public class GoalService {
     private final GoalRepository goals;
     private final PointsService points;
     private final HabitService habitService;
-    private final HabitLogService habitLogService;
+    private final HabitStreakService habitStreakService;
     private final WorkoutSetService workoutSetService;
     private final RunService runService;
     private final BodyMetricService bodyMetricService;
@@ -50,7 +50,7 @@ public class GoalService {
             GoalRepository goals,
             PointsService points,
             HabitService habitService,
-            HabitLogService habitLogService,
+            HabitStreakService habitStreakService,
             WorkoutSetService workoutSetService,
             RunService runService,
             BodyMetricService bodyMetricService,
@@ -59,7 +59,7 @@ public class GoalService {
         this.goals = goals;
         this.points = points;
         this.habitService = habitService;
-        this.habitLogService = habitLogService;
+        this.habitStreakService = habitStreakService;
         this.workoutSetService = workoutSetService;
         this.runService = runService;
         this.bodyMetricService = bodyMetricService;
@@ -121,7 +121,13 @@ public class GoalService {
         return found.stream().map(this::refreshProgress).map(goals::save).toList();
     }
 
-    /** Recomputes {@code currentValue} from the owning module's own data, and auto-completes a goal that has just reached its target. */
+    /**
+     * Recomputes {@code currentValue} from the owning module's own data, and
+     * auto-completes a goal that has just reached its target — except HABIT_ADHERENCE,
+     * which instead sits at "reached, not yet claimed" until {@link #complete} is
+     * called: owner feedback wanted an explicit claim moment for a habit goal rather
+     * than it completing silently on whatever read happened to notice.
+     */
     private Goal refreshProgress(Goal goal) {
         if (goal.getStatus() != GoalStatus.ACTIVE || goal.getKind() == GoalKind.CUSTOM) {
             return goal;
@@ -133,7 +139,15 @@ public class GoalService {
 
         BigDecimal current =
                 switch (goal.getKind()) {
-                    case HABIT_ADHERENCE -> BigDecimal.valueOf(habitLogService.countDoneBetween(goal.getHabitId(), goal.getStartDate(), progressTo));
+                    // A streak, not a scattered count: reaching the target means that
+                    // many *consecutive* scheduled days done, the same "current streak"
+                    // the habit tracker itself shows, not just N done days anywhere in
+                    // the goal's period (owner feedback — "the days to complete should
+                    // be a streak").
+                    case HABIT_ADHERENCE -> {
+                        var habit = habitService.requireOwned(goal.getHabitId(), goal.getUserId());
+                        yield BigDecimal.valueOf(habitStreakService.compute(habit, goal.getStartDate()).currentStreak());
+                    }
                     case EXERCISE_TARGET -> {
                         var pr = workoutSetService.lifetimePr(goal.getUserId(), goal.getExerciseId());
                         yield pr != null ? pr.totalWeightKg() : BigDecimal.ZERO;
@@ -147,17 +161,27 @@ public class GoalService {
                 };
         goal.updateProgress(current);
 
-        if (goal.isComplete()) {
+        if (goal.isComplete() && goal.getKind() != GoalKind.HABIT_ADHERENCE) {
             awardCompletion(goal);
         }
         return goal;
     }
 
+    /**
+     * Also the claim action for a habit-adherence goal once its streak has reached
+     * target (see {@link #refreshProgress}) — CUSTOM's own manual "Mark complete" and a
+     * habit goal's "Claim" button both land here. Anything else must actually be
+     * complete first: unlike CUSTOM, whose only measure of done is the user saying so,
+     * a measurable goal claimed early would hand out points nothing was earned.
+     */
     @Transactional
     public Goal complete(UUID id, UUID userId) {
         Goal goal = requireOwned(id, userId);
         if (goal.getStatus() != GoalStatus.ACTIVE) {
             throw new ApiException(ErrorCode.CONFLICT, HttpStatus.CONFLICT, "That goal is not active.");
+        }
+        if (goal.getKind() != GoalKind.CUSTOM && !goal.isComplete()) {
+            throw new ApiException(ErrorCode.CONFLICT, HttpStatus.CONFLICT, "That goal has not reached its target yet.");
         }
         awardCompletion(goal);
         return goals.save(goal);

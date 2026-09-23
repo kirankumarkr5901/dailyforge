@@ -58,6 +58,17 @@
       (ngModelChange)="reps.set($event)"
     />
 
+    @if (!isEditing()) {
+      <df-stepper-input
+        label="Sets"
+        hint="Logs this same weight and reps that many times."
+        [min]="1"
+        [max]="20"
+        [ngModel]="setCount()"
+        (ngModelChange)="setCount.set($event)"
+      />
+    }
+
     @if (error(); as message) {
       <p class="log-set__error" role="alert">{{ message }}</p>
     }
@@ -72,7 +83,7 @@
       [disabled]="saving()"
       (click)="save()"
     >
-      {{ isEditing() ? 'Save changes' : 'Log set' }}
+      {{ isEditing() ? 'Save changes' : setCount() > 1 ? 'Log ' + setCount() + ' sets' : 'Log set' }}
     </button>
   </div>
 </df-sheet>

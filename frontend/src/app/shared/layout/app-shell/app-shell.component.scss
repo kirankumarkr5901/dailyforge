@@ -201,6 +201,16 @@
     color: var(--ink);
   }
 
+  /* A page built for a 430px phone does not simply get better by stretching to full
+   * desktop width — the same single column just reads as a thin strip lost in empty
+   * space. Widening the container is the baseline every desktop page needs; the pages
+   * that go further (Home, Workout) add their own multi-column layout inside it via
+   * their own `--content-max` override, same pattern, larger number. */
+  .shell__main {
+    max-width: 960px;
+    padding: var(--space-6) var(--space-6);
+  }
+
   .shell__rail-link.is-active {
     background: var(--surface-sunken);
     color: var(--ink);

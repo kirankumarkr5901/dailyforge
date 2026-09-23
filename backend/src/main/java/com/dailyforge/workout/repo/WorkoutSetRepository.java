@@ -51,4 +51,20 @@ public interface WorkoutSetRepository extends JpaRepository<WorkoutSet, UUID> {
                     + "and s.deletedAt is null "
                     + "order by s.totalWeightKg desc, s.reps desc, sess.occurredOn asc")
     List<WorkoutSet> findBestLifetime(@Param("userId") UUID userId, @Param("exerciseId") UUID exerciseId);
+
+    /**
+     * Every non-deleted set ever logged for this exercise, newest first, alongside the
+     * date it was logged on — the exercise history view (spec §11's own "history of
+     * workout" request has no dedicated entity, so this reads the same rows the PR
+     * calculators already do, just in chronological rather than best-first order).
+     * {@code Object[]} rather than a projection interface: a plain WHERE-clause join
+     * (no mapped association between {@link WorkoutSet} and
+     * {@link com.dailyforge.workout.domain.WorkoutSession}) cannot bind into one.
+     */
+    @Query(
+            "select s, sess.occurredOn from WorkoutSet s, WorkoutSession sess "
+                    + "where sess.id = s.sessionId and sess.userId = :userId and s.exerciseId = :exerciseId "
+                    + "and s.deletedAt is null "
+                    + "order by sess.occurredOn desc, s.setNumber desc")
+    List<Object[]> findHistory(@Param("userId") UUID userId, @Param("exerciseId") UUID exerciseId);
 }

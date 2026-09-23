@@ -75,6 +75,8 @@ public class WorkoutController {
                                                 be.exercise().getName(),
                                                 be.exercise().getKind(),
                                                 be.exercise().getEquipment(),
+                                                be.exercise().getMuscleGroups(),
+                                                be.exercise().isElite(),
                                                 PrResponse.of(be.recentPr()),
                                                 PrResponse.of(be.lifetimePr()),
                                                 be.sets().stream().map(SetResponse::of).toList()))

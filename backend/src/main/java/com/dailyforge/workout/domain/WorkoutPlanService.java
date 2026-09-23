@@ -32,6 +32,11 @@ public class WorkoutPlanService {
         return plans.findAllByUserIdAndArchivedAtIsNullOrderByCreatedAtAsc(userId);
     }
 
+    @Transactional(readOnly = true)
+    public List<WorkoutPlan> listArchived(UUID userId) {
+        return plans.findAllByUserIdAndArchivedAtIsNotNullOrderByCreatedAtAsc(userId);
+    }
+
     @Transactional
     public WorkoutPlan create(UUID userId, String name, int dayCount) {
         // The first plan a user ever creates becomes active by default — a plan the
@@ -69,6 +74,13 @@ public class WorkoutPlanService {
         WorkoutPlan plan = requireOwned(id, userId);
         plan.archive(Instant.now());
         plans.save(plan);
+    }
+
+    @Transactional
+    public WorkoutPlan unarchive(UUID id, UUID userId) {
+        WorkoutPlan plan = requireOwned(id, userId);
+        plan.unarchive();
+        return plans.save(plan);
     }
 
     @Transactional(readOnly = true)
@@ -124,6 +136,16 @@ public class WorkoutPlanService {
                         .orElse(-1)
                         + 1;
         pe.moveTo(toDayIndex, nextSort);
+        return planExercises.save(pe);
+    }
+
+    @Transactional
+    public PlanExercise updateExercise(
+            UUID planId, UUID userId, UUID planExerciseId, Integer targetSets, Integer targetReps, String notes) {
+        requireOwned(planId, userId);
+        PlanExercise pe =
+                planExercises.findByIdAndPlanId(planExerciseId, planId).orElseThrow(() -> ApiException.notFound("That exercise"));
+        pe.updateTargets(targetSets, targetReps, notes);
         return planExercises.save(pe);
     }
 

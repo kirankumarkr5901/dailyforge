@@ -120,6 +120,12 @@ public class WorkoutPlan {
         }
     }
 
+    /** Restores an archived plan — inactive, same as any newly created plan, so the
+     * visitor picks when (and whether) to make it the active one again. */
+    public void unarchive() {
+        this.archivedAt = null;
+    }
+
     public boolean isArchived() {
         return archivedAt != null;
     }

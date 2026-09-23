@@ -41,7 +41,24 @@
               <div class="goals-page__progress-track">
                 <div class="goals-page__progress-fill" [style.width.%]="goal.progressFraction * 100"></div>
               </div>
-              <p class="goals-page__progress-label">{{ goal.currentValue }} / {{ goal.targetValue }}</p>
+              <p class="goals-page__progress-label">
+                {{ goal.currentValue }} / {{ goal.targetValue }}
+                @if (goal.kind === 'HABIT_ADHERENCE') {
+                  day streak
+                }
+              </p>
+              @if (goal.kind === 'HABIT_ADHERENCE') {
+                <button
+                  dfButton
+                  type="button"
+                  variant="secondary"
+                  [fullWidth]="true"
+                  [disabled]="!canClaim(goal)"
+                  (click)="complete(goal)"
+                >
+                  {{ canClaim(goal) ? 'Claim' : 'Keep the streak going' }}
+                </button>
+              }
             } @else {
               <button dfButton type="button" variant="secondary" [fullWidth]="true" (click)="complete(goal)">
                 Mark complete

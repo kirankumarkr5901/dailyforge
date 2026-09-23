@@ -38,12 +38,18 @@ export class LogSetSheetComponent {
   readonly lastSet = input<WorkoutSet | null>(null);
 
   readonly closed = output<void>();
-  readonly saved = output<SetWriteResponse>();
+  /** One entry per set actually written — always one when editing, possibly several
+   * when logging fresh sets at once. */
+  readonly saved = output<SetWriteResponse[]>();
 
   protected readonly weight = signal(0);
   protected readonly weightMode = signal<WeightMode>('COMBINED');
   protected readonly addedWeight = signal(0);
   protected readonly reps = signal(8);
+  /** How many identical sets to log in one go — logging is one tap per exercise, not
+   * one tap per set, the same way a gym-goer says "three sets of eight" once. Always 1
+   * when editing an existing set, since that always edits exactly the one set. */
+  protected readonly setCount = signal(1);
   protected readonly saving = signal(false);
   protected readonly error = signal<string | null>(null);
 
@@ -76,6 +82,7 @@ export class LogSetSheetComponent {
         this.addedWeight.set(0);
         this.reps.set(8);
       }
+      this.setCount.set(1);
     });
   }
 
@@ -87,28 +94,46 @@ export class LogSetSheetComponent {
     this.error.set(null);
     try {
       const editing = this.editingSet();
-      const response = editing
-        ? await firstValueFrom(
-            this.api.updateSet(editing.id, {
-              enteredWeight: this.isBodyweight() ? undefined : this.weight(),
-              weightMode: this.weightMode(),
-              addedWeight: this.isBodyweight() ? this.addedWeight() : undefined,
-              reps: this.reps(),
-            }),
-          )
-        : await firstValueFrom(
-            this.api.logSet({
-              date: this.date()!,
-              exerciseId: this.exerciseId()!,
-              planId: this.planId(),
-              dayIndex: this.dayIndex(),
-              enteredWeight: this.isBodyweight() ? undefined : this.weight(),
-              weightMode: this.weightMode(),
-              addedWeight: this.isBodyweight() ? this.addedWeight() : undefined,
-              reps: this.reps(),
-            }),
-          );
-      this.saved.emit(response);
+      if (editing) {
+        const response = await firstValueFrom(
+          this.api.updateSet(editing.id, {
+            enteredWeight: this.isBodyweight() ? undefined : this.weight(),
+            weightMode: this.weightMode(),
+            addedWeight: this.isBodyweight() ? this.addedWeight() : undefined,
+            reps: this.reps(),
+          }),
+        );
+        this.saved.emit([response]);
+      } else {
+        // Sequential, not parallel: each write reconciles PRs against the ones before
+        // it in the same request (the backend has no bulk endpoint), so a second set
+        // that beats the first as this exercise's new PR has to see the first already
+        // landed. Whatever lands is emitted even if a later one in the batch fails —
+        // sets already saved on the server must not silently vanish from the UI.
+        const responses: SetWriteResponse[] = [];
+        try {
+          for (let i = 0; i < this.setCount(); i++) {
+            responses.push(
+              await firstValueFrom(
+                this.api.logSet({
+                  date: this.date()!,
+                  exerciseId: this.exerciseId()!,
+                  planId: this.planId(),
+                  dayIndex: this.dayIndex(),
+                  enteredWeight: this.isBodyweight() ? undefined : this.weight(),
+                  weightMode: this.weightMode(),
+                  addedWeight: this.isBodyweight() ? this.addedWeight() : undefined,
+                  reps: this.reps(),
+                }),
+              ),
+            );
+          }
+        } finally {
+          if (responses.length > 0) {
+            this.saved.emit(responses);
+          }
+        }
+      }
     } catch (error) {
       this.error.set(this.messageFor(error));
     } finally {
