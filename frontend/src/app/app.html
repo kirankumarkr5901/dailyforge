@@ -4,3 +4,9 @@
 @defer (when authSheet.isOpen()) {
   <df-auth-sheet />
 }
+
+@defer (when onboarding.isOpen()) {
+  @if (onboarding.isOpen()) {
+    <df-onboarding-tour />
+  }
+}

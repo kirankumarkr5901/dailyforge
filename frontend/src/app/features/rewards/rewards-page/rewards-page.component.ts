@@ -1,0 +1,173 @@
+import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
+import { Gift, LucideAngularModule, Plus, Trash2 } from 'lucide-angular';
+
+import { AuthSheetService } from '../../../core/auth/auth-sheet.service';
+import { SessionStore } from '../../../core/auth/session.store';
+import { PointsApi } from '../../../core/points/points.api';
+import { RewardApi } from '../../../core/reward/reward.api';
+import { Reward } from '../../../core/reward/reward.types';
+import { DfButtonComponent } from '../../../shared/ui/df-button/df-button.component';
+import { DfCardComponent } from '../../../shared/ui/df-card/df-card.component';
+import { DfEmptyStateComponent } from '../../../shared/ui/df-empty-state/df-empty-state.component';
+import { DfIconButtonComponent } from '../../../shared/ui/df-icon-button/df-icon-button.component';
+import { DfScorePillComponent } from '../../../shared/ui/df-score-pill/df-score-pill.component';
+import { DfSkeletonComponent } from '../../../shared/ui/df-skeleton/df-skeleton.component';
+import { ToastService } from '../../../shared/ui/df-toast/toast.service';
+import { RewardFormSheetComponent } from '../reward-form-sheet/reward-form-sheet.component';
+
+/**
+ * Rewards (spec §8.9) — the spend side of the loop the plan's own first line promises.
+ * The redeem button's disabled reason ("Costs 500. You have 340.") reads the score
+ * fetched from the server; it never decides on its own whether a redemption is allowed
+ * — the backend re-checks the same thing and is the only answer that actually counts.
+ */
+@Component({
+  selector: 'df-rewards-page',
+  imports: [
+    LucideAngularModule,
+    DfButtonComponent,
+    DfCardComponent,
+    DfEmptyStateComponent,
+    DfIconButtonComponent,
+    DfScorePillComponent,
+    DfSkeletonComponent,
+    RewardFormSheetComponent,
+  ],
+  templateUrl: './rewards-page.component.html',
+  styleUrl: './rewards-page.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class RewardsPageComponent {
+  private readonly api = inject(RewardApi);
+  private readonly pointsApi = inject(PointsApi);
+  private readonly toasts = inject(ToastService);
+
+  protected readonly session = inject(SessionStore);
+  protected readonly authSheet = inject(AuthSheetService);
+
+  protected readonly plusIcon = Plus;
+  protected readonly giftIcon = Gift;
+  protected readonly deleteIcon = Trash2;
+
+  protected readonly loading = signal(true);
+  protected readonly error = signal<string | null>(null);
+  protected readonly rewards = signal<Reward[]>([]);
+  protected readonly total = signal(0);
+  protected readonly formOpen = signal(false);
+  protected readonly redeemingId = signal<string | null>(null);
+
+  constructor() {
+    let wasAuthenticated = false;
+    effect(() => {
+      const isAuthenticated = this.session.isAuthenticated();
+      if (isAuthenticated && !wasAuthenticated) {
+        void this.loadAll();
+      }
+      if (!isAuthenticated && this.session.isResolved()) {
+        this.rewards.set([]);
+        this.loading.set(false);
+      }
+      wasAuthenticated = isAuthenticated;
+    });
+  }
+
+  private async loadAll(): Promise<void> {
+    this.loading.set(true);
+    this.error.set(null);
+    try {
+      const [rewards, snapshot] = await Promise.all([firstValueFrom(this.api.list()), firstValueFrom(this.pointsApi.snapshot())]);
+      this.rewards.set(rewards);
+      this.total.set(snapshot.total);
+    } catch {
+      this.error.set('Could not load your rewards. Check your connection and try again.');
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  private async refresh(): Promise<void> {
+    const [rewards, snapshot] = await Promise.all([firstValueFrom(this.api.list()), firstValueFrom(this.pointsApi.snapshot())]);
+    this.rewards.set(rewards);
+    this.total.set(snapshot.total);
+  }
+
+  protected openForm(): void {
+    this.formOpen.set(true);
+  }
+
+  protected closeForm(): void {
+    this.formOpen.set(false);
+  }
+
+  protected async onCreated(): Promise<void> {
+    this.closeForm();
+    await this.refresh();
+    this.toasts.show('Reward created.');
+  }
+
+  protected canAfford(reward: Reward): boolean {
+    return this.total() >= reward.cost && !this.isOutOfStock(reward);
+  }
+
+  protected isOutOfStock(reward: Reward): boolean {
+    return reward.stock !== null && reward.stock <= 0;
+  }
+
+  protected redeemReason(reward: Reward): string {
+    if (this.isOutOfStock(reward)) {
+      return 'Out of stock';
+    }
+    return `Costs ${reward.cost}. You have ${this.total()}.`;
+  }
+
+  protected async redeem(reward: Reward): Promise<void> {
+    if (this.redeemingId()) {
+      return;
+    }
+    this.redeemingId.set(reward.id);
+    try {
+      const response = await firstValueFrom(this.api.redeem(reward.id));
+      await this.refresh();
+      const redemptionId = response.redemptionId;
+      this.toasts.show(`Redeemed ${reward.name}. ${response.points.delta} pts`, {
+        tone: 'penalty',
+        actionLabel: 'Undo',
+        action: () => void this.undoRedeem(redemptionId),
+      });
+    } catch (error) {
+      this.toasts.show(this.messageFor(error), { tone: 'penalty' });
+    } finally {
+      this.redeemingId.set(null);
+    }
+  }
+
+  private async undoRedeem(redemptionId: string): Promise<void> {
+    try {
+      await firstValueFrom(this.api.refund(redemptionId));
+      await this.refresh();
+      this.toasts.show('Redemption refunded.');
+    } catch {
+      this.toasts.show('Could not refund that. Try again.', { tone: 'penalty' });
+    }
+  }
+
+  protected async archive(reward: Reward): Promise<void> {
+    try {
+      await firstValueFrom(this.api.archive(reward.id));
+      await this.refresh();
+      this.toasts.show('Reward removed.');
+    } catch {
+      this.toasts.show('Could not remove that reward. Try again.', { tone: 'penalty' });
+    }
+  }
+
+  protected signIn(): void {
+    this.authSheet.open('manual');
+  }
+
+  private messageFor(error: unknown): string {
+    const body = (error as { error?: { message?: string } })?.error;
+    return body?.message ?? 'Could not redeem that. Try again.';
+  }
+}

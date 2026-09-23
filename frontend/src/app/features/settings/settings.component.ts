@@ -7,6 +7,7 @@ import { AuthSheetService } from '../../core/auth/auth-sheet.service';
 import { SessionStore } from '../../core/auth/session.store';
 import { TPipe } from '../../core/i18n/i18n.service';
 import { MotionChoice, MotionService } from '../../core/motion/motion.service';
+import { OnboardingService } from '../../core/onboarding/onboarding.service';
 import { ThemeChoice, ThemeService } from '../../core/theme/theme.service';
 import { DfButtonComponent } from '../../shared/ui/df-button/df-button.component';
 import { DfCardComponent } from '../../shared/ui/df-card/df-card.component';
@@ -46,6 +47,7 @@ export class SettingsComponent {
   protected readonly theme = inject(ThemeService);
   protected readonly motion = inject(MotionService);
   protected readonly authSheet = inject(AuthSheetService);
+  protected readonly onboarding = inject(OnboardingService);
 
   protected readonly settingsIcon = SettingsIcon;
   protected readonly saving = signal(false);
@@ -111,6 +113,10 @@ export class SettingsComponent {
 
   protected setUnits(value: string): void {
     void this.persist({ unitSystem: value });
+  }
+
+  protected replayTour(): void {
+    this.onboarding.replay();
   }
 
   protected signIn(): void {

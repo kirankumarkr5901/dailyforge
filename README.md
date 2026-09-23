@@ -38,7 +38,13 @@ The seeded quote pool is a deliberately smaller, honestly-labelled starter set (
 
 The target-date field in the goal form is a plain text field (`YYYY-MM-DD`) rather than a date picker, and job stage transitions are a per-application status dropdown rather than the spec's own stepper visual — both trade a nicety for shipping the underlying mechanism correctly, the same kind of call M3's habit-reorder buttons made.
 
-With M7 merged, every tracker named in spec §11 is built. Rewards (§8.9) is the one remaining page the plan's own first line promises; it was scoped as a later addition (§13.8) and is not yet started.
+**M8 — Rewards. Complete.** The spend side of the loop the plan's own first line promises (spec §5.4, §8.9): create a reward, redeem it for a real, source-tracked negative award, and undo within the same day to refund it — through the same `reverseBySource` mechanism every other reversible action in the app uses. A reward can be repeatable or one-off (a one-off cannot be redeemed again until its last redemption is refunded), and optionally stock-limited, with stock restored on refund. The redeem button's disabled reason reads exactly as spec §8.9 phrases it — "Costs 500. You have 340." — computed live from the score the server actually returned, never guessed at.
+
+With M8 merged, every tracker named in spec §11 is built, and the points economy is a closed loop: every category earns, and rewards is where it can be spent.
+
+Onboarding (spec §8.11's 5-step coach-mark tour) is built: it opens once, automatically, for a visitor who has not completed or skipped it — server-tracked (`user_settings.onboardingCompletedAt`) for a signed-in visitor, locally for an anonymous one — and can always be reopened from Settings' "Replay tour". A dedicated accessibility/reduced-motion audit pass was named alongside Rewards and onboarding in M8's own scope; empty states, `aria-label`s, and the `--motion-scale` token were applied as each screen was built, and a separate systematic audit pass was deliberately dropped as out of scope for this project.
+
+With onboarding built, M8 — and every tracker named in spec §11 — is complete. UI development is done.
 
 ## Requirements
 
