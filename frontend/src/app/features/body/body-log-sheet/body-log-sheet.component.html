@@ -1,0 +1,55 @@
+<df-sheet [open]="open()" (openChange)="$event ? null : close()" heading="Log weight">
+  <div class="body-log">
+    <df-stepper-input
+      label="Weight"
+      suffix="kg"
+      [min]="20"
+      [max]="300"
+      [step]="0.1"
+      [decimals]="1"
+      [ngModel]="weightKg()"
+      (ngModelChange)="weightKg.set($event)"
+    />
+
+    <df-stepper-input
+      label="Height override (optional)"
+      suffix="cm"
+      hint="Leave at 0 to use the height in Settings."
+      [min]="0"
+      [max]="250"
+      [decimals]="0"
+      [ngModel]="heightCm()"
+      (ngModelChange)="heightCm.set($event)"
+    />
+
+    <df-stepper-input
+      label="Body fat % (optional)"
+      suffix="%"
+      [min]="0"
+      [max]="60"
+      [step]="0.5"
+      [decimals]="1"
+      [ngModel]="bodyFatPct()"
+      (ngModelChange)="bodyFatPct.set($event)"
+    />
+
+    <df-input label="Note (optional)" [ngModel]="note()" (ngModelChange)="note.set($event)" />
+
+    @if (error(); as message) {
+      <p class="body-log__error" role="alert">{{ message }}</p>
+    }
+
+    <button
+      dfButton
+      type="button"
+      variant="primary"
+      size="lg"
+      [fullWidth]="true"
+      [loading]="saving()"
+      [disabled]="saving()"
+      (click)="save()"
+    >
+      Log weight
+    </button>
+  </div>
+</df-sheet>

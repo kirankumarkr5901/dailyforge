@@ -1,6 +1,7 @@
 package com.dailyforge.habit.repo;
 
 import com.dailyforge.habit.domain.HabitLog;
+import com.dailyforge.habit.domain.HabitLogState;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -21,4 +22,7 @@ public interface HabitLogRepository extends JpaRepository<HabitLog, UUID> {
 
     /** Every log for a set of habits on one date — the raw data the commitment check reads. */
     List<HabitLog> findAllByHabitIdInAndOccurredOn(List<UUID> habitIds, LocalDate occurredOn);
+
+    /** A habit-adherence goal's progress (spec §8.6: "Read on 20 days"). */
+    long countByHabitIdAndOccurredOnBetweenAndState(UUID habitId, LocalDate from, LocalDate to, HabitLogState state);
 }

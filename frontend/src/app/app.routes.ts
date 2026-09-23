@@ -70,23 +70,20 @@ export const routes: Routes = [
       {
         path: 'goals',
         title: 'Goals — DailyForge',
-        ...notBuiltYet('Goals land at M7', 'Targets that track themselves from what you log.'),
+        loadComponent: () =>
+          import('./features/goals/goals-page/goals-page.component').then((m) => m.GoalsPageComponent),
       },
       {
         path: 'jobs',
         title: 'Jobs — DailyForge',
-        ...notBuiltYet(
-          'The job pipeline lands at M7',
-          'Applications, stage transitions and follow-ups that surface on Home.',
-        ),
+        loadComponent: () =>
+          import('./features/jobs/jobs-page/jobs-page.component').then((m) => m.JobsPageComponent),
       },
       {
         path: 'body',
         title: 'Body — DailyForge',
-        ...notBuiltYet(
-          'Body metrics land at M7',
-          'Weight with a moving average, and a BMI scale that does not moralise.',
-        ),
+        loadComponent: () =>
+          import('./features/body/body-page/body-page.component').then((m) => m.BodyPageComponent),
       },
 
       {

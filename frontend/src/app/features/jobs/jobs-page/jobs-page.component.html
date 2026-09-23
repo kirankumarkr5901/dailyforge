@@ -1,0 +1,95 @@
+<div class="jobs-page__header">
+  <h1 class="jobs-page__title">Jobs</h1>
+
+  @if (session.isAuthenticated()) {
+    <button dfButton type="button" variant="primary" (click)="openForm()">
+      <lucide-icon [img]="plusIcon" [size]="16" aria-hidden="true" />
+      New application
+    </button>
+  }
+</div>
+
+@if (!session.isResolved() || (session.isAuthenticated() && loading() && !metrics())) {
+  <df-card>
+    <df-skeleton height="4rem" />
+    <df-skeleton height="8rem" />
+  </df-card>
+} @else if (!session.isAuthenticated()) {
+  <df-empty-state
+    [icon]="briefcaseIcon"
+    title="You are browsing as a guest"
+    body="Sign in to track your applications and the pipeline metrics."
+  >
+    <button dfButton type="button" variant="primary" (click)="signIn()">Sign in</button>
+  </df-empty-state>
+} @else {
+  @if (error(); as message) {
+    <p class="jobs-page__error" role="alert">{{ message }}</p>
+  }
+
+  @if (metrics(); as m) {
+    <df-card class="jobs-page__metrics">
+      <div class="jobs-page__metric">
+        <span class="jobs-page__metric-value">{{ (m.responseRate * 100).toFixed(0) }}%</span>
+        <span class="jobs-page__metric-label">Response rate</span>
+      </div>
+      <div class="jobs-page__metric">
+        <span class="jobs-page__metric-value">{{ m.averageDaysToFirstResponse !== null ? m.averageDaysToFirstResponse.toFixed(1) : '—' }}</span>
+        <span class="jobs-page__metric-label">Avg. days to respond</span>
+      </div>
+      <div class="jobs-page__metric">
+        <span class="jobs-page__metric-value">{{ m.interviewsPerApplication.toFixed(1) }}</span>
+        <span class="jobs-page__metric-label">Interviews / app</span>
+      </div>
+    </df-card>
+
+    @if (m.needsFollowUp.length > 0) {
+      <df-card class="jobs-page__followup" elevation="raised">
+        <h2 class="jobs-page__section-title">Needs follow-up</h2>
+        @for (app of m.needsFollowUp; track app.id) {
+          <p class="jobs-page__followup-line">{{ app.company }} — {{ app.role }}</p>
+        }
+      </df-card>
+    }
+  }
+
+  <div class="jobs-page__filter">
+    <df-select
+      label="Filter by status"
+      [options]="[{ value: '', label: 'All' }].concat(statusOptions)"
+      [ngModel]="statusFilter()"
+      (ngModelChange)="statusFilter.set($event)"
+    />
+  </div>
+
+  @if (filteredApplications().length === 0) {
+    <df-empty-state
+      [icon]="briefcaseIcon"
+      title="No applications yet"
+      body="Add your first application to start tracking the pipeline."
+    >
+      <button dfButton type="button" variant="primary" (click)="openForm()">New application</button>
+    </df-empty-state>
+  } @else {
+    <div class="jobs-page__list">
+      @for (app of filteredApplications(); track app.id) {
+        <df-card>
+          <div class="jobs-page__app-header">
+            <div>
+              <h3 class="jobs-page__app-company">{{ app.company }}</h3>
+              <p class="jobs-page__app-role">{{ app.role }}@if (app.city) { , {{ app.city }} }</p>
+            </div>
+          </div>
+          <df-select
+            label="Status"
+            [options]="statusOptions"
+            [ngModel]="app.status"
+            (ngModelChange)="advance(app, $event)"
+          />
+        </df-card>
+      }
+    </div>
+  }
+}
+
+<df-job-form-sheet [open]="formOpen()" [date]="todayDate()" (closed)="closeForm()" (saved)="onCreated()" />

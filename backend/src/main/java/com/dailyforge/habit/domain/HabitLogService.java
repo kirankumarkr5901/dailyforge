@@ -95,6 +95,11 @@ public class HabitLogService {
         }
     }
 
+    /** A habit-adherence goal's progress (spec §8.6) — exposed here rather than the raw repository, per module boundaries. */
+    public long countDoneBetween(UUID habitId, LocalDate from, LocalDate to) {
+        return logs.countByHabitIdAndOccurredOnBetweenAndState(habitId, from, to, HabitLogState.DONE);
+    }
+
     /** Exposed for the board, which needs to tell the frontend which cells are interactive. */
     public boolean isEditable(Habit habit, LocalDate date) {
         ZoneId zone = dayService.zoneOf(identity.requireSettings(habit.getUserId()).getTimeZone());
