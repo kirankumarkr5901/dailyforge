@@ -25,6 +25,8 @@ export type ApiErrorCode =
   | 'OUT_OF_RANGE'
   | 'DAILY_CAP_REACHED'
   | 'IDEMPOTENCY_CONFLICT'
+  /** Written against a copy another device has since changed; re-read, never retry. */
+  | 'STALE_WRITE'
   | 'CONFLICT'
   | 'INTERNAL_ERROR'
   | 'NETWORK';
@@ -38,6 +40,8 @@ export interface UserSettings {
   heightCm: number | null;
   reminderTime: string | null;
   onboardingCompletedAt: string | null;
+  /** Echoed back on edit so a stale device cannot overwrite a newer one. */
+  version: number;
 }
 
 export interface CurrentUser {

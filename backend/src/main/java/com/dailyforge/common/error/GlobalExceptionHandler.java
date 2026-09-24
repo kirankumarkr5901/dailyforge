@@ -100,6 +100,23 @@ public class GlobalExceptionHandler {
                 .body(ApiError.of(ErrorCode.VALIDATION_FAILED, "That request body could not be read."));
     }
 
+    /**
+     * The second line of defence behind {@link StaleWrite}: that check catches a client
+     * holding a days-old copy, and this catches two writes landing in the same instant,
+     * where both read the same version and only one can win. Same code and same
+     * recovery for the client either way — re-read, then decide.
+     */
+    @ExceptionHandler(org.springframework.orm.ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<ApiError> handleOptimisticLock(
+            org.springframework.orm.ObjectOptimisticLockingFailureException exception) {
+        log.info("Optimistic lock conflict on {}", exception.getPersistentClassName());
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(
+                        ApiError.of(
+                                ErrorCode.STALE_WRITE,
+                                "That changed somewhere else while you were saving. Reload to see the latest."));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleUnexpected(Exception exception) {
         log.error("Unhandled exception", exception);

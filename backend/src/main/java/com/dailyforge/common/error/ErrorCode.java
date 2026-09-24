@@ -33,6 +33,10 @@ public enum ErrorCode {
     /** Same idempotency key, different payload. */
     IDEMPOTENCY_CONFLICT,
 
+    /** The client wrote against a copy of the row that another device has since moved on
+     * from. The client re-reads and shows the latest rather than overwriting it. */
+    STALE_WRITE,
+
     CONFLICT,
     INTERNAL_ERROR
 }

@@ -138,3 +138,11 @@ These are the ones that cause subtle, expensive bugs when broken. Full detail in
 The rule is enforced by the token system rather than by memory: heat tokens are earned-value tokens, and a component that is not showing an earned quantity has none to reach for. There is deliberately no warm "primary" or "brand" colour available.
 
 Design tokens are CSS custom properties in `frontend/src/styles/tokens.css`. Never hardcode a colour in a component.
+
+## Licence
+
+Copyright © 2026 [Kirankumar K R](mailto:kirankumarkr5901@gmail.com).
+
+Released under the [MIT Licence](LICENSE) — you may use, modify and distribute this
+code, including commercially, provided the copyright notice and licence text travel
+with it.

@@ -15,6 +15,22 @@ jobs:
   backend:
     name: Backend
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: dailyforge_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@v4
 
@@ -29,14 +45,38 @@ jobs:
         working-directory: backend
         run: ./gradlew check --no-daemon
 
-      - name: Verify the migrations also apply to PostgreSQL
-        working-directory: backend
-        # H2 in PostgreSQL mode is a good approximation, not a guarantee. This runs the
-        # same Flyway migrations against the real engine so a portability slip is caught
-        # here rather than in a deploy.
-        run: ./gradlew flywayMigrate --no-daemon || true
-        env:
-          SPRING_PROFILES_ACTIVE: staging
+      # H2 in PostgreSQL mode is a good approximation, not a guarantee. This runs the
+      # same Flyway migrations against the real engine, so a portability slip is caught
+      # here rather than halfway through a deploy against the live database.
+      #
+      # It is allowed to fail the build. It used to end in "|| true", which meant a
+      # broken migration sailed through a green tick — a check that cannot fail is
+      # decoration, which is the same reason CI blocks the deploy at all.
+      # Run through the Flyway CLI rather than Gradle: this project has the Spring Boot
+      # Flyway starter but no Flyway Gradle plugin, so the previous "./gradlew
+      # flywayMigrate || true" was invoking a task that does not exist and swallowing
+      # the failure — a green tick that verified nothing.
+      - name: Verify the migrations apply to a real PostgreSQL
+        run: |
+          docker run --rm --network host \
+            -v "${{ github.workspace }}/backend/src/main/resources/db/migration:/flyway/sql:ro" \
+            redgate/flyway:11 \
+            -url=jdbc:postgresql://localhost:5432/dailyforge_ci \
+            -user=postgres -password=postgres \
+            -connectRetries=10 \
+            migrate validate
+
+      # Applying twice must be a no-op. This is what catches a migration that is not
+      # safely re-runnable and a checksum that drifted because an already-applied file
+      # was edited — the two ways a deploy fails at the database rather than in code.
+      - name: Verify re-applying is a no-op
+        run: |
+          docker run --rm --network host \
+            -v "${{ github.workspace }}/backend/src/main/resources/db/migration:/flyway/sql:ro" \
+            redgate/flyway:11 \
+            -url=jdbc:postgresql://localhost:5432/dailyforge_ci \
+            -user=postgres -password=postgres \
+            migrate validate info
 
       - name: Upload test report
         if: always()

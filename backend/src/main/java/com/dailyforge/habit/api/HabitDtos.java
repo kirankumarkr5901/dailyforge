@@ -53,7 +53,9 @@ public final class HabitDtos {
             int scheduleDays,
             int sortOrder,
             LocalDate activeFrom,
-            boolean archived) {
+            boolean archived,
+            /** Sent back on edit as If-Match so a stale device cannot overwrite a newer one. */
+            long version) {
 
         public static HabitResponse of(Habit habit) {
             return new HabitResponse(
@@ -68,7 +70,8 @@ public final class HabitDtos {
                     habit.getScheduleDays(),
                     habit.getSortOrder(),
                     habit.getActiveFrom(),
-                    habit.isArchived());
+                    habit.isArchived(),
+                    habit.getVersion());
         }
     }
 

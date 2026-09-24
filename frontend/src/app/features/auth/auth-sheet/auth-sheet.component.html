@@ -77,4 +77,8 @@
   <button type="button" class="auth__switch" (click)="toggleMode()">
     {{ (isSignup() ? 'auth.haveAccount' : 'auth.noAccount') | t }}
   </button>
+
+  <!-- The one screen anyone else opening this app is guaranteed to reach. Quiet enough
+       not to compete with the form it sits under. -->
+  <p class="auth__credit">Built by Kirankumar K R</p>
 </df-sheet>

@@ -41,6 +41,37 @@
 </section>
 
 <section class="page__section">
+  <h2 class="page__heading">This app</h2>
+  <df-card>
+    <div class="stack">
+      <!-- Only the install prompt is conditional. The version stays visible once
+           installed — that is precisely when you need to know which build you are on,
+           since an installed app updates itself and gives no other clue that it did. -->
+      @if (!install.isStandalone()) {
+        @if (install.canInstall()) {
+          <p class="page__hint">
+            Install DailyForge to your home screen. It opens without browser chrome and updates itself
+            whenever a new version ships — there is nothing to reinstall.
+          </p>
+          <button dfButton type="button" variant="primary" (click)="installApp()">Install app</button>
+        } @else {
+          <p class="page__hint">
+            To install: open your browser menu and choose “Add to home screen”. It opens without
+            browser chrome and updates itself whenever a new version ships.
+          </p>
+        }
+      }
+      <div class="settings__about">
+        <p class="settings__credit">Built by Kirankumar K R</p>
+        <p class="page__hint page__hint--version">
+          DailyForge · MIT licensed · Version {{ appVersion }}
+        </p>
+      </div>
+    </div>
+  </df-card>
+</section>
+
+<section class="page__section">
   <h2 class="page__heading">Help</h2>
   <df-card>
     <div class="stack">

@@ -128,7 +128,7 @@ export class RunFormSheetComponent {
       };
       const existing = this.editingRun();
       const response = existing
-        ? await firstValueFrom(this.api.update(existing.id, payload))
+        ? await firstValueFrom(this.api.update(existing.id, payload, existing.version))
         : await firstValueFrom(this.api.log(payload));
       this.saved.emit(response);
     } catch (error) {

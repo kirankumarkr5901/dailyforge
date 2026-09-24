@@ -9,6 +9,8 @@ export type HabitDayState = 'DONE' | 'MISSED' | 'PENDING' | 'PLANNED';
 
 export interface Habit {
   id: string;
+  /** Echoed back on edit so a stale device cannot overwrite a newer one. */
+  version: number;
   name: string;
   icon: string;
   points: number;

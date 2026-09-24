@@ -1,0 +1,47 @@
+name: Keep the API warm
+
+# Render's free tier sleeps a service after ~15 minutes of no traffic, and waking it
+# takes 30-60 seconds — long enough that opening the app on a phone feels broken.
+#
+# This pings the health endpoint during waking hours so the instance is already up
+# whenever the app is realistically opened. Two reasons it is a window rather than
+# every 10 minutes around the clock:
+#
+#   * Render's free tier allows 750 instance-hours a month and being awake 24/7 is
+#     ~730 of them across ALL free services on the account — one more service and the
+#     month runs out mid-way.
+#   * The hourly rollover job (streaks, penalties, day states) is written to catch up
+#     any ticks it missed, so an instance asleep overnight is late, never wrong.
+#
+# Set the repository variable API_HEALTH_URL to the Render health URL to switch this
+# on; with it unset the job does nothing rather than failing every 15 minutes.
+
+on:
+  schedule:
+    # Every 12 minutes from 01:00 to 18:59 UTC — 06:30 to 00:30 IST.
+    - cron: '*/12 1-18 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: keep-warm
+  cancel-in-progress: true
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping the health endpoint
+        env:
+          URL: ${{ vars.API_HEALTH_URL }}
+        run: |
+          if [ -z "$URL" ]; then
+            echo "API_HEALTH_URL is not set; nothing to ping. (Settings > Secrets and variables > Actions > Variables)"
+            exit 0
+          fi
+          # A cold start can take most of a minute; that wait is the entire point of
+          # this job, so give it time rather than failing and leaving it asleep.
+          code=$(curl --silent --show-error --location --max-time 90 --output /dev/null --write-out '%{http_code}' "$URL" || echo "000")
+          echo "Health check returned $code"
+          # Never fail the workflow: a red cron every 12 minutes trains you to ignore
+          # CI mail, and this is a comfort measure, not a correctness one.
+          exit 0

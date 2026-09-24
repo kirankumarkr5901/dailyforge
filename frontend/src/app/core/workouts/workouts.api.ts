@@ -2,6 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { ifMatch } from '../sync/if-match';
 import { LogicalDate } from '../time/logical-date';
 import {
   CreateExercisePayload,
@@ -117,8 +118,8 @@ export class WorkoutsApi {
     return this.http.post<SetWriteResponse>(`${this.base}/workouts/sets`, payload);
   }
 
-  updateSet(id: string, payload: UpdateSetPayload): Observable<SetWriteResponse> {
-    return this.http.patch<SetWriteResponse>(`${this.base}/workouts/sets/${id}`, payload);
+  updateSet(id: string, payload: UpdateSetPayload, version?: number): Observable<SetWriteResponse> {
+    return this.http.patch<SetWriteResponse>(`${this.base}/workouts/sets/${id}`, payload, ifMatch(version));
   }
 
   deleteSet(id: string): Observable<DeleteSetResponse> {

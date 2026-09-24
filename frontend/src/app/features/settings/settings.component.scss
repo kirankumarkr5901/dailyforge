@@ -42,3 +42,24 @@
   color: var(--ink);
   overflow-wrap: anywhere;
 }
+
+.page__hint--version {
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The credit reads as ordinary text; the build metadata under it stays faint. Separated
+   by a rule from the install copy above, so it is a statement of authorship rather than
+   a footnote to the instructions. */
+.settings__about {
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--line);
+}
+
+.settings__credit {
+  margin: 0 0 var(--space-1);
+  color: var(--ink);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}

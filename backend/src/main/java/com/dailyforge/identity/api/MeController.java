@@ -1,5 +1,6 @@
 package com.dailyforge.identity.api;
 
+import com.dailyforge.common.error.StaleWrite;
 import com.dailyforge.common.error.ApiException;
 import com.dailyforge.common.security.CurrentUser;
 import com.dailyforge.common.time.DayService;
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -69,9 +71,14 @@ public class MeController {
 
     @PatchMapping("/settings")
     @Transactional
-    public SettingsResponse updateSettings(@Valid @RequestBody UpdateSettingsRequest request) {
+    public SettingsResponse updateSettings(
+            @RequestHeader(value = "If-Match", required = false) Long ifMatch,
+            @Valid @RequestBody UpdateSettingsRequest request) {
         UUID userId = currentUser.require();
         UserSettings settings = identity.requireSettings(userId);
+        // Settings are the likeliest thing to be edited from two devices — a phone
+        // changing the time zone while a desktop sits on a days-old settings form.
+        StaleWrite.check(ifMatch, settings.getVersion(), "Your settings");
 
         if (request.timeZone() != null) {
             // Every streak and heatmap cell in the app resolves through this value, so a

@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { LucideAngularModule, Plus, Settings2, Target } from 'lucide-angular';
@@ -6,6 +7,7 @@ import { LucideAngularModule, Plus, Settings2, Target } from 'lucide-angular';
 import { AuthSheetService } from '../../../core/auth/auth-sheet.service';
 import { PendingActionService } from '../../../core/auth/pending-action.service';
 import { SessionStore } from '../../../core/auth/session.store';
+import { SyncStore } from '../../../core/sync/sync.store';
 import { HomeApi } from '../../../core/home/home.api';
 import { PointsStore } from '../../../core/points/points.store';
 import { Celebration, PointsCategory } from '../../../core/points/points.types';
@@ -76,6 +78,7 @@ export class WorkoutsPageComponent {
   private readonly restTimer = inject(RestTimerService);
   private readonly pendingAction = inject(PendingActionService);
 
+  private readonly sync = inject(SyncStore);
   protected readonly session = inject(SessionStore);
   protected readonly authSheet = inject(AuthSheetService);
 
@@ -218,6 +221,16 @@ export class WorkoutsPageComponent {
         this.loading.set(false);
       }
       wasAuthenticated = isAuthenticated;
+    });
+
+    // Re-read whenever this device may be behind: the tab came back after a while,
+    // the network returned, a session was restored, or the server just refused a
+    // write as stale (SyncStore).
+    this.sync.refreshes.pipe(takeUntilDestroyed()).subscribe((reason) => {
+      if (reason === 'conflict') {
+        this.closeLogSheet();
+      }
+      void this.loadAll();
     });
   }
 

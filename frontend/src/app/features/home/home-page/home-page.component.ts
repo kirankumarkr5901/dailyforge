@@ -1,9 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
 import { LucideAngularModule, Quote as QuoteIcon, Target } from 'lucide-angular';
 
 import { AuthSheetService } from '../../../core/auth/auth-sheet.service';
 import { SessionStore } from '../../../core/auth/session.store';
+import { SyncStore } from '../../../core/sync/sync.store';
 import { Goal } from '../../../core/goal/goal.types';
 import { HomeApi } from '../../../core/home/home.api';
 import { HomeSummary } from '../../../core/home/home.types';
@@ -63,6 +65,7 @@ interface DayGroup {
 export class HomePageComponent {
   private readonly api = inject(HomeApi);
 
+  private readonly sync = inject(SyncStore);
   protected readonly session = inject(SessionStore);
   protected readonly authSheet = inject(AuthSheetService);
   protected readonly points = inject(PointsStore);
@@ -127,6 +130,11 @@ export class HomePageComponent {
       }
       wasAuthenticated = isAuthenticated;
     });
+
+    // Re-read whenever this device may be behind: the tab came back after a while,
+    // the network returned, a session was restored, or the server just refused a
+    // write as stale (SyncStore).
+    this.sync.refreshes.pipe(takeUntilDestroyed()).subscribe(() => void this.load());
   }
 
   private async load(): Promise<void> {

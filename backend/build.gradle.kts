@@ -9,6 +9,12 @@ group = "com.dailyforge"
 version = "0.0.1-SNAPSHOT"
 description = "DailyForge backend"
 
+// Copyright (c) 2026 Kirankumar K R <kirankumarkr5901@gmail.com>. MIT licensed; see
+// LICENSE at the repository root. Stamped into the jar manifest below so the
+// attribution travels with the built artifact rather than only with the source.
+val author = "Kirankumar K R"
+val licence = "MIT"
+
 java {
 	toolchain {
 		languageVersion = JavaLanguageVersion.of(21)
@@ -82,4 +88,18 @@ tasks.jacocoTestCoverageVerification {
 
 tasks.check {
 	dependsOn(tasks.jacocoTestCoverageVerification)
+}
+
+// Attribution and licence in the jar manifest, so an artifact separated from this repo
+// still says who wrote it and on what terms.
+tasks.withType<Jar> {
+	manifest {
+		attributes(
+			"Implementation-Title" to "DailyForge",
+			"Implementation-Version" to project.version,
+			"Implementation-Vendor" to author,
+			"Specification-Vendor" to author,
+			"Bundle-License" to licence,
+		)
+	}
 }

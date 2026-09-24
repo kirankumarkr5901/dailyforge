@@ -1,9 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
 import { Frown, LucideAngularModule, Plus, Sparkles, Target, Trash2 } from 'lucide-angular';
 
 import { AuthSheetService } from '../../../core/auth/auth-sheet.service';
 import { SessionStore } from '../../../core/auth/session.store';
+import { SyncStore } from '../../../core/sync/sync.store';
 import { ActivityApi } from '../../../core/activity/activity.api';
 import { ActivityLog, ActivityType } from '../../../core/activity/activity.types';
 import { HabitsApi } from '../../../core/habits/habits.api';
@@ -63,6 +65,7 @@ export class HabitsPageComponent {
   private readonly toasts = inject(ToastService);
   private readonly points = inject(PointsStore);
 
+  private readonly sync = inject(SyncStore);
   protected readonly session = inject(SessionStore);
   protected readonly authSheet = inject(AuthSheetService);
 
@@ -239,6 +242,16 @@ export class HabitsPageComponent {
         this.loading.set(false);
       }
       wasAuthenticated = isAuthenticated;
+    });
+
+    // Re-read whenever this device may be behind: the tab came back after a while,
+    // the network returned, a session was restored, or the server just refused a
+    // write as stale (SyncStore).
+    this.sync.refreshes.pipe(takeUntilDestroyed()).subscribe((reason) => {
+      if (reason === 'conflict') {
+        this.closeForm();
+      }
+      void this.loadAll();
     });
   }
 

@@ -2,6 +2,7 @@ import { HttpClient, HttpContext, HttpContextToken } from '@angular/common/http'
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { ifMatch } from '../sync/if-match';
 import {
   AuthCapabilities,
   AuthResponse,
@@ -73,8 +74,8 @@ export class AuthApi {
     return this.http.get<CurrentUser>(`${this.base}/me`);
   }
 
-  updateSettings(payload: UpdateSettingsPayload): Observable<UserSettings> {
-    return this.http.patch<UserSettings>(`${this.base}/me/settings`, payload);
+  updateSettings(payload: UpdateSettingsPayload, version?: number): Observable<UserSettings> {
+    return this.http.patch<UserSettings>(`${this.base}/me/settings`, payload, ifMatch(version));
   }
 
   /** The signed-in user's current local date (spec §4.2) — never computed client-side. */

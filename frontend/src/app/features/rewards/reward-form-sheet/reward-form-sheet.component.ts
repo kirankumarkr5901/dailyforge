@@ -101,7 +101,7 @@ export class RewardFormSheetComponent {
       };
       const existing = this.reward();
       const reward = await firstValueFrom(
-        existing ? this.api.update(existing.id, payload) : this.api.create(payload),
+        existing ? this.api.update(existing.id, payload, existing.version) : this.api.create(payload),
       );
       this.saved.emit(reward);
       this.reset();

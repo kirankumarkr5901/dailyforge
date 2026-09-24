@@ -9,6 +9,8 @@ export type InterviewStage = 'TECHNICAL' | 'HR';
 
 export interface JobApplication {
   id: string;
+  /** Echoed back on edit so a stale device cannot overwrite a newer one. */
+  version: number;
   company: string;
   role: string;
   roleId: string | null;

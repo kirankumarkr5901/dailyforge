@@ -8,6 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -50,6 +51,11 @@ public class Reward {
 
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
+
+    /** Optimistic-concurrency guard for multi-device editing (see StaleWrite). */
+    @Version
+    @Column(name = "version", nullable = false)
+    private long version;
 
     protected Reward() {
         // for JPA
@@ -157,4 +163,8 @@ public class Reward {
     public Instant getArchivedAt() {
         return archivedAt;
     }
+    public long getVersion() {
+        return version;
+    }
+
 }
