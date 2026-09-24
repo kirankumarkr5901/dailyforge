@@ -78,6 +78,13 @@
         </div>
       </df-card>
 
+      @if (body.entries.length > 1) {
+        <df-card class="body-page__chart-card">
+          <h2 class="body-page__section-title">Trend</h2>
+          <df-body-weight-chart [entries]="body.entries" [movingAverage]="body.movingAverage" />
+        </df-card>
+      }
+
       <h2 class="body-page__section-title">Recent logs</h2>
       <df-card [flush]="true">
         <div class="body-page__list">

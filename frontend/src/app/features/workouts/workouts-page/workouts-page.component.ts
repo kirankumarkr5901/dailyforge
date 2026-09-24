@@ -6,8 +6,10 @@ import { LucideAngularModule, Plus, Settings2, Target } from 'lucide-angular';
 import { AuthSheetService } from '../../../core/auth/auth-sheet.service';
 import { PendingActionService } from '../../../core/auth/pending-action.service';
 import { SessionStore } from '../../../core/auth/session.store';
+import { HomeApi } from '../../../core/home/home.api';
 import { PointsStore } from '../../../core/points/points.store';
-import { Celebration } from '../../../core/points/points.types';
+import { Celebration, PointsCategory } from '../../../core/points/points.types';
+import { monthsAgoStart } from '../../../core/time/calendar-grid';
 import { LogicalDate } from '../../../core/time/logical-date';
 import { WorkoutsApi } from '../../../core/workouts/workouts.api';
 import {
@@ -18,6 +20,7 @@ import {
   WorkoutSession,
   WorkoutSet,
 } from '../../../core/workouts/workouts.types';
+import { DayDetailSheetComponent } from '../../../shared/day-detail-sheet/day-detail-sheet.component';
 import { DfButtonComponent } from '../../../shared/ui/df-button/df-button.component';
 import { DfDateStepperComponent } from '../../../shared/ui/df-date-stepper/df-date-stepper.component';
 import { DfEmptyStateComponent } from '../../../shared/ui/df-empty-state/df-empty-state.component';
@@ -25,6 +28,7 @@ import { DfSelectComponent, DfSelectOption } from '../../../shared/ui/df-select/
 import { DfSkeletonComponent } from '../../../shared/ui/df-skeleton/df-skeleton.component';
 import { DfCardComponent } from '../../../shared/ui/df-card/df-card.component';
 import { DfCelebrationComponent } from '../../../shared/ui/df-celebration/df-celebration.component';
+import { DfMonthCalendarComponent } from '../../../shared/ui/df-month-calendar/df-month-calendar.component';
 import { ToastService } from '../../../shared/ui/df-toast/toast.service';
 import { ExerciseCardComponent } from '../exercise-card/exercise-card.component';
 import { ExerciseHistorySheetComponent } from '../exercise-history-sheet/exercise-history-sheet.component';
@@ -44,11 +48,13 @@ import { RestTimerService } from '../rest-timer/rest-timer.service';
   imports: [
     FormsModule,
     LucideAngularModule,
+    DayDetailSheetComponent,
     DfButtonComponent,
     DfCardComponent,
     DfCelebrationComponent,
     DfDateStepperComponent,
     DfEmptyStateComponent,
+    DfMonthCalendarComponent,
     DfSelectComponent,
     DfSkeletonComponent,
     ExerciseCardComponent,
@@ -64,6 +70,7 @@ import { RestTimerService } from '../rest-timer/rest-timer.service';
 })
 export class WorkoutsPageComponent {
   private readonly api = inject(WorkoutsApi);
+  private readonly homeApi = inject(HomeApi);
   private readonly points = inject(PointsStore);
   private readonly toasts = inject(ToastService);
   private readonly restTimer = inject(RestTimerService);
@@ -166,6 +173,38 @@ export class WorkoutsPageComponent {
     this.muscleFilter.set(group);
   }
 
+  /** Days with a logged workout, for the page's own history calendar (owner feedback:
+   * "Workout calendar is not built in the workout page") — the same daily-summary data
+   * the Home heatmap already reads, just filtered to hasWorkout and rendered as plain
+   * marked/unmarked instead of the heatmap's multi-state colouring. */
+  protected readonly workoutDates = signal<ReadonlyMap<LogicalDate, number>>(new Map());
+
+  /** Which day the history calendar has open, if any — its own sheet, not the page date. */
+  protected readonly historyDay = signal<LogicalDate | null>(null);
+  protected readonly workoutCategories: readonly PointsCategory[] = ['WORKOUT'];
+
+  private async loadWorkoutDates(today: LogicalDate): Promise<void> {
+    try {
+      const summaries = await firstValueFrom(this.homeApi.heatmap(monthsAgoStart(today, 11), today));
+      // The day's workout points stand in for "how much was logged" — they scale with
+      // the sets actually done, and they are exactly what the day sheet then itemises,
+      // so the shade and the sheet can never tell different stories.
+      this.workoutDates.set(
+        new Map(summaries.filter((s) => s.hasWorkout).map((s) => [s.date, s.pointsByCategory.WORKOUT ?? 0])),
+      );
+    } catch {
+      // The calendar just shows nothing marked; the rest of the page still works.
+    }
+  }
+
+  protected openHistoryDay(date: LogicalDate): void {
+    this.historyDay.set(date);
+  }
+
+  protected closeHistoryDay(): void {
+    this.historyDay.set(null);
+  }
+
   constructor() {
     let wasAuthenticated = false;
     effect(() => {
@@ -191,6 +230,9 @@ export class WorkoutsPageComponent {
       const active = plans.find((p) => p.isActive) ?? plans[0] ?? null;
       this.selectedPlanId.set(active?.id ?? null);
       await this.refreshSession();
+      if (this.todayDate()) {
+        void this.loadWorkoutDates(this.todayDate()!);
+      }
     } catch {
       this.error.set('Could not load your workouts. Check your connection and try again.');
     } finally {
@@ -283,6 +325,9 @@ export class WorkoutsPageComponent {
     const wasEditing = this.editingSet() !== null;
     this.closeLogSheet();
     await this.refreshSession();
+    if (this.todayDate()) {
+      void this.loadWorkoutDates(this.todayDate()!);
+    }
 
     if (!wasEditing) {
       this.restTimer.start();

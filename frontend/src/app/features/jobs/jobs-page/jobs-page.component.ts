@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { Briefcase, LucideAngularModule, Plus } from 'lucide-angular';
@@ -8,7 +8,7 @@ import { AuthSheetService } from '../../../core/auth/auth-sheet.service';
 import { SessionStore } from '../../../core/auth/session.store';
 import { JobApi } from '../../../core/job/job.api';
 import { JobApplication, JobMetrics, JobStatus } from '../../../core/job/job.types';
-import { LogicalDate } from '../../../core/time/logical-date';
+import { LogicalDate, formatLong } from '../../../core/time/logical-date';
 import { DfButtonComponent } from '../../../shared/ui/df-button/df-button.component';
 import { DfCardComponent } from '../../../shared/ui/df-card/df-card.component';
 import { DfEmptyStateComponent } from '../../../shared/ui/df-empty-state/df-empty-state.component';
@@ -61,6 +61,7 @@ export class JobsPageComponent {
   protected readonly briefcaseIcon = Briefcase;
   protected readonly statusLabels = STATUS_LABELS;
   protected readonly statusOptions = NEXT_STATUS_OPTIONS;
+  protected readonly formatLong = formatLong;
 
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
@@ -115,6 +116,38 @@ export class JobsPageComponent {
     const filter = this.statusFilter();
     const apps = this.applications();
     return filter ? apps.filter((a) => a.status === filter) : apps;
+  }
+
+  /** Newest applied-on date first, each group already in that order from the API
+   * (findAllByUserIdOrderByAppliedOnDesc) — same day-grouping pattern Home's own
+   * activity log uses. */
+  protected readonly groupedApplications = computed<{ date: LogicalDate; apps: JobApplication[] }[]>(() => {
+    const groups: { date: LogicalDate; apps: JobApplication[] }[] = [];
+    for (const app of this.filteredApplications()) {
+      const last = groups[groups.length - 1];
+      if (last && last.date === app.appliedOn) {
+        last.apps.push(app);
+      } else {
+        groups.push({ date: app.appliedOn, apps: [app] });
+      }
+    }
+    return groups;
+  });
+
+  /** A more specific line than the raw status where the timeline has more to say — an
+   * interview round, or which stage a rejection actually came from (owner feedback:
+   * "if application moved to rejected from applied then it got... rejected at
+   * screening"). Purely a display label; the underlying status is unchanged. */
+  protected displayLabel(app: JobApplication): string {
+    if (app.status === 'INTERVIEW' && app.currentRound > 0) {
+      return `Interview — Round ${app.currentRound}`;
+    }
+    if (app.status === 'REJECTED' && app.rejectedFromStatus) {
+      return app.rejectedFromStatus === 'APPLIED' || app.rejectedFromStatus === 'ASSESSMENT'
+        ? 'Rejected at screening'
+        : 'Rejected after interview';
+    }
+    return this.statusLabels[app.status];
   }
 
   protected openForm(): void {

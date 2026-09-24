@@ -42,6 +42,18 @@
     </div>
   }
 
+  @if (todayDate()) {
+    <df-card class="workouts-page__calendar-card">
+      <df-month-calendar
+        [today]="todayDate()!"
+        [valueByDate]="workoutDates()"
+        heading="History"
+        markedLabel="workout logged"
+        (cellSelected)="openHistoryDay($event)"
+      />
+    </df-card>
+  }
+
   @if (error(); as message) {
     <p class="workouts-page__error" role="alert">{{ message }}</p>
   }
@@ -152,6 +164,13 @@
   [open]="planManagerOpen()"
   (closed)="planManagerOpen.set(false)"
   (changed)="onPlansChanged()"
+/>
+
+<df-day-detail-sheet
+  [date]="historyDay()"
+  [only]="workoutCategories"
+  totalNoun="workout points"
+  (closed)="closeHistoryDay()"
 />
 
 <df-rest-timer />

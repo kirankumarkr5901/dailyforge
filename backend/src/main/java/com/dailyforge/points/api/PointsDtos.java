@@ -59,14 +59,22 @@ public final class PointsDtos {
     }
 
     public record SnapshotResponse(
-            int total, int today, int thisWeek, int thisMonth, Map<PointsCategory, Integer> byCategory) {
+            int total,
+            int today,
+            int thisWeek,
+            int thisMonth,
+            Map<PointsCategory, Integer> byCategory,
+            Map<PointsCategory, Integer> byCategoryToday,
+            Map<PointsCategory, Integer> byCategoryWeek) {
         public static SnapshotResponse of(ScoreSnapshot snapshot) {
             return new SnapshotResponse(
                     snapshot.total(),
                     snapshot.today(),
                     snapshot.thisWeek(),
                     snapshot.thisMonth(),
-                    snapshot.byCategory());
+                    snapshot.byCategory(),
+                    snapshot.byCategoryToday(),
+                    snapshot.byCategoryWeek());
         }
     }
 }

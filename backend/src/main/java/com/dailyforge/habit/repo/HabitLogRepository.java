@@ -25,4 +25,7 @@ public interface HabitLogRepository extends JpaRepository<HabitLog, UUID> {
 
     /** A habit-adherence goal's progress (spec §8.6: "Read on 20 days"). */
     long countByHabitIdAndOccurredOnBetweenAndState(UUID habitId, LocalDate from, LocalDate to, HabitLogState state);
+
+    /** Every habit at once — the milestone recap's "habits completed this month" total. */
+    long countByHabitIdInAndOccurredOnBetweenAndState(List<UUID> habitIds, LocalDate from, LocalDate to, HabitLogState state);
 }

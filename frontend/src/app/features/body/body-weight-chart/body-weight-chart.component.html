@@ -1,0 +1,8 @@
+<svg class="body-weight-chart" [attr.viewBox]="viewBox" preserveAspectRatio="none" role="img" aria-label="Weight trend over time">
+  @for (dot of dots(); track $index) {
+    <circle class="body-weight-chart__dot" [attr.cx]="dot.x" [attr.cy]="dot.y" r="2" />
+  }
+  @if (linePath()) {
+    <path class="body-weight-chart__line" [attr.d]="linePath()" fill="none" />
+  }
+</svg>

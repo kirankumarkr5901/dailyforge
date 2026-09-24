@@ -100,6 +100,16 @@ public class HabitLogService {
         return logs.countByHabitIdAndOccurredOnBetweenAndState(habitId, from, to, HabitLogState.DONE);
     }
 
+    /** Every habit this user has ever had (including archived), summed — the milestone
+     * recap's own "habits completed" total for a whole period. */
+    public long countDoneBetweenForUser(UUID userId, LocalDate from, LocalDate to) {
+        List<UUID> habitIds = habits.listAll(userId).stream().map(Habit::getId).toList();
+        if (habitIds.isEmpty()) {
+            return 0;
+        }
+        return logs.countByHabitIdInAndOccurredOnBetweenAndState(habitIds, from, to, HabitLogState.DONE);
+    }
+
     /** Exposed for the board, which needs to tell the frontend which cells are interactive. */
     public boolean isEditable(Habit habit, LocalDate date) {
         ZoneId zone = dayService.zoneOf(identity.requireSettings(habit.getUserId()).getTimeZone());

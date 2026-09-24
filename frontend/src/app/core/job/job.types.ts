@@ -20,6 +20,8 @@ export interface JobApplication {
   nextFollowUpOn: LogicalDate | null;
   note: string | null;
   appliedOn: LogicalDate;
+  /** Only set when status is REJECTED — the stage the rejection came from. */
+  rejectedFromStatus: JobStatus | null;
 }
 
 export interface CreateApplicationPayload {

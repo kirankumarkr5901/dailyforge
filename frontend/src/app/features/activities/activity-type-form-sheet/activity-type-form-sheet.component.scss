@@ -1,0 +1,11 @@
+.activity-type-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.activity-type-form__error {
+  margin: 0;
+  color: var(--penalty-ink);
+  font-size: var(--text-sm);
+}

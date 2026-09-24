@@ -35,6 +35,7 @@
 
   .home-page__quote,
   .home-page__score,
+  .home-page__goals,
   .home-page__heatmap-card {
     margin-bottom: 0;
   }
@@ -72,18 +73,6 @@
   margin-bottom: var(--space-4);
 }
 
-.home-page__score-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--space-4);
-}
-
-.home-page__score-label {
-  color: var(--ink-muted);
-  font-size: var(--text-sm);
-}
-
 .home-page__score-periods {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -93,10 +82,29 @@
   border-bottom: 1px solid var(--line);
 }
 
-.home-page__score-periods > div {
+/* Each period is its own button now — clicking it swaps which one's category
+ * breakdown renders below, rather than the breakdown always being the month's. */
+.home-page__period {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  padding: var(--space-2);
+  margin: calc(var(--space-2) * -1);
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--duration-fast) var(--ease-out);
+}
+
+.home-page__period:hover {
+  border-color: var(--line);
+}
+
+.home-page__period--selected {
+  border-color: var(--heat-2);
+  background: var(--heat-fill-2);
 }
 
 .home-page__period-label {
@@ -107,6 +115,14 @@
 .home-page__period-value {
   color: var(--ink);
   font-size: var(--text-lg);
+  font-weight: 600;
+}
+
+.home-page__breakdown-title {
+  display: block;
+  margin-bottom: var(--space-2);
+  color: var(--ink-muted);
+  font-size: var(--text-xs);
   font-weight: 600;
 }
 
@@ -154,6 +170,52 @@
 
 .home-page__heatmap-card {
   margin-bottom: var(--space-4);
+}
+
+.home-page__goals {
+  margin-bottom: var(--space-4);
+}
+
+.home-page__goal-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.home-page__goal-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-1);
+}
+
+.home-page__goal-title {
+  color: var(--ink);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.home-page__goal-reward {
+  flex: none;
+  color: var(--heat-ink-2);
+  font-size: var(--text-xs);
+  font-weight: 600;
+}
+
+.home-page__goal-track {
+  height: 6px;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  background: var(--surface-sunken);
+}
+
+.home-page__goal-fill {
+  height: 100%;
+  background: var(--heat-2);
 }
 
 .home-page__section-title {

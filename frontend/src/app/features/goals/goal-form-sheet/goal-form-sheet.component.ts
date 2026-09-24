@@ -27,6 +27,7 @@ const KIND_OPTIONS: readonly DfSelectOption[] = [
 const PERIOD_OPTIONS: readonly DfSelectOption[] = [
   { value: 'WEEK', label: 'This week' },
   { value: 'MONTH', label: 'This month' },
+  { value: 'YEAR', label: 'This year' },
   { value: 'TARGET_DATE', label: 'By a target date' },
 ];
 

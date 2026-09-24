@@ -1,5 +1,6 @@
 /** Mirrors the backend's InsightDtos (spec §8.1, §8.1.1). */
 
+import { Goal } from '../goal/goal.types';
 import { LedgerEntry, PointsCategory, ScoreSnapshot } from '../points/points.types';
 import { LogicalDate } from '../time/logical-date';
 
@@ -14,6 +15,7 @@ export interface HomeSummary {
   date: LogicalDate;
   quote: Quote | null;
   score: ScoreSnapshot;
+  activeGoals: Goal[];
   recentLedger: LedgerEntry[];
 }
 

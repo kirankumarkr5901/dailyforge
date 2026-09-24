@@ -56,9 +56,17 @@ public final class JobDtos {
             int currentRound,
             LocalDate nextFollowUpOn,
             String note,
-            LocalDate appliedOn) {
+            LocalDate appliedOn,
+            /** Only set when status is REJECTED — the stage the rejection came from, for
+             * a display label like "Rejected at screening" (owner feedback), never a
+             * status of its own. */
+            JobStatus rejectedFromStatus) {
 
         public static ApplicationResponse of(JobApplication app) {
+            return of(app, null);
+        }
+
+        public static ApplicationResponse of(JobApplication app, JobStatus rejectedFromStatus) {
             return new ApplicationResponse(
                     app.getId(),
                     app.getCompany(),
@@ -73,7 +81,8 @@ public final class JobDtos {
                     app.getCurrentRound(),
                     app.getNextFollowUpOn(),
                     app.getNote(),
-                    app.getAppliedOn());
+                    app.getAppliedOn(),
+                    rejectedFromStatus);
         }
     }
 

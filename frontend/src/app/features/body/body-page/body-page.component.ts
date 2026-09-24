@@ -15,6 +15,7 @@ import { DfIconButtonComponent } from '../../../shared/ui/df-icon-button/df-icon
 import { DfSkeletonComponent } from '../../../shared/ui/df-skeleton/df-skeleton.component';
 import { ToastService } from '../../../shared/ui/df-toast/toast.service';
 import { BodyLogSheetComponent } from '../body-log-sheet/body-log-sheet.component';
+import { BodyWeightChartComponent } from '../body-weight-chart/body-weight-chart.component';
 
 const BAND_LABELS: Record<BmiBand, string> = {
   UNDERWEIGHT: 'Underweight',
@@ -38,6 +39,7 @@ const BAND_LABELS: Record<BmiBand, string> = {
     DfIconButtonComponent,
     DfSkeletonComponent,
     BodyLogSheetComponent,
+    BodyWeightChartComponent,
   ],
   templateUrl: './body-page.component.html',
   styleUrl: './body-page.component.scss',

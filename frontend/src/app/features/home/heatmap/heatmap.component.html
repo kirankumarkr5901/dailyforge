@@ -35,11 +35,12 @@
                 class="heatmap__cell"
                 [attr.data-heat]="heatStep(summaryFor(date))"
                 [attr.aria-label]="ariaLabel(date)"
+                [disabled]="!hasScoringActivity(date)"
                 (click)="select(date)"
               >
                 <span class="heatmap__day-number" aria-hidden="true">{{ dayNumber(date) }}</span>
                 @if (iconFor(summaryFor(date)?.state); as icon) {
-                  <lucide-icon class="heatmap__glyph" [img]="icon" [size]="10" aria-hidden="true" />
+                  <lucide-icon class="heatmap__glyph" [img]="icon" [size]="14" aria-hidden="true" />
                 }
               </button>
             } @else {

@@ -66,6 +66,8 @@ export class PointsStore {
       thisWeek: current?.thisWeek ?? 0,
       thisMonth: current?.thisMonth ?? 0,
       byCategory: current?.byCategory ?? ({} as ScoreSnapshot['byCategory']),
+      byCategoryToday: current?.byCategoryToday ?? ({} as ScoreSnapshot['byCategoryToday']),
+      byCategoryWeek: current?.byCategoryWeek ?? ({} as ScoreSnapshot['byCategoryWeek']),
     });
   }
 }

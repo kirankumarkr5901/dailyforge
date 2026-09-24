@@ -23,6 +23,24 @@
 </section>
 
 <section class="page__section">
+  <h2 class="page__heading">Workouts</h2>
+  <df-card>
+    <div class="stack">
+      <df-stepper-input
+        label="Rest timer"
+        suffix="sec"
+        hint="How long the timer runs after you log a set."
+        [min]="10"
+        [max]="600"
+        [step]="15"
+        [ngModel]="restTimer.defaultSeconds()"
+        (ngModelChange)="setRestTimerDefault($event)"
+      />
+    </div>
+  </df-card>
+</section>
+
+<section class="page__section">
   <h2 class="page__heading">Help</h2>
   <df-card>
     <div class="stack">

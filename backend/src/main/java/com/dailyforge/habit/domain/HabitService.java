@@ -42,6 +42,13 @@ public class HabitService {
         return habits.findAllByUserIdAndArchivedAtIsNullOrderBySortOrderAsc(userId);
     }
 
+    /** Including archived ones — a habit archived last week must not erase last month's
+     * recap of what it earned while still active (exposed for the milestone recap). */
+    @Transactional(readOnly = true)
+    public List<Habit> listAll(UUID userId) {
+        return habits.findAllByUserIdOrderBySortOrderAsc(userId);
+    }
+
     @Transactional(readOnly = true)
     public Habit requireOwned(UUID habitId, UUID userId) {
         return habits.findByIdAndUserId(habitId, userId).orElseThrow(() -> ApiException.notFound("That habit"));
