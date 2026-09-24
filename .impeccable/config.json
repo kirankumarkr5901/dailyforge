@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "layout-transition",
+        "value": "*",
+        "files": [
+          "src/app/features/goals/goals-page/goals-page.component.scss"
+        ],
+        "createdAt": "2026-09-08T05:33:55.995Z",
+        "reason": "Progress-bar fill: width IS the data being shown, so the width transition is literal, domain-appropriate motion, not decoration. The element is a solid-colour 8px bar with no children inside an overflow:hidden track, and it animates only when progress changes — not on scroll or in a loop. scaleX would be visually identical but would misrepresent the property that carries the meaning."
+      }
+    ]
+  }
+}

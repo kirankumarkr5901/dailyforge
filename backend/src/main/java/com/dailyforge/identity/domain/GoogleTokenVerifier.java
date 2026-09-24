@@ -48,6 +48,11 @@ public class GoogleTokenVerifier {
         return properties.googleEnabled();
     }
 
+    /** The configured audience — see IdentityService.googleClientId for why this is public. */
+    public String clientId() {
+        return properties.googleClientId();
+    }
+
     public GoogleIdentity verify(String idToken) {
         if (!isEnabled()) {
             throw new ApiException(

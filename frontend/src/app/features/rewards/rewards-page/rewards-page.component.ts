@@ -13,7 +13,6 @@ import { DfButtonComponent } from '../../../shared/ui/df-button/df-button.compon
 import { DfCardComponent } from '../../../shared/ui/df-card/df-card.component';
 import { DfEmptyStateComponent } from '../../../shared/ui/df-empty-state/df-empty-state.component';
 import { DfIconButtonComponent } from '../../../shared/ui/df-icon-button/df-icon-button.component';
-import { DfScorePillComponent } from '../../../shared/ui/df-score-pill/df-score-pill.component';
 import { DfSkeletonComponent } from '../../../shared/ui/df-skeleton/df-skeleton.component';
 import { ToastService } from '../../../shared/ui/df-toast/toast.service';
 import { RewardFormSheetComponent } from '../reward-form-sheet/reward-form-sheet.component';
@@ -32,7 +31,6 @@ import { RewardFormSheetComponent } from '../reward-form-sheet/reward-form-sheet
     DfCardComponent,
     DfEmptyStateComponent,
     DfIconButtonComponent,
-    DfScorePillComponent,
     DfSkeletonComponent,
     RewardFormSheetComponent,
   ],

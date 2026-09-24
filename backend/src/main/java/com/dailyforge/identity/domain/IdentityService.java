@@ -157,6 +157,19 @@ public class IdentityService {
         return googleVerifier.isEnabled();
     }
 
+    /**
+     * The Google client id this deployment signs in against, or null when Google is off.
+     *
+     * Public by design: it ships inside every frontend bundle that renders the button,
+     * and Google treats it as an identifier rather than a secret (there is no client
+     * secret in this flow at all). Serving it here rather than baking it into the build
+     * keeps one source of truth — the same environment variable that decides whether the
+     * feature is on at all — so turning Google on never needs a frontend rebuild.
+     */
+    public String googleClientId() {
+        return googleVerifier.isEnabled() ? googleVerifier.clientId() : null;
+    }
+
     private Session startSession(User user, String device) {
         AccessTokenService.IssuedAccessToken access = accessTokens.issue(user);
         String refresh = refreshTokens.issue(user.getId(), device);

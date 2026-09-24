@@ -61,14 +61,23 @@
               </div>
             }
 
-            @for (pe of exercisesForDay(plan, $index + 1); track pe.id) {
-              <ng-container
-                [ngTemplateOutlet]="exerciseRow"
-                [ngTemplateOutletContext]="{ $implicit: pe, planId: plan.id }"
-              ></ng-container>
-            } @empty {
-              <p class="plan-manager__empty">Nothing here yet.</p>
-            }
+            <div
+              cdkDropList
+              [cdkDropListData]="{ plan: plan, dayIndex: $index + 1 }"
+              (cdkDropListDropped)="onExerciseDropped($event)"
+            >
+              @for (pe of exercisesForDay(plan, $index + 1); track pe.id) {
+                <div cdkDrag>
+                  <ng-container
+                    [ngTemplateOutlet]="exerciseRow"
+                    [ngTemplateOutletContext]="{ $implicit: pe, planId: plan.id }"
+                  ></ng-container>
+                  <div class="plan-manager__drag-placeholder" *cdkDragPlaceholder></div>
+                </div>
+              } @empty {
+                <p class="plan-manager__empty">Nothing here yet.</p>
+              }
+            </div>
           </df-card>
         }
 
@@ -138,6 +147,17 @@
      edit form for target sets/reps/notes, a "Move to" select, and Remove. -->
 <ng-template #exerciseRow let-pe let-planId="planId">
   <div class="plan-manager__exercise">
+    <!-- A handle rather than the whole row: the row carries a day-select and edit
+         controls, and a drag started on those would fight them. -->
+    <button
+      type="button"
+      class="plan-manager__grip"
+      cdkDragHandle
+      [attr.aria-label]="'Reorder ' + pe.exerciseName"
+    >
+      <lucide-icon [img]="gripIcon" [size]="16" aria-hidden="true" />
+    </button>
+
     <div class="plan-manager__exercise-main">
       <span class="plan-manager__exercise-name">
         {{ pe.exerciseName }}

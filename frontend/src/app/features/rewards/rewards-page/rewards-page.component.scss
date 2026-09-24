@@ -17,18 +17,6 @@
   font-size: var(--text-sm);
 }
 
-.rewards-page__score {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--space-4);
-}
-
-.rewards-page__score-label {
-  color: var(--ink-muted);
-  font-size: var(--text-sm);
-}
-
 .rewards-page__list {
   display: flex;
   flex-direction: column;

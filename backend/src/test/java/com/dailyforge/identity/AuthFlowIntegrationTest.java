@@ -209,8 +209,22 @@ class AuthFlowIntegrationTest {
                 .andExpect(jsonPath("$.code").value("AUTH_TOKEN_EXPIRED"));
     }
 
+    /**
+     * Replaying a just-rotated token refuses that request but leaves the session alive.
+     *
+     * This test previously asserted the opposite — that the live token died too. That
+     * was the intended design against token theft, and in practice it signed real users
+     * out of everything for opening the app in two places: an installed PWA and a
+     * browser tab share localStorage but not the client's in-memory refresh lock, so
+     * both wake with the same expired access token and both try to rotate. The loser of
+     * that race did nothing wrong.
+     *
+     * Theft is still caught — see RefreshRaceTest, where a reuse whose successor is
+     * already gone still revokes every session. What changed is only that this app
+     * racing itself is no longer treated as an attack.
+     */
     @Test
-    void reusingARetiredTokenEndsEverySessionForThatUser() throws Exception {
+    void replayingAJustRotatedTokenIsRefusedButDoesNotEndTheSession() throws Exception {
         JsonNode session = signup("kiran@example.com", "a-long-enough-password");
         String first = session.get("refreshToken").asString();
 
@@ -225,20 +239,23 @@ class AuthFlowIntegrationTest {
                         .getContentAsString();
         String second = json.readTree(body).get("refreshToken").asString();
 
-        // Replaying the old one looks like theft, so the live token dies with it.
+        // The replay itself is refused: a rotated token is spent, whoever presents it.
         mockMvc
                 .perform(
                         post("/api/v1/auth/refresh")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("{\"refreshToken\":\"%s\"}".formatted(first)))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("AUTH_TOKEN_EXPIRED"));
 
+        // But the token the winner was issued still works — the user stays signed in.
         mockMvc
                 .perform(
                         post("/api/v1/auth/refresh")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("{\"refreshToken\":\"%s\"}".formatted(second)))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").isNotEmpty());
     }
 
     @Test

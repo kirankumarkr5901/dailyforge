@@ -110,5 +110,6 @@ public final class AuthDtos {
             Boolean onboardingCompleted) {}
 
     /** Tells the frontend which sign-in methods this deployment actually offers. */
-    public record AuthCapabilities(boolean passwordEnabled, boolean googleEnabled) {}
+    /** {@code googleClientId} is null when Google is off; it is public, not a secret. */
+    public record AuthCapabilities(boolean passwordEnabled, boolean googleEnabled, String googleClientId) {}
 }

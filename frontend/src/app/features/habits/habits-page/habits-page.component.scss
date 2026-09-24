@@ -132,3 +132,28 @@
   font-size: var(--text-xs);
   font-weight: 400;
 }
+
+/* The gap the dragged row leaves behind: a dashed outline the height of the row, so the
+   list does not collapse and re-expand as it is dragged over. */
+.habits-page__drag-placeholder {
+  height: 68px;
+  margin-bottom: var(--space-2);
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-card);
+  background: var(--surface-sunken);
+}
+
+.habits-page__list.cdk-drop-list-dragging .df-habit-row-host:not(.cdk-drag-placeholder) {
+  transition: transform var(--duration-base) var(--ease-out);
+}
+
+.cdk-drag-preview {
+  border-radius: var(--radius-card);
+  box-shadow: var(--elevation-floating);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .habits-page__list.cdk-drop-list-dragging .df-habit-row-host:not(.cdk-drag-placeholder) {
+    transition: none;
+  }
+}

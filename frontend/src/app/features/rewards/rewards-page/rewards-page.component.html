@@ -23,11 +23,6 @@
     <p class="rewards-page__error" role="alert">{{ message }}</p>
   }
 
-  <df-card class="rewards-page__score">
-    <span class="rewards-page__score-label">Your score</span>
-    <df-score-pill [total]="points.total()" />
-  </df-card>
-
   @if (rewards().length === 0) {
     <df-empty-state [icon]="giftIcon" title="No rewards yet" body="Create something worth earning — points need somewhere to go.">
       <button dfButton type="button" variant="primary" (click)="openForm()">New reward</button>

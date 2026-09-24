@@ -1,0 +1,33 @@
+# Response headers for Cloudflare Pages, mirroring what netlify.toml sets on Netlify.
+# Cloudflare Pages does not read netlify.toml, and GitHub Pages cannot set headers at
+# all — which is why it was not an option: the no-store rules below are what let a
+# deployed change actually reach an installed PWA.
+
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=()
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://accounts.google.com; style-src 'self' 'unsafe-inline' https://accounts.google.com; img-src 'self' data: blob: https://*.googleusercontent.com https://*.gstatic.com; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://*.onrender.com https://*.koyeb.app https://accounts.google.com; frame-src https://accounts.google.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+
+# The three files that decide WHICH BUILD a device is running. Cached, an installed PWA
+# keeps loading last week's app and never learns there is a new one — which is exactly
+# the stale-bundle problem that hid two auth fixes from a real device.
+/index.html
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/ngsw.json
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/ngsw-worker.js
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/manifest.webmanifest
+  Cache-Control: no-cache
+
+# Content-hashed, so a new build gives them new names and these can never go stale.
+/*.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.css
+  Cache-Control: public, max-age=31536000, immutable

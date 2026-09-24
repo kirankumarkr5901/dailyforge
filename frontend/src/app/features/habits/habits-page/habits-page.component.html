@@ -95,15 +95,20 @@
         <button dfButton type="button" variant="primary" (click)="openCreate()">New habit</button>
       </df-empty-state>
     } @else {
-      <div class="habits-page__list">
+      <div class="habits-page__list" cdkDropList (cdkDropListDropped)="onHabitDropped($event)">
         @for (entry of current.habits; track entry.id) {
           <df-habit-row
+            cdkDrag
+            [cdkDragDisabled]="reordering()"
             [entry]="entry"
             [date]="viewedDate()!"
+            [reorderable]="true"
             (toggled)="onToggled($event)"
             (editRequested)="openEdit($event)"
             (errored)="onRowError($event)"
-          />
+          >
+            <div class="habits-page__drag-placeholder" *cdkDragPlaceholder></div>
+          </df-habit-row>
         }
       </div>
     }

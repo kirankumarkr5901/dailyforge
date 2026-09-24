@@ -59,7 +59,7 @@ Three things a neighbouring tracker could not truthfully copy without rebuilding
 
 **Explicit non-goals for v1:** GPS tracking, wearable sync, social feed, AI chat logging, nutrition tracking.
 
-**Invariants that constrain every future change** (full detail in `docs/DAILYFORGE_SPEC.md` §4–§5):
+**Invariants that constrain every future change** (full detail in `docs/DAILYFORGE_SPEC.md` §4–§5; this numbered list is what the source comments cite):
 
 1. Points are awarded only by `PointsService`; no other module writes to `points_entry`.
 2. The ledger is append-only. Undo writes a compensating entry with `reverses_id` set.

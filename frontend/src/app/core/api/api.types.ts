@@ -64,6 +64,8 @@ export interface AuthResponse {
 export interface AuthCapabilities {
   passwordEnabled: boolean;
   googleEnabled: boolean;
+  /** Null when Google is off. Public by design — it ships in the bundle either way. */
+  googleClientId: string | null;
 }
 
 export interface SignupPayload {

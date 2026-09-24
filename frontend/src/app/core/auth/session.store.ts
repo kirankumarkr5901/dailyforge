@@ -24,6 +24,7 @@ export class SessionStore {
   private readonly _capabilities = signal<AuthCapabilities>({
     passwordEnabled: true,
     googleEnabled: false,
+    googleClientId: null,
   });
 
   readonly status = this._status.asReadonly();
