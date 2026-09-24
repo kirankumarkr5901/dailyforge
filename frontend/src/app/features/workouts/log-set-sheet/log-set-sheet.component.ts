@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
@@ -63,27 +63,50 @@ export class LogSetSheetComponent {
     return this.weightMode() === 'SINGLE' ? this.weight() * 2 : this.weight();
   });
 
+  /**
+   * What the form last held when this component filled it, so a seed arriving late —
+   * history is fetched after the sheet opens — can tell "still as I left it" from "the
+   * user has started typing" and only overwrite the former.
+   */
+  private lastFilled: { weight: number; weightMode: WeightMode; addedWeight: number; reps: number } | null = null;
+
   constructor() {
     effect(() => {
       if (!this.open()) {
+        this.lastFilled = null;
         return;
       }
       this.error.set(null);
       const editing = this.editingSet();
       const seed = editing ?? this.lastSet();
-      if (seed) {
-        this.weight.set(seed.enteredWeight);
-        this.weightMode.set(seed.weightMode);
-        this.addedWeight.set(seed.addedWeight ?? 0);
-        this.reps.set(seed.reps);
-      } else {
-        this.weight.set(0);
-        this.weightMode.set('COMBINED');
-        this.addedWeight.set(0);
-        this.reps.set(8);
+
+      if (this.lastFilled && !untracked(() => this.isUntouched())) {
+        // The user has already changed something; a late seed must not undo it.
+        return;
       }
+
+      const next = seed
+        ? { weight: seed.enteredWeight, weightMode: seed.weightMode, addedWeight: seed.addedWeight ?? 0, reps: seed.reps }
+        : { weight: 0, weightMode: 'COMBINED' as WeightMode, addedWeight: 0, reps: 8 };
+      this.weight.set(next.weight);
+      this.weightMode.set(next.weightMode);
+      this.addedWeight.set(next.addedWeight);
+      this.reps.set(next.reps);
       this.setCount.set(1);
+      this.lastFilled = next;
     });
+  }
+
+  private isUntouched(): boolean {
+    const f = this.lastFilled;
+    return (
+      f !== null &&
+      this.weight() === f.weight &&
+      this.weightMode() === f.weightMode &&
+      this.addedWeight() === f.addedWeight &&
+      this.reps() === f.reps &&
+      this.setCount() === 1
+    );
   }
 
   protected async save(): Promise<void> {

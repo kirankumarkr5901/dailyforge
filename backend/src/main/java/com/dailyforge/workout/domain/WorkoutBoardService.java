@@ -4,12 +4,14 @@ import com.dailyforge.common.time.DayService;
 import com.dailyforge.identity.domain.IdentityService;
 import com.dailyforge.workout.repo.ExerciseRepository;
 import com.dailyforge.workout.repo.PlanExerciseRepository;
+import com.dailyforge.workout.repo.WorkoutExerciseCompletionRepository;
 import com.dailyforge.workout.repo.WorkoutSetRepository;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
@@ -30,21 +32,34 @@ public class WorkoutBoardService {
     private final ExerciseRepository exercises;
     private final DayService dayService;
     private final IdentityService identity;
+    private final WorkoutExerciseCompletionRepository completions;
 
     public WorkoutBoardService(
             WorkoutSetService setService,
             PlanExerciseRepository planExercises,
             ExerciseRepository exercises,
             DayService dayService,
-            IdentityService identity) {
+            IdentityService identity,
+            WorkoutExerciseCompletionRepository completions) {
         this.setService = setService;
         this.planExercises = planExercises;
         this.exercises = exercises;
         this.dayService = dayService;
         this.identity = identity;
+        this.completions = completions;
     }
 
-    public record BoardExercise(Exercise exercise, List<WorkoutSet> sets, WorkoutSetService.PrView recentPr, WorkoutSetService.PrView lifetimePr) {}
+    /**
+     * {@code completedAt} is null until the user says they are finished with this
+     * exercise. It is the third state the board needs: sets logged means work started,
+     * not work finished.
+     */
+    public record BoardExercise(
+            Exercise exercise,
+            List<WorkoutSet> sets,
+            WorkoutSetService.PrView recentPr,
+            WorkoutSetService.PrView lifetimePr,
+            java.time.Instant completedAt) {}
 
     @Transactional(readOnly = true)
     public List<BoardExercise> board(UUID userId, WorkoutSession session) {
@@ -52,6 +67,11 @@ public class WorkoutBoardService {
         LocalDate today = dayService.today(zone);
 
         List<WorkoutSet> loggedSets = setService.setsFor(session.getId());
+        Map<UUID, java.time.Instant> completedAt =
+                completions.findAllBySessionId(session.getId()).stream()
+                        .collect(
+                                java.util.stream.Collectors.toMap(
+                                        WorkoutExerciseCompletion::getExerciseId, WorkoutExerciseCompletion::getCompletedAt));
 
         Set<UUID> exerciseIds = new LinkedHashSet<>();
         if (session.getPlanId() != null && session.getDayIndex() != null) {
@@ -73,7 +93,8 @@ public class WorkoutBoardService {
                             exercise,
                             sets,
                             setService.recentPr(userId, exerciseId, today),
-                            setService.lifetimePr(userId, exerciseId)));
+                            setService.lifetimePr(userId, exerciseId),
+                            completedAt.get(exerciseId)));
         }
         return board;
     }

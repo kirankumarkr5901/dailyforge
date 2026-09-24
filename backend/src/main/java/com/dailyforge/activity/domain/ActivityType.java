@@ -70,6 +70,20 @@ public class ActivityType {
         return type;
     }
 
+    /**
+     * Every argument optional: a PATCH changes only what it names.
+     *
+     * Changing the points changes what future logs earn, never what past ones did — the
+     * ledger is append-only, and an activity that was worth 5 last week stays worth 5 in
+     * last week's rows. The same holds for polarity.
+     */
+    public void update(String name, ActivityPolarity polarity, Integer points, String icon) {
+        if (name != null) this.name = name;
+        if (polarity != null) this.polarity = polarity;
+        if (points != null) this.points = points;
+        if (icon != null) this.icon = icon;
+    }
+
     public void archive(Instant when) {
         if (this.archivedAt == null) {
             this.archivedAt = when;

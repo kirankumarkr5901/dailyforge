@@ -29,6 +29,7 @@ const CATEGORY_LABELS: Record<PointsCategory, string> = {
   GOAL: 'Goal',
   JOB: 'Job',
   REWARD: 'Reward',
+  BADGE: 'Badge',
   ADJUSTMENT: 'Adjustment',
 };
 
@@ -79,7 +80,9 @@ export class HomePageComponent {
   protected readonly error = signal<string | null>(null);
   protected readonly summary = signal<HomeSummary | null>(null);
   protected readonly selectedDay = signal<LogicalDate | null>(null);
-  protected readonly selectedPeriod = signal<Period>('thisMonth');
+  // Today first: the home screen is opened to answer "how am I doing right now", and a
+  // month total cannot answer that — it barely moves from one visit to the next.
+  protected readonly selectedPeriod = signal<Period>('today');
 
   protected readonly activeGoals = computed<Goal[]>(() => this.summary()?.activeGoals ?? []);
 

@@ -1,0 +1,58 @@
+<df-sheet [open]="exercise() !== null" (openChange)="$event ? null : close()" heading="Edit exercise">
+  <div class="exercise-edit">
+    <df-input label="Name" placeholder="e.g. Bench press" [ngModel]="name()" (ngModelChange)="name.set($event)" />
+
+    <div class="exercise-edit__row">
+      <df-select label="Type" [options]="kindOptions" [ngModel]="kind()" (ngModelChange)="kind.set($event)" />
+      <df-select
+        label="Equipment"
+        [options]="equipmentOptions"
+        [ngModel]="equipment()"
+        (ngModelChange)="equipment.set($event)"
+      />
+    </div>
+
+    <div class="exercise-edit__muscle-field">
+      <span class="exercise-edit__muscle-label">Muscles targeted</span>
+      <div class="exercise-edit__muscle-chips">
+        @for (group of muscleGroupOptions; track group) {
+          <button
+            type="button"
+            class="exercise-edit__muscle-chip"
+            [class.exercise-edit__muscle-chip--selected]="muscleGroups().includes(group)"
+            [attr.aria-pressed]="muscleGroups().includes(group)"
+            (click)="toggleMuscleGroup(group)"
+          >
+            {{ group }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <label class="exercise-edit__elite-field">
+      <input type="checkbox" [ngModel]="elite()" (ngModelChange)="elite.set($event)" />
+      <span>
+        <lucide-icon [img]="starIcon" [size]="14" aria-hidden="true" />
+        Elite — an advanced move, flagged so it stands out in your plan
+      </span>
+    </label>
+
+    @if (error(); as message) {
+      <p class="exercise-edit__error" role="alert">{{ message }}</p>
+    }
+
+    <p class="exercise-edit__note">Your logged sets and PRs stay exactly as they are.</p>
+
+    <button
+      dfButton
+      type="button"
+      variant="primary"
+      [fullWidth]="true"
+      [loading]="saving()"
+      [disabled]="saving() || name().trim().length === 0"
+      (click)="save()"
+    >
+      Save changes
+    </button>
+  </div>
+</df-sheet>

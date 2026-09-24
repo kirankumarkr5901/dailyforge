@@ -10,6 +10,7 @@ import com.dailyforge.points.domain.PointsCategory;
 import com.dailyforge.points.domain.PointsRuleConfigService;
 import com.dailyforge.points.domain.PointsService;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
@@ -29,6 +30,7 @@ public class JobService {
     private final PointsRuleConfigService ruleConfigs;
     private final DayService dayService;
     private final IdentityService identity;
+    private final ReferralProperties referralProperties;
 
     public JobService(
             JobApplicationRepository applications,
@@ -36,13 +38,15 @@ public class JobService {
             PointsService points,
             PointsRuleConfigService ruleConfigs,
             DayService dayService,
-            IdentityService identity) {
+            IdentityService identity,
+            ReferralProperties referralProperties) {
         this.applications = applications;
         this.events = events;
         this.points = points;
         this.ruleConfigs = ruleConfigs;
         this.dayService = dayService;
         this.identity = identity;
+        this.referralProperties = referralProperties;
     }
 
     @Transactional
@@ -56,10 +60,25 @@ public class JobService {
             String resumeVersion,
             JobSource source,
             String referrerName,
+            String referralId,
+            LocalDate referralRequestedOn,
             String note,
             LocalDate appliedOn) {
         JobApplication app =
-                JobApplication.create(userId, company, role, roleId, city, jobUrl, resumeVersion, source, referrerName, note, appliedOn);
+                JobApplication.create(
+                        userId,
+                        company,
+                        role,
+                        roleId,
+                        city,
+                        jobUrl,
+                        resumeVersion,
+                        source,
+                        referrerName,
+                        referralId,
+                        referralRequestedOn,
+                        note,
+                        appliedOn);
         applications.save(app);
         events.save(JobEvent.create(app.getId(), null, JobStatus.APPLIED, null, null, appliedOn, "Applied"));
         return app;
@@ -76,10 +95,23 @@ public class JobService {
             String jobUrl,
             String resumeVersion,
             String referrerName,
+            String referralId,
+            LocalDate referralRequestedOn,
             String note,
             LocalDate nextFollowUpOn) {
         JobApplication app = requireOwned(id, userId);
-        app.update(company, role, roleId, city, jobUrl, resumeVersion, referrerName, note, nextFollowUpOn);
+        app.update(
+                company,
+                role,
+                roleId,
+                city,
+                jobUrl,
+                resumeVersion,
+                referrerName,
+                referralId,
+                referralRequestedOn,
+                note,
+                nextFollowUpOn);
         return applications.save(app);
     }
 
@@ -124,6 +156,41 @@ public class JobService {
 
         return app;
     }
+
+    /**
+     * Every referral, with how long it has been waiting and what to do about it.
+     *
+     * A referral leaves this list when it stops being a live question — rejected or
+     * withdrawn — rather than when it converts. One that turned into a real interview
+     * is still a referral that worked, and seeing it is how you learn which referrers
+     * are worth asking again.
+     *
+     * The waiting state is computed here rather than stored, in the user's own zone via
+     * DayService: a stored state would be stale the moment a day passed with nobody
+     * writing to the row, which for a list whose entire purpose is elapsed time would
+     * be the one thing it must never get wrong.
+     */
+    @Transactional(readOnly = true)
+    public List<Referral> referrals(UUID userId) {
+        ZoneId zone = dayService.zoneOf(identity.requireSettings(userId).getTimeZone());
+        LocalDate today = dayService.today(zone);
+
+        return applications
+                .findAllByUserIdAndSourceInOrderByReferralRequestedOnAsc(
+                        userId, List.of(JobSource.REFERRAL_REQUESTED, JobSource.REFERRED))
+                .stream()
+                .filter(app -> app.getStatus() != JobStatus.REJECTED && app.getStatus() != JobStatus.WITHDRAWN)
+                .map(
+                        app ->
+                                new Referral(
+                                        app,
+                                        referralProperties.daysWaiting(app.getReferralRequestedOn(), today),
+                                        referralProperties.stateOn(app.getReferralRequestedOn(), today)))
+                .toList();
+    }
+
+    /** An application, plus the two facts that only make sense for a referral. */
+    public record Referral(JobApplication application, long daysWaiting, ReferralState state) {}
 
     @Transactional(readOnly = true)
     public List<JobApplication> list(UUID userId, JobStatus status) {

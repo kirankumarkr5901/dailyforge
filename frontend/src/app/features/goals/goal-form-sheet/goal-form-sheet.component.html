@@ -1,8 +1,10 @@
-<df-sheet [open]="open()" (openChange)="$event ? null : close()" heading="New goal">
+<df-sheet [open]="open()" (openChange)="$event ? null : close()" [heading]="isEditing() ? 'Edit goal' : 'New goal'">
   <div class="goal-form">
     <df-input label="Title" placeholder="e.g. Read on 20 days" [ngModel]="title()" (ngModelChange)="title.set($event)" />
-    <df-select label="Kind" [options]="kindOptions" [ngModel]="kind()" (ngModelChange)="kind.set($event)" />
-    <df-select label="Period" [options]="periodOptions" [ngModel]="periodType()" (ngModelChange)="periodType.set($event)" />
+    <!-- Kind, period and what the goal measures are fixed once it exists: changing them
+         halfway through would mean the progress so far was measuring something else. -->
+    <df-select label="Kind" [options]="kindOptions" [disabled]="isEditing()" [ngModel]="kind()" (ngModelChange)="kind.set($event)" />
+    <df-select label="Period" [options]="periodOptions" [disabled]="isEditing()" [ngModel]="periodType()" (ngModelChange)="periodType.set($event)" />
 
     @if (periodType() === 'TARGET_DATE') {
       <df-input
@@ -15,11 +17,11 @@
     }
 
     @if (kind() === 'HABIT_ADHERENCE') {
-      <df-select label="Habit" [options]="habitOptions()" [ngModel]="habitId()" (ngModelChange)="habitId.set($event)" />
+      <df-select label="Habit" [options]="habitOptions()" [disabled]="isEditing()" [ngModel]="habitId()" (ngModelChange)="habitId.set($event)" />
     }
 
     @if (kind() === 'EXERCISE_TARGET') {
-      <df-select label="Exercise" [options]="exerciseOptions()" [ngModel]="exerciseId()" (ngModelChange)="exerciseId.set($event)" />
+      <df-select label="Exercise" [options]="exerciseOptions()" [disabled]="isEditing()" [ngModel]="exerciseId()" (ngModelChange)="exerciseId.set($event)" />
     }
 
     @if (kind() !== 'CUSTOM') {
@@ -51,7 +53,7 @@
       [disabled]="saving() || !title().trim()"
       (click)="save()"
     >
-      Create goal
+      {{ isEditing() ? 'Save changes' : 'Create goal' }}
     </button>
   </div>
 </df-sheet>

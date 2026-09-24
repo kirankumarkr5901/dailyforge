@@ -9,6 +9,7 @@ import { SyncStore } from '../../../core/sync/sync.store';
 import { PointsStore } from '../../../core/points/points.store';
 import { RewardApi } from '../../../core/reward/reward.api';
 import { Reward, RewardTier } from '../../../core/reward/reward.types';
+import { formatLong } from '../../../core/time/logical-date';
 import { DfButtonComponent } from '../../../shared/ui/df-button/df-button.component';
 import { DfCardComponent } from '../../../shared/ui/df-card/df-card.component';
 import { DfEmptyStateComponent } from '../../../shared/ui/df-empty-state/df-empty-state.component';
@@ -23,6 +24,16 @@ import { RewardFormSheetComponent } from '../reward-form-sheet/reward-form-sheet
  * fetched from the server; it never decides on its own whether a redemption is allowed
  * — the backend re-checks the same thing and is the only answer that actually counts.
  */
+/**
+ * The window each tier's stock allowance covers. Mirrors RewardTier.windowLabel() on
+ * the backend — the server decides the dates, this only writes the words.
+ */
+const TIER_WINDOW: Record<RewardTier, string> = {
+  MICRO: 'today',
+  WEEKLY: 'this week',
+  MONTHLY: 'this month',
+};
+
 @Component({
   selector: 'df-rewards-page',
   imports: [
@@ -167,13 +178,33 @@ export class RewardsPageComponent {
     return this.points.total() >= reward.cost && !this.isOutOfStock(reward);
   }
 
+  /**
+   * Used up *for now* — not gone. Stock is an allowance per tier period, so this is a
+   * temporary state that lifts on its own when the period turns.
+   */
   protected isOutOfStock(reward: Reward): boolean {
-    return reward.stock !== null && reward.stock <= 0;
+    return reward.remaining !== null && reward.remaining <= 0;
+  }
+
+  /** "2 left today" / "1 left this week" — the window matters as much as the count. */
+  protected stockLabel(reward: Reward): string | null {
+    if (reward.remaining === null) {
+      return null;
+    }
+    return `${reward.remaining} left ${TIER_WINDOW[reward.tier]}`;
+  }
+
+  /** What a spent reward says instead of a count: when it comes back. */
+  protected refreshLabel(reward: Reward): string | null {
+    if (!this.isOutOfStock(reward) || !reward.refreshesOn) {
+      return null;
+    }
+    return `Comes back ${formatLong(reward.refreshesOn)}`;
   }
 
   protected redeemReason(reward: Reward): string {
     if (this.isOutOfStock(reward)) {
-      return 'Out of stock';
+      return `Used up ${TIER_WINDOW[reward.tier]}. It comes back on its own.`;
     }
     return `Costs ${reward.cost}. You have ${this.points.total()}.`;
   }

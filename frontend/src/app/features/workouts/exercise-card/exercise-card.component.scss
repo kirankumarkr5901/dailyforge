@@ -5,22 +5,49 @@
 }
 
 /* Design system note: the app's own "cold steel, earned heat" palette (spec §9) has no
- * green anywhere — every earned/done state elsewhere uses the warm heat tones instead.
- * A logged exercise gets that same warm accent rather than an off-brand green. A left
- * bar rather than reaching into df-card's own border keeps the card primitive's styling
- * a matter for df-card alone. */
+ * green anywhere for earning — every earned state uses the warm heat tones. The edge bar
+ * rather than reaching into df-card's own border keeps the card primitive's styling a
+ * matter for df-card alone.
+ *
+ * The three states read as a progression down that ramp: work under way is the live
+ * heat, finished is the cooler completed tone, and an untouched card carries no bar at
+ * all — nothing has happened to it yet. */
+:host(.exercise-card--in-progress)::before,
 :host(.exercise-card--done)::before {
   content: '';
   position: absolute;
   inset: 0 auto 0 0;
   width: 3px;
   border-radius: var(--radius-card) 0 0 var(--radius-card);
+}
+
+:host(.exercise-card--in-progress)::before {
   background: var(--heat-2);
+}
+
+:host(.exercise-card--done)::before {
+  background: var(--done);
+}
+
+/* Finished work steps back: still legible, no longer competing with what is left. */
+:host(.exercise-card--done) {
+  opacity: 0.72;
+}
+
+:host(.exercise-card--done):hover,
+:host(.exercise-card--done):focus-within {
+  opacity: 1;
+}
+
+.exercise-card__actions {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--space-2);
 }
 
 .exercise-card__done-badge {
   display: inline-flex;
-  color: var(--heat-2);
+  color: var(--done);
   flex: none;
 }
 

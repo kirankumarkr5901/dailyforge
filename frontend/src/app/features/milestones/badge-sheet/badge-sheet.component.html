@@ -1,0 +1,61 @@
+<df-sheet [open]="badge() !== null" (openChange)="$event ? null : close()" heading="Badge">
+  @if (badge(); as b) {
+    <div class="badge-sheet">
+      <div class="badge-sheet__head" [class.badge-sheet__head--earned]="b.earned">
+        <span class="badge-sheet__medal">
+          <lucide-icon [img]="icon()" [size]="28" aria-hidden="true" />
+        </span>
+        <div>
+          <h3 class="badge-sheet__name">{{ b.name }}</h3>
+          <p class="badge-sheet__period">{{ b.period === 'YEAR' ? 'Yearly badge' : 'Monthly badge' }} · {{ periodLabel() }}</p>
+        </div>
+      </div>
+
+      <!-- What kind of badge this is. -->
+      <p class="badge-sheet__description">{{ b.description }}</p>
+
+      <!-- What to do to earn it. -->
+      <div class="badge-sheet__criteria">
+        <span class="badge-sheet__criteria-label">How to earn it</span>
+        <p class="badge-sheet__criteria-text">{{ b.criteria }}</p>
+      </div>
+
+      <div class="badge-sheet__progress">
+        <div class="badge-sheet__progress-head">
+          <span class="badge-sheet__progress-label">{{ progressLabel() }}</span>
+          <span class="badge-sheet__reward">+{{ b.points }} pts</span>
+        </div>
+        <span class="badge-sheet__track" aria-hidden="true">
+          <span
+            class="badge-sheet__fill"
+            [class.badge-sheet__fill--earned]="b.earned"
+            [style.width.%]="percent()"
+          ></span>
+        </span>
+      </div>
+
+      @if (error(); as message) {
+        <p class="badge-sheet__error" role="alert">{{ message }}</p>
+      }
+
+      @if (b.claimed) {
+        <p class="badge-sheet__done">Claimed. The points are already on your score.</p>
+      } @else if (b.claimable) {
+        <button
+          dfButton
+          type="button"
+          variant="primary"
+          size="lg"
+          [fullWidth]="true"
+          [loading]="claiming()"
+          [disabled]="claiming()"
+          (click)="claim()"
+        >
+          Claim +{{ b.points }} points
+        </button>
+      } @else {
+        <p class="badge-sheet__pending">Not earned yet — the points are waiting for you.</p>
+      }
+    </div>
+  }
+</df-sheet>

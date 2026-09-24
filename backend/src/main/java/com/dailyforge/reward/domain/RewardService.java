@@ -75,6 +75,47 @@ public class RewardService {
         return rewards.findAllByUserIdAndArchivedAtIsNullOrderByCostAsc(userId);
     }
 
+    /**
+     * A reward plus how much of this period's allowance is left.
+     *
+     * {@code remaining} is null when the reward has no limit at all. {@code refreshesOn}
+     * is the day the allowance comes back — the day after this period ends.
+     */
+    public record RewardView(Reward reward, Integer remaining, LocalDate periodStart, LocalDate refreshesOn) {
+        public boolean soldOutForNow() {
+            return remaining != null && remaining <= 0;
+        }
+    }
+
+    /**
+     * The reward list, each with what is left of its allowance for the current period.
+     *
+     * Derived on read rather than reset on a schedule: a scheduled reset would miss its
+     * window every time this free-tier host slept through it, which is exactly the
+     * failure the daily rollover needed a watermark to avoid. Reading it from the
+     * redemptions cannot drift, because there is nothing to drift from.
+     */
+    @Transactional(readOnly = true)
+    public List<RewardView> listWithAllowance(UUID userId) {
+        LocalDate today = dayService.today(dayService.zoneOf(identity.requireSettings(userId).getTimeZone()));
+        return list(userId).stream().map(reward -> view(reward, userId, today)).toList();
+    }
+
+    private RewardView view(Reward reward, UUID userId, LocalDate today) {
+        RewardTier tier = reward.getTier();
+        LocalDate start = tier.periodStart(today);
+        LocalDate end = tier.periodEnd(today);
+        Integer remaining =
+                reward.hasStockLimit()
+                        ? Math.max(0, reward.getStock() - (int) usedThisPeriod(reward.getId(), userId, start, end))
+                        : null;
+        return new RewardView(reward, remaining, start, tier.nextRefresh(today));
+    }
+
+    private long usedThisPeriod(UUID rewardId, UUID userId, LocalDate start, LocalDate end) {
+        return redemptions.countByRewardIdAndUserIdAndRefundedAtIsNullAndOccurredOnBetween(rewardId, userId, start, end);
+    }
+
     @Transactional(readOnly = true)
     public List<RewardRedemption> listRedemptions(UUID userId) {
         return redemptions.findAllByUserIdOrderByRedeemedAtDesc(userId);
@@ -99,15 +140,23 @@ public class RewardService {
         if (reward.isArchived()) {
             throw ApiException.notFound("That reward");
         }
-        if (reward.isOutOfStock()) {
-            throw new ApiException(ErrorCode.OUT_OF_RANGE, HttpStatus.UNPROCESSABLE_CONTENT, "That reward is out of stock.");
-        }
         if (!reward.isRepeatable() && redemptions.existsByRewardIdAndUserIdAndRefundedAtIsNull(rewardId, userId)) {
             throw new ApiException(ErrorCode.CONFLICT, HttpStatus.CONFLICT, "That reward has already been redeemed.");
         }
 
         ZoneId zone = dayService.zoneOf(identity.requireSettings(userId).getTimeZone());
         LocalDate today = dayService.today(zone);
+
+        // Against this period's allowance, not a counter that drains once. Out of stock
+        // is now a temporary condition, so the message says when it lifts rather than
+        // implying the reward is finished forever.
+        RewardView view = view(reward, userId, today);
+        if (view.soldOutForNow()) {
+            throw new ApiException(
+                    ErrorCode.OUT_OF_RANGE,
+                    HttpStatus.UNPROCESSABLE_CONTENT,
+                    "You have used this " + reward.getTier().windowLabel() + ". It comes back on " + view.refreshesOn() + ".");
+        }
 
         int currentTotal = points.snapshot(userId, zone).total();
         if (currentTotal < reward.getCost()) {
@@ -137,9 +186,8 @@ public class RewardService {
                                 "Redeemed — " + reward.getName(),
                                 "reward-redeem:" + redemption.getId()));
 
-        reward.decrementStock();
-        rewards.save(reward);
-
+        // Stock is not touched: it is the allowance, and what is left of it is counted
+        // from the redemptions themselves.
         return new Redemption(redemption, result);
     }
 
@@ -162,10 +210,8 @@ public class RewardService {
         redemption.refund(Instant.now());
         redemptions.save(redemption);
 
-        rewards.findById(redemption.getRewardId()).ifPresent(reward -> {
-            reward.incrementStock();
-            rewards.save(reward);
-        });
+        // The allowance restores itself: a refunded redemption stops counting against
+        // the period the moment it is marked refunded.
 
         int newTotal = points.snapshot(userId, zone).total();
         return new PointsResult(List.of(), redemption.getPointsSpent(), newTotal, List.of());

@@ -6,6 +6,7 @@ import com.dailyforge.job.api.JobDtos.ApplicationResponse;
 import com.dailyforge.job.api.JobDtos.CreateApplicationRequest;
 import com.dailyforge.job.api.JobDtos.EventResponse;
 import com.dailyforge.job.api.JobDtos.MetricsResponse;
+import com.dailyforge.job.api.JobDtos.ReferralResponse;
 import com.dailyforge.job.api.JobDtos.TransitionRequest;
 import com.dailyforge.job.api.JobDtos.UpdateApplicationRequest;
 import com.dailyforge.job.domain.JobService;
@@ -59,6 +60,8 @@ public class JobController {
                         request.resumeVersion(),
                         request.source(),
                         request.referrerName(),
+                        request.referralId(),
+                        request.referralRequestedOn(),
                         request.note(),
                         request.appliedOn());
         return ApplicationResponse.of(app);
@@ -82,6 +85,8 @@ public class JobController {
                         request.jobUrl(),
                         request.resumeVersion(),
                         request.referrerName(),
+                        request.referralId(),
+                        request.referralRequestedOn(),
                         request.note(),
                         request.nextFollowUpOn());
         return ApplicationResponse.of(app);
@@ -104,6 +109,20 @@ public class JobController {
     @GetMapping("/{id}/timeline")
     public List<EventResponse> timeline(@PathVariable UUID id) {
         return jobs.timeline(id, currentUser.require()).stream().map(EventResponse::of).toList();
+    }
+
+    /**
+     * The referral list (owner request): what has been asked for, how long ago, and
+     * whether it is still worth waiting on.
+     *
+     * A list of its own rather than a filter over the applications list, because the
+     * question it answers is different — not "where is this application up to" but
+     * "which of these has gone quiet on me" — and a handful of urgent referrals should
+     * not have to be found among forty applications.
+     */
+    @GetMapping("/referrals")
+    public List<ReferralResponse> referrals() {
+        return jobs.referrals(currentUser.require()).stream().map(ReferralResponse::of).toList();
     }
 
     @GetMapping("/metrics")

@@ -1,0 +1,133 @@
+.badge-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.badge-sheet__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.badge-sheet__medal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-sunken);
+  color: var(--ink-faint);
+}
+
+/* The medal warms up only once the bar is actually met — the one moment on this sheet
+ * worth marking, and it should not be spent on a badge you are halfway through. */
+.badge-sheet__head--earned .badge-sheet__medal {
+  background: var(--heat-fill-2);
+  color: var(--heat-ink);
+}
+
+.badge-sheet__name {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+
+.badge-sheet__period {
+  margin: 2px 0 0;
+  color: var(--ink-muted);
+  font-size: var(--text-xs);
+}
+
+.badge-sheet__description {
+  margin: 0;
+  font-size: var(--text-sm);
+}
+
+.badge-sheet__criteria {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border-radius: var(--radius-card);
+  background: var(--surface-sunken);
+}
+
+.badge-sheet__criteria-label {
+  color: var(--ink-faint);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.badge-sheet__criteria-text {
+  margin: 0;
+  font-size: var(--text-sm);
+}
+
+.badge-sheet__progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.badge-sheet__progress-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.badge-sheet__progress-label {
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.badge-sheet__reward {
+  color: var(--heat-ink);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.badge-sheet__track {
+  display: block;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-inset);
+  overflow: hidden;
+}
+
+.badge-sheet__fill {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--ink-faint);
+}
+
+.badge-sheet__fill--earned {
+  background: var(--heat-2);
+}
+
+.badge-sheet__error {
+  margin: 0;
+  color: var(--penalty-ink);
+  font-size: var(--text-sm);
+}
+
+.badge-sheet__done {
+  margin: 0;
+  color: var(--done-ink);
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+.badge-sheet__pending {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+}

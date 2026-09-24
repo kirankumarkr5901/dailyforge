@@ -6,6 +6,11 @@ export type JobSource = 'APPLIED' | 'REFERRAL_REQUESTED' | 'REFERRED' | 'RECRUIT
 export type JobStatus = 'APPLIED' | 'ASSESSMENT' | 'INTERVIEW' | 'OFFER' | 'REJECTED' | 'WITHDRAWN' | 'GHOSTED';
 /** Which kind of interview round — the backend caps technical at 3 and HR at 2. */
 export type InterviewStage = 'TECHNICAL' | 'HR';
+/**
+ * How long a referral has been waiting, as what to do about it rather than as a colour.
+ * The colour is this app's decision, made once in the referral list's own styles.
+ */
+export type ReferralState = 'WAITING' | 'FOLLOW_UP' | 'APPLY_DIRECTLY';
 
 export interface JobApplication {
   id: string;
@@ -19,6 +24,10 @@ export interface JobApplication {
   resumeVersion: string | null;
   source: JobSource;
   referrerName: string | null;
+  /** The handle the referrer or the company portal gave you, to paste in later. */
+  referralId: string | null;
+  /** The day the referral was asked for — not appliedOn; the gap between them is the point. */
+  referralRequestedOn: LogicalDate | null;
   status: JobStatus;
   currentRound: number;
   nextFollowUpOn: LogicalDate | null;
@@ -41,8 +50,32 @@ export interface CreateApplicationPayload {
   resumeVersion?: string;
   source: JobSource;
   referrerName?: string;
+  referralId?: string;
+  referralRequestedOn?: LogicalDate;
   note?: string;
   appliedOn: LogicalDate;
+}
+
+/** Every field optional: a PATCH changes only what it names. */
+export interface UpdateApplicationPayload {
+  company?: string;
+  role?: string;
+  roleId?: string;
+  city?: string;
+  jobUrl?: string;
+  resumeVersion?: string;
+  referrerName?: string;
+  referralId?: string;
+  referralRequestedOn?: LogicalDate;
+  note?: string;
+  nextFollowUpOn?: LogicalDate | null;
+}
+
+/** An application, plus the two facts that only make sense for a referral. */
+export interface Referral {
+  application: JobApplication;
+  daysWaiting: number;
+  state: ReferralState;
 }
 
 export interface TransitionPayload {

@@ -23,6 +23,19 @@ export interface Goal {
   progressFraction: number;
 }
 
+/**
+ * Every field optional: a PATCH changes only what it names. Kind, period, start date and
+ * what the goal measures are not here — changing what a goal counts halfway through
+ * would mean its progress so far was measuring something else.
+ */
+export interface UpdateGoalPayload {
+  title?: string;
+  description?: string;
+  targetDate?: LogicalDate;
+  rewardPoints?: number;
+  targetValue?: number;
+}
+
 export interface CreateGoalPayload {
   title: string;
   description?: string;

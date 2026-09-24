@@ -1,4 +1,4 @@
-<df-sheet [open]="open()" (openChange)="$event ? null : close()" heading="New activity">
+<df-sheet [open]="open()" (openChange)="$event ? null : close()" [heading]="isEditing() ? 'Edit activity' : 'New activity'">
   <div class="activity-type-form">
     <df-input label="Name" placeholder="e.g. Meditated" [ngModel]="name()" (ngModelChange)="name.set($event)" />
     <df-select label="Type" [options]="polarityOptions" [ngModel]="polarity()" (ngModelChange)="polarity.set($event)" />
@@ -18,7 +18,7 @@
       [disabled]="saving() || !name().trim()"
       (click)="save()"
     >
-      Create activity
+      {{ isEditing() ? 'Save changes' : 'Create activity' }}
     </button>
   </div>
 </df-sheet>

@@ -148,6 +148,14 @@
               <button
                 dfIconButton
                 type="button"
+                [label]="'Edit ' + type.name"
+                variant="ghost"
+                [icon]="editIcon"
+                (click)="openActivityEdit(type)"
+              ></button>
+              <button
+                dfIconButton
+                type="button"
                 label="Remove this activity"
                 variant="ghost"
                 [icon]="deleteIcon"
@@ -171,7 +179,12 @@
 
 <df-commitment-bonus-sheet [open]="commitmentSheetOpen()" (closed)="closeCommitmentSheet()" />
 
-<df-activity-type-form-sheet [open]="activityFormOpen()" (closed)="closeActivityForm()" (saved)="onActivityTypeCreated($event)" />
+<df-activity-type-form-sheet
+  [open]="activityFormOpen()"
+  [editing]="editingActivityType()"
+  (closed)="closeActivityForm()"
+  (saved)="onActivityTypeSaved($event)"
+/>
 
 <df-day-detail-sheet
   [date]="historyDay()"

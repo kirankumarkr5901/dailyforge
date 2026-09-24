@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { CreateGoalPayload, Goal, GoalStatus } from './goal.types';
+import { CreateGoalPayload, Goal, GoalStatus, UpdateGoalPayload } from './goal.types';
 
 @Injectable({ providedIn: 'root' })
 export class GoalApi {
@@ -19,6 +19,11 @@ export class GoalApi {
 
   create(payload: CreateGoalPayload): Observable<Goal> {
     return this.http.post<Goal>(`${this.base}/goals`, payload);
+  }
+
+  /** Edits an active goal. No If-Match: Goal deliberately carries no version (see the backend's V19). */
+  update(id: string, payload: UpdateGoalPayload): Observable<Goal> {
+    return this.http.patch<Goal>(`${this.base}/goals/${id}`, payload);
   }
 
   complete(id: string): Observable<Goal> {

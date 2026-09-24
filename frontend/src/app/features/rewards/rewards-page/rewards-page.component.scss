@@ -86,3 +86,16 @@
   display: flex;
   gap: var(--space-1);
 }
+
+/* Spent for now, not gone for good — the penalty hue would overstate it, so this is
+ * merely quiet, with the refresh date doing the explaining. */
+.rewards-page__reward-stock--spent {
+  color: var(--ink-faint);
+}
+
+.rewards-page__reward-refresh {
+  display: block;
+  margin-top: 2px;
+  color: var(--ink-faint);
+  font-size: var(--text-xs);
+}

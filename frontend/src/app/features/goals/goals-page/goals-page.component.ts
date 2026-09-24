@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
-import { Award, LucideAngularModule, Plus } from 'lucide-angular';
+import { Award, LucideAngularModule, Plus, SquarePen } from 'lucide-angular';
 
 import { AuthApi } from '../../../core/auth/auth.api';
 import { AuthSheetService } from '../../../core/auth/auth-sheet.service';
@@ -14,6 +14,7 @@ import { LogicalDate } from '../../../core/time/logical-date';
 import { DfButtonComponent } from '../../../shared/ui/df-button/df-button.component';
 import { DfCardComponent } from '../../../shared/ui/df-card/df-card.component';
 import { DfEmptyStateComponent } from '../../../shared/ui/df-empty-state/df-empty-state.component';
+import { DfIconButtonComponent } from '../../../shared/ui/df-icon-button/df-icon-button.component';
 import { DfSkeletonComponent } from '../../../shared/ui/df-skeleton/df-skeleton.component';
 import { ToastService } from '../../../shared/ui/df-toast/toast.service';
 import { GoalFormSheetComponent } from '../goal-form-sheet/goal-form-sheet.component';
@@ -21,7 +22,15 @@ import { GoalFormSheetComponent } from '../goal-form-sheet/goal-form-sheet.compo
 /** Goals (spec §8.6). Progress bars are driven entirely by the server's own recompute — never estimated here. */
 @Component({
   selector: 'df-goals-page',
-  imports: [LucideAngularModule, DfButtonComponent, DfCardComponent, DfEmptyStateComponent, DfSkeletonComponent, GoalFormSheetComponent],
+  imports: [
+    LucideAngularModule,
+    DfButtonComponent,
+    DfCardComponent,
+    DfEmptyStateComponent,
+    DfIconButtonComponent,
+    DfSkeletonComponent,
+    GoalFormSheetComponent,
+  ],
   templateUrl: './goals-page.component.html',
   styleUrl: './goals-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -38,12 +47,15 @@ export class GoalsPageComponent {
 
   protected readonly plusIcon = Plus;
   protected readonly awardIcon = Award;
+  protected readonly editIcon = SquarePen;
 
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
   protected readonly goals = signal<Goal[]>([]);
   protected readonly todayDate = signal<LogicalDate | null>(null);
   protected readonly formOpen = signal(false);
+  /** The goal the form is editing, or null when it is creating. */
+  protected readonly editingGoal = signal<Goal | null>(null);
 
   protected readonly activeGoals = computed(() => this.goals().filter((g) => g.status === 'ACTIVE'));
   protected readonly otherGoals = computed(() => this.goals().filter((g) => g.status !== 'ACTIVE'));
@@ -87,6 +99,12 @@ export class GoalsPageComponent {
   }
 
   protected openForm(): void {
+    this.editingGoal.set(null);
+    this.formOpen.set(true);
+  }
+
+  protected openEdit(goal: Goal): void {
+    this.editingGoal.set(goal);
     this.formOpen.set(true);
   }
 
@@ -94,10 +112,11 @@ export class GoalsPageComponent {
     this.formOpen.set(false);
   }
 
-  protected async onCreated(): Promise<void> {
+  protected async onSaved(): Promise<void> {
+    const wasEditing = this.editingGoal() !== null;
     this.closeForm();
     await this.refresh();
-    this.toasts.show('Goal created.');
+    this.toasts.show(wasEditing ? 'Goal updated.' : 'Goal created.');
   }
 
   protected canClaim(goal: Goal): boolean {

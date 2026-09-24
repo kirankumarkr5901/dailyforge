@@ -50,6 +50,17 @@ public class JobApplication {
     @Column(name = "referrer_name", length = 120)
     private String referrerName;
 
+    /** Whatever handle the referrer or the company portal gave you, to paste in later. */
+    @Column(name = "referral_id", length = 80)
+    private String referralId;
+
+    /**
+     * The day the referral was asked for — deliberately not {@code appliedOn}, because
+     * you ask before you apply and the gap between the two is the whole point.
+     */
+    @Column(name = "referral_requested_on")
+    private LocalDate referralRequestedOn;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
     private JobStatus status;
@@ -95,6 +106,8 @@ public class JobApplication {
             String resumeVersion,
             JobSource source,
             String referrerName,
+            String referralId,
+            LocalDate referralRequestedOn,
             String note,
             LocalDate appliedOn) {
         JobApplication app = new JobApplication();
@@ -108,6 +121,8 @@ public class JobApplication {
         app.resumeVersion = resumeVersion;
         app.source = source;
         app.referrerName = referrerName;
+        app.referralId = referralId;
+        app.referralRequestedOn = referralRequestedOn;
         app.note = note;
         app.appliedOn = appliedOn;
         app.status = JobStatus.APPLIED;
@@ -123,6 +138,8 @@ public class JobApplication {
             String jobUrl,
             String resumeVersion,
             String referrerName,
+            String referralId,
+            LocalDate referralRequestedOn,
             String note,
             LocalDate nextFollowUpOn) {
         if (company != null) this.company = company;
@@ -132,6 +149,8 @@ public class JobApplication {
         if (jobUrl != null) this.jobUrl = jobUrl;
         if (resumeVersion != null) this.resumeVersion = resumeVersion;
         if (referrerName != null) this.referrerName = referrerName;
+        if (referralId != null) this.referralId = referralId;
+        if (referralRequestedOn != null) this.referralRequestedOn = referralRequestedOn;
         if (note != null) this.note = note;
         this.nextFollowUpOn = nextFollowUpOn;
     }
@@ -234,4 +253,12 @@ public class JobApplication {
         return version;
     }
 
+
+    public String getReferralId() {
+        return referralId;
+    }
+
+    public LocalDate getReferralRequestedOn() {
+        return referralRequestedOn;
+    }
 }

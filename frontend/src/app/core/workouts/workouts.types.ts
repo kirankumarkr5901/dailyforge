@@ -16,12 +16,23 @@ export interface Exercise {
   isElite: boolean;
   ownedByMe: boolean;
   archived: boolean;
+  /** Sent back as If-Match when editing, so a stale device cannot overwrite a newer one. */
+  version: number;
 }
 
 export interface CreateExercisePayload {
   name: string;
   kind: ExerciseKind;
   equipment: Equipment;
+  muscleGroups?: string[];
+  isElite?: boolean;
+}
+
+/** Every field optional: a PATCH changes only what it names. */
+export interface UpdateExercisePayload {
+  name?: string;
+  kind?: ExerciseKind;
+  equipment?: Equipment;
   muscleGroups?: string[];
   isElite?: boolean;
 }
@@ -77,6 +88,17 @@ export interface ExerciseBoardEntry {
   recentPr: Pr | null;
   lifetimePr: Pr | null;
   sets: WorkoutSet[];
+  /** Only an exercise you own can be edited; the shared catalogue is not yours to rename. */
+  ownedByMe: boolean;
+  /** Echoed back as If-Match when editing. */
+  version: number;
+  /**
+   * When you said you were finished with this exercise, or null.
+   *
+   * The third state the board needs: sets logged says the work started, this says it
+   * finished. No set count can stand in for it.
+   */
+  completedAt: string | null;
 }
 
 export interface WorkoutSession {
