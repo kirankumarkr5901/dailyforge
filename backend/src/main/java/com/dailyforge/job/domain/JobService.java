@@ -61,7 +61,7 @@ public class JobService {
         JobApplication app =
                 JobApplication.create(userId, company, role, roleId, city, jobUrl, resumeVersion, source, referrerName, note, appliedOn);
         applications.save(app);
-        events.save(JobEvent.create(app.getId(), null, JobStatus.APPLIED, null, appliedOn, "Applied"));
+        events.save(JobEvent.create(app.getId(), null, JobStatus.APPLIED, null, null, appliedOn, "Applied"));
         return app;
     }
 
@@ -84,14 +84,25 @@ public class JobService {
     }
 
     @Transactional
-    public JobApplication transition(UUID id, UUID userId, JobStatus toStatus, Integer roundNumber, String note, LocalDate occurredOn) {
+    public JobApplication transition(
+            UUID id, UUID userId, JobStatus toStatus, Integer roundNumber, InterviewStage stage, String note, LocalDate occurredOn) {
         JobApplication app = requireOwned(id, userId);
         JobStatus fromStatus = app.getStatus();
 
-        app.transitionTo(toStatus, roundNumber);
+        if (toStatus == JobStatus.INTERVIEW) {
+            if (stage == null) {
+                throw ApiException.outOfRange("interviewStage", "Say which interview this is — technical or HR.");
+            }
+            if (roundNumber == null || roundNumber < 1 || roundNumber > stage.maxRound()) {
+                throw ApiException.outOfRange(
+                        "roundNumber", stage.label(null) + " interviews run from round 1 to " + stage.maxRound() + ".");
+            }
+        }
+
+        app.transitionTo(toStatus, roundNumber, stage);
         applications.save(app);
 
-        JobEvent event = events.save(JobEvent.create(app.getId(), fromStatus, toStatus, roundNumber, occurredOn, note));
+        JobEvent event = events.save(JobEvent.create(app.getId(), fromStatus, toStatus, roundNumber, stage, occurredOn, note));
 
         var config = ruleConfigs.getSystemDefault("JOB_STAGE_ADVANCE");
         if (config.enabled()) {
@@ -105,7 +116,9 @@ public class JobService {
                             amount,
                             "JOB_EVENT",
                             event.getId(),
-                            app.getCompany() + " — " + toStatus,
+                            app.getCompany()
+                                    + " — "
+                                    + (stage != null ? "Interview (" + stage.label(roundNumber) + ")" : toStatus.toString()),
                             "job-stage-advance:" + event.getId()));
         }
 
@@ -118,27 +131,47 @@ public class JobService {
     }
 
     /**
-     * For every application currently REJECTED, the stage it was rejected *from* — the
-     * owner's own display-label distinction ("rejected at screening" vs. after an
-     * interview), computed from the timeline rather than stored as its own status.
+     * Where a rejection came from: the stage it left, and — when that stage was an
+     * interview — which interview.
+     *
+     * The stage and round are read from the last event *before* the rejection rather
+     * than from the rejection event itself, because the rejection carries no round of
+     * its own; "rejected after HR round 1" is a fact about the round that came before
+     * it (owner feedback).
+     */
+    public record RejectionOrigin(JobStatus fromStatus, InterviewStage stage, Integer round) {}
+
+    /**
+     * For every application currently REJECTED, where that rejection came from — the
+     * owner's own display-label distinction ("rejected at screening" vs. "rejected after
+     * HR round 1"), computed from the timeline rather than stored as its own status.
      * Batched the same way {@link #metrics} batches its own event lookup, to keep the
      * list endpoint at one query regardless of how many applications there are.
      */
     @Transactional(readOnly = true)
-    public java.util.Map<UUID, JobStatus> rejectedFromStatuses(List<JobApplication> apps) {
+    public java.util.Map<UUID, RejectionOrigin> rejectionOrigins(List<JobApplication> apps) {
         List<UUID> rejectedIds = apps.stream().filter(a -> a.getStatus() == JobStatus.REJECTED).map(JobApplication::getId).toList();
         if (rejectedIds.isEmpty()) {
             return java.util.Map.of();
         }
         List<JobEvent> allEvents = events.findAllByApplicationIdIn(rejectedIds);
         var eventsByApp = allEvents.stream().collect(java.util.stream.Collectors.groupingBy(JobEvent::getApplicationId));
+        var byTime = java.util.Comparator.comparing(JobEvent::getOccurredOn).thenComparing(JobEvent::getCreatedAt);
 
-        java.util.Map<UUID, JobStatus> result = new java.util.HashMap<>();
+        java.util.Map<UUID, RejectionOrigin> result = new java.util.HashMap<>();
         for (var entry : eventsByApp.entrySet()) {
-            entry.getValue().stream()
-                    .filter(e -> e.getToStatus() == JobStatus.REJECTED)
-                    .max(java.util.Comparator.comparing(JobEvent::getOccurredOn).thenComparing(JobEvent::getCreatedAt))
-                    .ifPresent(latest -> result.put(entry.getKey(), latest.getFromStatus()));
+            List<JobEvent> timeline = entry.getValue().stream().sorted(byTime).toList();
+            for (int i = timeline.size() - 1; i >= 0; i--) {
+                JobEvent event = timeline.get(i);
+                if (event.getToStatus() != JobStatus.REJECTED) {
+                    continue;
+                }
+                JobEvent previous = i > 0 ? timeline.get(i - 1) : null;
+                InterviewStage stage = event.getFromStatus() == JobStatus.INTERVIEW && previous != null ? previous.getInterviewStage() : null;
+                Integer round = stage != null ? previous.getRoundNumber() : null;
+                result.put(entry.getKey(), new RejectionOrigin(event.getFromStatus(), stage, round));
+                break;
+            }
         }
         return result;
     }

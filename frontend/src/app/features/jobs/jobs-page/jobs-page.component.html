@@ -95,8 +95,8 @@
             </div>
             <df-select
               label="Status"
-              [options]="statusOptions"
-              [ngModel]="app.status"
+              [options]="rowStatusOptions"
+              [ngModel]="rowStatusValue(app)"
               (ngModelChange)="advance(app, $event)"
             />
           </df-card>

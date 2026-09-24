@@ -1,4 +1,4 @@
-<df-sheet [open]="open()" (openChange)="$event ? null : close()" heading="New reward">
+<df-sheet [open]="open()" (openChange)="$event ? null : close()" [heading]="isEditing() ? 'Edit reward' : 'New reward'">
   <div class="reward-form">
     <df-input label="Name" placeholder="e.g. Movie night" [ngModel]="name()" (ngModelChange)="name.set($event)" />
     <df-select label="Tier" [options]="tierOptions" [ngModel]="tier()" (ngModelChange)="tier.set($event)" />
@@ -31,7 +31,7 @@
       [disabled]="saving() || !name().trim()"
       (click)="save()"
     >
-      Create reward
+      {{ isEditing() ? 'Save changes' : 'Create reward' }}
     </button>
   </div>
 </df-sheet>

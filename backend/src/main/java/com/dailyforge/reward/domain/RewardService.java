@@ -59,6 +59,17 @@ public class RewardService {
         return rewards.save(Reward.create(userId, name, cost, icon, tier, repeatable, stock));
     }
 
+    @Transactional
+    public Reward update(
+            UUID id, UUID userId, String name, int cost, String icon, RewardTier tier, boolean repeatable, Integer stock) {
+        Reward reward = requireOwned(id, userId);
+        if (reward.isArchived()) {
+            throw ApiException.notFound("That reward");
+        }
+        reward.update(name, cost, icon, tier, repeatable, stock);
+        return rewards.save(reward);
+    }
+
     @Transactional(readOnly = true)
     public List<Reward> list(UUID userId) {
         return rewards.findAllByUserIdAndArchivedAtIsNullOrderByCostAsc(userId);

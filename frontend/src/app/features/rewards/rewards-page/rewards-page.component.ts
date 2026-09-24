@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { Gift, LucideAngularModule, Plus, Trash2 } from 'lucide-angular';
+import { Gift, LucideAngularModule, Pencil, Plus, Trash2 } from 'lucide-angular';
 
 import { AuthSheetService } from '../../../core/auth/auth-sheet.service';
 import { SessionStore } from '../../../core/auth/session.store';
@@ -50,11 +50,14 @@ export class RewardsPageComponent {
   protected readonly plusIcon = Plus;
   protected readonly giftIcon = Gift;
   protected readonly deleteIcon = Trash2;
+  protected readonly editIcon = Pencil;
 
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
   protected readonly rewards = signal<Reward[]>([]);
   protected readonly formOpen = signal(false);
+  /** The reward the form sheet is editing, or null when it is creating one. */
+  protected readonly editingReward = signal<Reward | null>(null);
   protected readonly redeemingId = signal<string | null>(null);
   /** null means "every tier" — the default, unfiltered view. */
   protected readonly tierFilter = signal<RewardTier | null>(null);
@@ -124,17 +127,25 @@ export class RewardsPageComponent {
   }
 
   protected openForm(): void {
+    this.editingReward.set(null);
+    this.formOpen.set(true);
+  }
+
+  protected openEdit(reward: Reward): void {
+    this.editingReward.set(reward);
     this.formOpen.set(true);
   }
 
   protected closeForm(): void {
     this.formOpen.set(false);
+    this.editingReward.set(null);
   }
 
-  protected async onCreated(): Promise<void> {
+  protected async onSaved(): Promise<void> {
+    const wasEditing = this.editingReward() !== null;
     this.closeForm();
     await this.refresh();
-    this.toasts.show('Reward created.');
+    this.toasts.show(wasEditing ? 'Reward updated.' : 'Reward created.');
   }
 
   protected canAfford(reward: Reward): boolean {

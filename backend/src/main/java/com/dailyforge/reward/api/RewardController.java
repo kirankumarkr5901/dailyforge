@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -43,6 +44,22 @@ public class RewardController {
     public RewardResponse create(@Valid @RequestBody CreateRewardRequest request) {
         var reward =
                 rewardService.create(
+                        currentUser.require(),
+                        request.name().trim(),
+                        request.cost(),
+                        request.icon(),
+                        request.tier(),
+                        !Boolean.FALSE.equals(request.isRepeatable()),
+                        request.stock());
+        return RewardResponse.of(reward);
+    }
+
+    /** Same body as create — a reward is small enough that a full replace beats a patch language. */
+    @PutMapping("/rewards/{id}")
+    public RewardResponse update(@PathVariable UUID id, @Valid @RequestBody CreateRewardRequest request) {
+        var reward =
+                rewardService.update(
+                        id,
                         currentUser.require(),
                         request.name().trim(),
                         request.cost(),
