@@ -13,8 +13,19 @@ name: Keep the API warm
 #   * The hourly rollover job (streaks, penalties, day states) is written to catch up
 #     any ticks it missed, so an instance asleep overnight is late, never wrong.
 #
-# Set the repository variable API_HEALTH_URL to the Render health URL to switch this
-# on; with it unset the job does nothing rather than failing every 15 minutes.
+# Point API_HEALTH_URL at the LIVENESS probe, not the full health endpoint:
+#
+#   https://<your-api>/actuator/health/liveness     <- correct
+#   https://<your-api>/actuator/health              <- wakes the database every ping
+#
+# /actuator/health reports on every component including the datasource, so pinging it
+# opens a database connection each time. On a metered database that is the difference
+# between waking the *server* (the point of this job) and waking the *database* too
+# (which burned a month of Neon's free compute allowance in about ten days, and took
+# the whole app down until it reset). The liveness probe answers "is the process
+# running" and touches nothing.
+#
+# With the variable unset the job does nothing rather than failing every 12 minutes.
 
 on:
   schedule:

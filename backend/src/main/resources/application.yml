@@ -115,6 +115,22 @@ spring:
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: ${DB_POOL_SIZE:5}
+      # Let the pool go completely empty when the app is idle.
+      #
+      # This is a cost control, not a performance tweak. Neon's free tier meters
+      # *compute time*, and its compute only suspends when no client holds a
+      # connection. Hikari defaults minimumIdle to maximumPoolSize, so the app sat on
+      # five open connections around the clock and the database could never sleep —
+      # roughly 18 hours of metered compute a day, against a ~190 hour monthly
+      # allowance, for an app nobody was using at 3am. The allowance ran out and every
+      # request failed for days.
+      #
+      # With minimum-idle at zero the pool drains after idle-timeout, the database
+      # suspends, and the meter stops. The cost is one reconnect (a fraction of a
+      # second) on the first request after a quiet spell — paid only by a request that
+      # was already waking a sleeping instance anyway.
+      minimum-idle: 0
+      idle-timeout: 30000
 
 dailyforge:
   cors:
