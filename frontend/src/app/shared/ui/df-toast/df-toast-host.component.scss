@@ -3,8 +3,13 @@
   z-index: var(--z-toast);
   left: 50%;
   translate: -50% 0;
-  /* Above the thumb zone and above any bottom navigation, plus the safe area. */
-  bottom: calc(var(--space-5) + var(--safe-bottom));
+  /* At the top, where a notification belongs (owner feedback).
+   *
+   * It used to sit above the thumb zone at the bottom, which put it over the bottom
+   * navigation and — on a phone — directly under the thumb that had just tapped
+   * something, so the confirmation landed where the finger still was. The top is out of
+   * the way of both, and reads as a notification rather than as another control. */
+  top: calc(var(--space-4) + var(--safe-top));
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
@@ -91,9 +96,11 @@
   color: var(--ink);
 }
 
+/* Enters downward now that it hangs from the top — a toast sliding up from a top edge
+ * reads as leaving rather than arriving. */
 @keyframes df-toast-in {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(-8px);
   }
 }
