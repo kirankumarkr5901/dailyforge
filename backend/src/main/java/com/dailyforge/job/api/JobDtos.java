@@ -30,6 +30,8 @@ public final class JobDtos {
             @Size(max = 80) String resumeVersion,
             @NotNull JobSource source,
             @Size(max = 120) String referrerName,
+            /** Usually a LinkedIn profile; any URL that reaches the referrer. */
+            @Size(max = 500) String referrerProfileUrl,
             @Size(max = 80) String referralId,
             LocalDate referralRequestedOn,
             @Size(max = 1000) String note,
@@ -45,6 +47,7 @@ public final class JobDtos {
             /** Changing this is how a referral request converts into a live application. */
             JobSource source,
             @Size(max = 120) String referrerName,
+            @Size(max = 500) String referrerProfileUrl,
             @Size(max = 80) String referralId,
             LocalDate referralRequestedOn,
             @Size(max = 1000) String note,
@@ -69,6 +72,7 @@ public final class JobDtos {
             String resumeVersion,
             JobSource source,
             String referrerName,
+            String referrerProfileUrl,
             String referralId,
             LocalDate referralRequestedOn,
             JobStatus status,
@@ -102,6 +106,7 @@ public final class JobDtos {
                     app.getResumeVersion(),
                     app.getSource(),
                     app.getReferrerName(),
+                    app.getReferrerProfileUrl(),
                     app.getReferralId(),
                     app.getReferralRequestedOn(),
                     app.getStatus(),

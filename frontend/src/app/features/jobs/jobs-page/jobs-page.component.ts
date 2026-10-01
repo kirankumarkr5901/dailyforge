@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } 
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
-import { Briefcase, Handshake, LucideAngularModule, Plus, Search, Trash2 } from 'lucide-angular';
+import { Briefcase, Handshake, LucideAngularModule, Plus, Search, SquarePen, Trash2 } from 'lucide-angular';
 
 import { AuthApi } from '../../../core/auth/auth.api';
 import { AuthSheetService } from '../../../core/auth/auth-sheet.service';
@@ -111,6 +111,7 @@ export class JobsPageComponent {
   protected readonly referralIcon = Handshake;
   protected readonly searchIcon = Search;
   protected readonly deleteIcon = Trash2;
+  protected readonly editIcon = SquarePen;
   protected readonly statusLabels = STATUS_LABELS;
   protected readonly statusOptions = NEXT_STATUS_OPTIONS;
   protected readonly rowStatusOptions = ROW_STATUS_OPTIONS;
@@ -123,6 +124,8 @@ export class JobsPageComponent {
   protected readonly todayDate = signal<LogicalDate | null>(null);
   protected readonly statusFilter = signal<JobStatus | ''>('');
   protected readonly formOpen = signal(false);
+  /** The application the form is editing, or null when it is creating. */
+  protected readonly editingApplication = signal<JobApplication | null>(null);
 
   /** Which board is showing. Applications is the default: it is the bigger list. */
   protected readonly view = signal<'applications' | 'referrals'>('applications');
@@ -308,6 +311,7 @@ export class JobsPageComponent {
   }
 
   protected openForm(): void {
+    this.editingApplication.set(null);
     this.formOpen.set(true);
   }
 
@@ -315,10 +319,11 @@ export class JobsPageComponent {
     this.formOpen.set(false);
   }
 
-  protected async onCreated(): Promise<void> {
+  protected async onSaved(): Promise<void> {
+    const wasEditing = this.editingApplication() !== null;
     this.closeForm();
     await this.refresh();
-    this.toasts.show('Application added.');
+    this.toasts.show(wasEditing ? 'Application updated.' : 'Application added.');
   }
 
   /** `value` is either a plain status or an `INTERVIEW:STAGE:ROUND` triple. */
@@ -358,6 +363,11 @@ export class JobsPageComponent {
       default:
         return null;
     }
+  }
+
+  protected openEdit(app: JobApplication): void {
+    this.editingApplication.set(app);
+    this.formOpen.set(true);
   }
 
   protected armDelete(app: JobApplication): void {

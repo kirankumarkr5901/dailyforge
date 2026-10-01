@@ -186,3 +186,22 @@ df-card::before {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* The referrer's name is a link when a profile is recorded. Underlined rather than
+ * coloured: the card already spends its colour on the waiting state, and a second
+ * coloured thing would compete with the one that carries urgency. */
+.referral-card__referrer-link {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.referral-card__referrer-link:hover {
+  color: var(--ink);
+}
+
+.referral-card__referrer-link:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 2px;
+}

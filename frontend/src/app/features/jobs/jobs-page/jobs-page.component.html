@@ -210,19 +210,30 @@
                   <span class="jobs-page__referral-badge">{{ badge }}</span>
                 }
               </div>
-              @if (armedDeleteId() === app.id) {
-                <button dfButton type="button" variant="danger" (click)="remove(app)">Delete?</button>
-              } @else {
+              <span class="jobs-page__app-actions">
                 <button
                   dfIconButton
                   type="button"
-                  [label]="'Delete the ' + app.company + ' application'"
+                  [label]="'Edit the ' + app.company + ' application'"
                   variant="ghost"
-                  [icon]="deleteIcon"
+                  [icon]="editIcon"
                   [size]="16"
-                  (click)="armDelete(app)"
+                  (click)="openEdit(app)"
                 ></button>
-              }
+                @if (armedDeleteId() === app.id) {
+                  <button dfButton type="button" variant="danger" (click)="remove(app)">Delete?</button>
+                } @else {
+                  <button
+                    dfIconButton
+                    type="button"
+                    [label]="'Delete the ' + app.company + ' application'"
+                    variant="ghost"
+                    [icon]="deleteIcon"
+                    [size]="16"
+                    (click)="armDelete(app)"
+                  ></button>
+                }
+              </span>
             </div>
             <df-select
               label="Status"
@@ -239,4 +250,10 @@
   }
 }
 
-<df-job-form-sheet [open]="formOpen()" [date]="todayDate()" (closed)="closeForm()" (saved)="onCreated()" />
+<df-job-form-sheet
+  [open]="formOpen()"
+  [date]="todayDate()"
+  [editing]="editingApplication()"
+  (closed)="closeForm()"
+  (saved)="onSaved()"
+/>

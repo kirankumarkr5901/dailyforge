@@ -3,7 +3,24 @@
     <div class="referral-card__id">
       <h3 class="referral-card__company">{{ app().company }}</h3>
       <p class="referral-card__role">
-        {{ app().role }}@if (app().referrerName) { <span class="referral-card__referrer">· via {{ app().referrerName }}</span> }
+        {{ app().role }}@if (app().referrerName) {
+          <span class="referral-card__referrer">·
+            <!-- The name is the link when there is a profile to open: chasing a quiet
+                 referral means messaging the person, and searching for them by name is
+                 the step worth removing. -->
+            @if (app().referrerProfileUrl) {
+              <a
+                class="referral-card__referrer-link"
+                [href]="app().referrerProfileUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+                [attr.aria-label]="'Open ' + app().referrerName + '&rsquo;s profile in a new tab'"
+              >via {{ app().referrerName }}</a>
+            } @else {
+              via {{ app().referrerName }}
+            }
+          </span>
+        }
       </p>
     </div>
     <span class="referral-card__state">{{ stateLabel() }}</span>
