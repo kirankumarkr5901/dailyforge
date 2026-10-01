@@ -137,6 +137,7 @@ public class JobApplication {
             String city,
             String jobUrl,
             String resumeVersion,
+            JobSource source,
             String referrerName,
             String referralId,
             LocalDate referralRequestedOn,
@@ -148,6 +149,11 @@ public class JobApplication {
         if (city != null) this.city = city;
         if (jobUrl != null) this.jobUrl = jobUrl;
         if (resumeVersion != null) this.resumeVersion = resumeVersion;
+        // A referral that has been acted on stops being a request: either somebody put
+        // it forward (REFERRED) or the wait was given up on and it was applied to
+        // directly (APPLIED). Either way the waiting clock stops, which is what moves
+        // it off the referral board — see JobService.referrals().
+        if (source != null) this.source = source;
         if (referrerName != null) this.referrerName = referrerName;
         if (referralId != null) this.referralId = referralId;
         if (referralRequestedOn != null) this.referralRequestedOn = referralRequestedOn;

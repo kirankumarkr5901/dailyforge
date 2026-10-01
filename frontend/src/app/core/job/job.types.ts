@@ -58,6 +58,8 @@ export interface CreateApplicationPayload {
 
 /** Every field optional: a PATCH changes only what it names. */
 export interface UpdateApplicationPayload {
+  /** Changing this converts a referral request into a live application. */
+  source?: JobSource;
   company?: string;
   role?: string;
   roleId?: string;

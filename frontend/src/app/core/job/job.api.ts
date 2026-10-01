@@ -38,6 +38,11 @@ export class JobApi {
     return this.http.patch<JobApplication>(`${this.base}/jobs/${id}`, payload, ifMatch(version));
   }
 
+  /** Deletes an application, its timeline, and any points its stage advances paid. */
+  delete(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/jobs/${id}`);
+  }
+
   /** Referrals only, oldest ask first, each with how long it has been waiting. */
   referrals(): Observable<Referral[]> {
     return this.http.get<Referral[]>(`${this.base}/jobs/referrals`);

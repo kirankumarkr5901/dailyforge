@@ -15,6 +15,7 @@ import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -84,6 +85,7 @@ public class JobController {
                         request.city(),
                         request.jobUrl(),
                         request.resumeVersion(),
+                        request.source(),
                         request.referrerName(),
                         request.referralId(),
                         request.referralRequestedOn(),
@@ -109,6 +111,13 @@ public class JobController {
     @GetMapping("/{id}/timeline")
     public List<EventResponse> timeline(@PathVariable UUID id) {
         return jobs.timeline(id, currentUser.require()).stream().map(EventResponse::of).toList();
+    }
+
+    /** Deletes an application, its timeline, and any points its stage advances paid. */
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable UUID id) {
+        jobs.delete(id, currentUser.require());
     }
 
     /**

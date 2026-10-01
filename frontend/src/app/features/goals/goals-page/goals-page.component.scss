@@ -86,3 +86,17 @@
   gap: var(--space-1);
   flex: none;
 }
+
+/* A completed goal reads as finished at a glance, not only by its status word.
+ * Green is the system's "commitment kept" colour — the same one a done habit uses —
+ * rather than the warm "earned" ramp, because the reward was already paid at the
+ * moment it completed. */
+.goals-page__goal--completed {
+  border-color: var(--done);
+  background: var(--done-wash);
+}
+
+.goals-page__status--completed {
+  color: var(--done-ink);
+  font-weight: 600;
+}

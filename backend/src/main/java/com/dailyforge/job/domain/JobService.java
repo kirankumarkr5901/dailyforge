@@ -24,6 +24,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class JobService {
 
+    /** Points from a stage advance hang off the event, not the application. */
+    private static final String EVENT_SOURCE_TYPE = "JOB_EVENT";
+
     private final JobApplicationRepository applications;
     private final JobEventRepository events;
     private final PointsService points;
@@ -94,6 +97,7 @@ public class JobService {
             String city,
             String jobUrl,
             String resumeVersion,
+            JobSource source,
             String referrerName,
             String referralId,
             LocalDate referralRequestedOn,
@@ -107,6 +111,7 @@ public class JobService {
                 city,
                 jobUrl,
                 resumeVersion,
+                source,
                 referrerName,
                 referralId,
                 referralRequestedOn,
@@ -146,7 +151,7 @@ public class JobService {
                             PointsCategory.JOB,
                             "JOB_STAGE_ADVANCE",
                             amount,
-                            "JOB_EVENT",
+                            EVENT_SOURCE_TYPE,
                             event.getId(),
                             app.getCompany()
                                     + " — "
@@ -160,10 +165,10 @@ public class JobService {
     /**
      * Every referral, with how long it has been waiting and what to do about it.
      *
-     * A referral leaves this list when it stops being a live question — rejected or
-     * withdrawn — rather than when it converts. One that turned into a real interview
-     * is still a referral that worked, and seeing it is how you learn which referrers
-     * are worth asking again.
+     * Only referrals still *waiting*. One that has been acted on — somebody put it
+     * forward, or the wait was given up on and it was applied to directly — has no
+     * clock left to run, so it belongs on the applications board carrying its referral
+     * badge, not on a list whose whole subject is elapsed waiting time.
      *
      * The waiting state is computed here rather than stored, in the user's own zone via
      * DayService: a stored state would be stale the moment a day passed with nobody
@@ -177,7 +182,7 @@ public class JobService {
 
         return applications
                 .findAllByUserIdAndSourceInOrderByReferralRequestedOnAsc(
-                        userId, List.of(JobSource.REFERRAL_REQUESTED, JobSource.REFERRED))
+                        userId, List.of(JobSource.REFERRAL_REQUESTED))
                 .stream()
                 .filter(app -> app.getStatus() != JobStatus.REJECTED && app.getStatus() != JobStatus.WITHDRAWN)
                 .map(
@@ -247,6 +252,25 @@ public class JobService {
     public List<JobEvent> timeline(UUID id, UUID userId) {
         JobApplication app = requireOwned(id, userId);
         return events.findAllByApplicationIdOrderByOccurredOnAscCreatedAtAsc(app.getId());
+    }
+
+    /**
+     * Deletes an application and everything it carried.
+     *
+     * Each stage advance may have paid points, keyed by the event rather than the
+     * application, so every event is reversed before its row goes — otherwise the
+     * ledger would keep entries pointing at events that no longer exist, and the score
+     * would include work the user has just said never happened.
+     */
+    @Transactional
+    public void delete(UUID id, UUID userId) {
+        JobApplication app = requireOwned(id, userId);
+        List<JobEvent> timeline = events.findAllByApplicationIdOrderByOccurredOnAscCreatedAtAsc(id);
+        for (JobEvent event : timeline) {
+            points.reverseBySource(EVENT_SOURCE_TYPE, event.getId(), "Application deleted");
+        }
+        events.deleteAll(timeline);
+        applications.delete(app);
     }
 
     public JobApplication requireOwned(UUID id, UUID userId) {

@@ -42,6 +42,8 @@ public final class JobDtos {
             @Size(max = 120) String city,
             @Size(max = 500) String jobUrl,
             @Size(max = 80) String resumeVersion,
+            /** Changing this is how a referral request converts into a live application. */
+            JobSource source,
             @Size(max = 120) String referrerName,
             @Size(max = 80) String referralId,
             LocalDate referralRequestedOn,
