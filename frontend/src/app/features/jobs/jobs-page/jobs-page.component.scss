@@ -224,3 +224,30 @@
   font-size: var(--text-xs);
   font-variant-numeric: tabular-nums;
 }
+
+/* Search sits beside the status filter; on a narrow screen they stack. */
+.jobs-page__filter {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--space-3);
+}
+
+@media (max-width: 520px) {
+  .jobs-page__filter {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Marks an application that came through a referral. Quiet by design: it is a note on
+ * the application's origin, not its state, and the status label beside it is the thing
+ * that should carry the eye. */
+.jobs-page__referral-badge {
+  display: inline-block;
+  margin-top: var(--space-1);
+  padding: 1px var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--info-wash);
+  color: var(--info-ink);
+  font-size: var(--text-xs);
+  font-weight: 600;
+}

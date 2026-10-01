@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
-import { Check, Copy, ExternalLink, LucideAngularModule } from 'lucide-angular';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
+import { Check, Copy, ExternalLink, LucideAngularModule, Send } from 'lucide-angular';
 
 import { Referral, ReferralState } from '../../../core/job/job.types';
+import { DfButtonComponent } from '../../../shared/ui/df-button/df-button.component';
 import { DfCardComponent } from '../../../shared/ui/df-card/df-card.component';
 import { DfIconButtonComponent } from '../../../shared/ui/df-icon-button/df-icon-button.component';
 import { ToastService } from '../../../shared/ui/df-toast/toast.service';
@@ -36,7 +37,7 @@ const STATE_LABELS: Record<ReferralState, string> = {
  */
 @Component({
   selector: 'df-referral-card',
-  imports: [LucideAngularModule, DfCardComponent, DfIconButtonComponent],
+  imports: [LucideAngularModule, DfButtonComponent, DfCardComponent, DfIconButtonComponent],
   templateUrl: './referral-card.component.html',
   styleUrl: './referral-card.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -47,9 +48,15 @@ export class ReferralCardComponent {
 
   readonly referral = input.required<Referral>();
 
+  /** Somebody put you forward — the wait is over and it is a live application. */
+  readonly referredRequested = output<void>();
+  /** You gave up waiting and applied yourself. Also the way out of a ghosted referral. */
+  readonly appliedRequested = output<void>();
+
   protected readonly copyIcon = Copy;
   protected readonly openIcon = ExternalLink;
   protected readonly doneIcon = Check;
+  protected readonly applyIcon = Send;
 
   protected readonly app = computed(() => this.referral().application);
 

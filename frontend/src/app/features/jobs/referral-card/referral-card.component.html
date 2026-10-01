@@ -77,4 +77,19 @@
   </dl>
 
   <p class="referral-card__suggestion">{{ suggestion() }}</p>
+
+  <!-- The two ways a referral stops being a question (owner feedback). Both end the
+       wait and move the card onto the applications board carrying its referral badge;
+       which one you press is the part worth recording, because whether a referrer
+       actually came through is the thing you learn from asking. -->
+  <div class="referral-card__actions">
+    <button dfButton type="button" variant="primary" (click)="referredRequested.emit()">
+      <lucide-icon [img]="doneIcon" [size]="16" aria-hidden="true" />
+      They referred me
+    </button>
+    <button dfButton type="button" variant="secondary" (click)="appliedRequested.emit()">
+      <lucide-icon [img]="applyIcon" [size]="16" aria-hidden="true" />
+      I applied anyway
+    </button>
+  </div>
 </df-card>

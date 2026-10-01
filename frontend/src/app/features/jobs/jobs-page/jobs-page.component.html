@@ -113,7 +113,11 @@
 
       <div class="jobs-page__list">
         @for (referral of visibleReferrals(); track referral.application.id) {
-          <df-referral-card [referral]="referral" />
+          <df-referral-card
+            [referral]="referral"
+            (referredRequested)="convertReferral(referral.application, 'REFERRED')"
+            (appliedRequested)="convertReferral(referral.application, 'APPLIED')"
+          />
         } @empty {
           <df-empty-state
             [icon]="referralIcon"
@@ -154,6 +158,13 @@
   }
 
   <div class="jobs-page__filter">
+    <df-input
+      label="Search"
+      type="search"
+      placeholder="Company or role"
+      [ngModel]="companyQuery()"
+      (ngModelChange)="companyQuery.set($event)"
+    />
     <df-select
       label="Filter by status"
       [options]="[{ value: '', label: 'All' }].concat(statusOptions)"
@@ -166,10 +177,12 @@
     @if (applications().length > 0) {
       <df-empty-state
         [icon]="briefcaseIcon"
-        title="Nothing at that status"
-        body="Try a different filter, or show every application."
+        title="Nothing matches that"
+        body="Try a different search or status, or show everything."
       >
-        <button dfButton type="button" variant="secondary" (click)="statusFilter.set('')">Show all</button>
+        <button dfButton type="button" variant="secondary" (click)="statusFilter.set(''); companyQuery.set('')">
+          Show all
+        </button>
       </df-empty-state>
     } @else {
       <df-empty-state
@@ -191,7 +204,25 @@
                 <h3 class="jobs-page__app-company">{{ app.company }}</h3>
                 <p class="jobs-page__app-role">{{ app.role }}@if (app.city) { , {{ app.city }} }</p>
                 <span class="jobs-page__app-label">{{ displayLabel(app) }}</span>
+                <!-- An application that came through a referral is still an application;
+                     the badge is the only thing that sets it apart. -->
+                @if (referralBadge(app); as badge) {
+                  <span class="jobs-page__referral-badge">{{ badge }}</span>
+                }
               </div>
+              @if (armedDeleteId() === app.id) {
+                <button dfButton type="button" variant="danger" (click)="remove(app)">Delete?</button>
+              } @else {
+                <button
+                  dfIconButton
+                  type="button"
+                  [label]="'Delete the ' + app.company + ' application'"
+                  variant="ghost"
+                  [icon]="deleteIcon"
+                  [size]="16"
+                  (click)="armDelete(app)"
+                ></button>
+              }
             </div>
             <df-select
               label="Status"

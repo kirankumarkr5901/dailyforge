@@ -171,3 +171,18 @@ df-card::before {
     gap: 0;
   }
 }
+
+/* The two ways out of waiting, side by side: being referred is the hoped-for one, so it
+ * leads; applying anyway is the fallback and sits beside it rather than below. */
+.referral-card__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+@media (max-width: 420px) {
+  .referral-card__actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

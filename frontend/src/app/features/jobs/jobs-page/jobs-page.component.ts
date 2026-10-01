@@ -2,18 +2,21 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } 
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
-import { Briefcase, Handshake, LucideAngularModule, Plus } from 'lucide-angular';
+import { Briefcase, Handshake, LucideAngularModule, Plus, Search, Trash2 } from 'lucide-angular';
 
 import { AuthApi } from '../../../core/auth/auth.api';
 import { AuthSheetService } from '../../../core/auth/auth-sheet.service';
 import { SessionStore } from '../../../core/auth/session.store';
 import { SyncStore } from '../../../core/sync/sync.store';
 import { JobApi } from '../../../core/job/job.api';
-import { InterviewStage, JobApplication, JobMetrics, JobStatus, Referral, ReferralState } from '../../../core/job/job.types';
+import { PointsStore } from '../../../core/points/points.store';
+import { InterviewStage, JobApplication, JobMetrics, JobSource, JobStatus, Referral, ReferralState } from '../../../core/job/job.types';
 import { LogicalDate, formatLong } from '../../../core/time/logical-date';
 import { DfButtonComponent } from '../../../shared/ui/df-button/df-button.component';
 import { DfCardComponent } from '../../../shared/ui/df-card/df-card.component';
 import { DfEmptyStateComponent } from '../../../shared/ui/df-empty-state/df-empty-state.component';
+import { DfIconButtonComponent } from '../../../shared/ui/df-icon-button/df-icon-button.component';
+import { DfInputComponent } from '../../../shared/ui/df-input/df-input.component';
 import { DfSelectComponent, DfSelectOption } from '../../../shared/ui/df-select/df-select.component';
 import { DfSkeletonComponent } from '../../../shared/ui/df-skeleton/df-skeleton.component';
 import { ToastService } from '../../../shared/ui/df-toast/toast.service';
@@ -82,6 +85,8 @@ const REFERRAL_URGENCY: Record<ReferralState, number> = { APPLY_DIRECTLY: 0, FOL
     DfButtonComponent,
     DfCardComponent,
     DfEmptyStateComponent,
+    DfIconButtonComponent,
+    DfInputComponent,
     DfSelectComponent,
     DfSkeletonComponent,
     JobFormSheetComponent,
@@ -95,6 +100,7 @@ export class JobsPageComponent {
   private readonly api = inject(JobApi);
   private readonly authApi = inject(AuthApi);
   private readonly toasts = inject(ToastService);
+  private readonly points = inject(PointsStore);
 
   private readonly sync = inject(SyncStore);
   protected readonly session = inject(SessionStore);
@@ -103,6 +109,8 @@ export class JobsPageComponent {
   protected readonly plusIcon = Plus;
   protected readonly briefcaseIcon = Briefcase;
   protected readonly referralIcon = Handshake;
+  protected readonly searchIcon = Search;
+  protected readonly deleteIcon = Trash2;
   protected readonly statusLabels = STATUS_LABELS;
   protected readonly statusOptions = NEXT_STATUS_OPTIONS;
   protected readonly rowStatusOptions = ROW_STATUS_OPTIONS;
@@ -123,6 +131,13 @@ export class JobsPageComponent {
   protected readonly referralFilter = signal<ReferralState | null>(null);
   /** True when the referral list could not be fetched — see loadReferrals(). */
   protected readonly referralsUnavailable = signal(false);
+
+  /** Free-text company search (owner feedback). Applied on top of the status filter. */
+  protected readonly companyQuery = signal('');
+
+  /** Delete is irreversible, so the button arms on one press and acts on the next. */
+  protected readonly armedDeleteId = signal<string | null>(null);
+  private disarmTimer?: ReturnType<typeof setTimeout>;
 
   constructor() {
     let wasAuthenticated = false;
@@ -230,8 +245,19 @@ export class JobsPageComponent {
 
   protected filteredApplications() {
     const filter = this.statusFilter();
-    const apps = this.applications();
-    return filter ? apps.filter((a) => a.status === filter) : apps;
+    const query = this.companyQuery().trim().toLowerCase();
+    let apps = this.applications();
+    if (filter) {
+      apps = apps.filter((a) => a.status === filter);
+    }
+    if (query) {
+      // Company first, but role too: "the Stripe backend one" is as likely a memory as
+      // the company alone, and a search that only matched one of them would feel broken.
+      apps = apps.filter(
+        (a) => a.company.toLowerCase().includes(query) || a.role.toLowerCase().includes(query),
+      );
+    }
+    return apps;
   }
 
   /** Newest applied-on date first, each group already in that order from the API
@@ -314,6 +340,66 @@ export class JobsPageComponent {
       this.toasts.show(`${app.company} moved to ${label}.`);
     } catch {
       this.toasts.show('Could not update that application. Try again.', { tone: 'penalty' });
+    }
+  }
+
+  /**
+   * The badge that marks an application as having come through a referral, or null for
+   * an ordinary one. A referral is not a separate kind of record (owner feedback) — it
+   * is an application whose origin is worth remembering, because which referrers
+   * actually come through is the thing you learn from a job search.
+   */
+  protected referralBadge(app: JobApplication): string | null {
+    switch (app.source) {
+      case 'REFERRAL_REQUESTED':
+        return 'Referral requested';
+      case 'REFERRED':
+        return app.referrerName ? `Referred by ${app.referrerName}` : 'Referred';
+      default:
+        return null;
+    }
+  }
+
+  protected armDelete(app: JobApplication): void {
+    this.armedDeleteId.set(app.id);
+    clearTimeout(this.disarmTimer);
+    this.disarmTimer = setTimeout(() => this.armedDeleteId.set(null), 4000);
+  }
+
+  /**
+   * Deletes an application and everything hanging off it. The server reverses any
+   * points its stage advances paid, so the score cannot keep credit for a pipeline
+   * the user has just said never happened.
+   */
+  protected async remove(app: JobApplication): Promise<void> {
+    clearTimeout(this.disarmTimer);
+    this.armedDeleteId.set(null);
+    try {
+      await firstValueFrom(this.api.delete(app.id));
+      await this.refresh();
+      void this.points.refresh();
+      this.toasts.show('Application deleted.');
+    } catch {
+      this.toasts.show('Could not delete that. Try again.', { tone: 'penalty' });
+    }
+  }
+
+  /**
+   * Turns a referral request into a live application (owner feedback).
+   *
+   * Two ways out of waiting, and the difference is worth keeping: somebody actually put
+   * you forward (REFERRED), or the wait was given up on and you applied yourself
+   * (APPLIED). Either stops the referral clock, which is what moves the card off the
+   * referral board; the badge on the applications list still says a referral was asked
+   * for.
+   */
+  protected async convertReferral(app: JobApplication, source: JobSource): Promise<void> {
+    try {
+      await firstValueFrom(this.api.update(app.id, { source }, app.version));
+      await this.refresh();
+      this.toasts.show(source === 'REFERRED' ? 'Marked as referred.' : 'Marked as applied.');
+    } catch {
+      this.toasts.show('Could not update that. Try again.', { tone: 'penalty' });
     }
   }
 
