@@ -35,7 +35,7 @@ Target stack, confirmed: Angular static build on **Netlify** (or Vercel), Spring
 - Add a multi-stage `Dockerfile` to `backend/`: Gradle build stage, then a slim JRE 21 runtime stage. Render builds from the repo.
 - Environment variables, none of them in git:
   `SPRING_PROFILES_ACTIVE=staging`, `DATABASE_URL`, `JWT_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `CORS_ALLOWED_ORIGINS`, `APP_BASE_URL`.
-- Health check path `/actuator/health`. Render restarts the container when it fails.
+- Health check path `/actuator/health/liveness` (never the full `/actuator/health`, which wakes the database on every poll). Render restarts the container when it fails.
 - **Free-tier caveat, plan for it:** Render's free instances sleep after inactivity and cold-start in tens of seconds. That is tolerable for staging. For production either accept it, pay the smallest paid tier, or ping the health endpoint on a schedule.
 - The hourly rollover job runs inside the app via `@Scheduled`. On a sleeping free instance it will miss ticks — which is exactly why §5.6 requires the job to be idempotent and to catch up any missed days rather than assuming it ran on time. Verify this behaviour here, not in production.
 

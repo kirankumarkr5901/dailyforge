@@ -55,7 +55,7 @@ Nothing else to do here. Flyway creates every table on the API's first boot.
 
 1. <https://render.com> → sign in with GitHub → **New** → **Blueprint**.
 2. Pick this repository. Render reads `render.yaml` and proposes a service called
-   `dailyforge-api` — free plan, Singapore, Docker, health check on `/actuator/health`.
+   `dailyforge-api` — free plan, Singapore, Docker, health check on `/actuator/health/liveness`.
 3. It will ask for the values marked `sync: false`. Fill in:
    - `DATABASE_URL`, `DATABASE_USERNAME`, `DATABASE_PASSWORD` — from step 1.
    - `CORS_ALLOWED_ORIGINS` — you do not have the Netlify URL yet. Put
@@ -150,7 +150,7 @@ Optionally tighten the CSP: in `netlify.toml` (repository root), replace
 
 | Name | Value |
 |---|---|
-| `API_HEALTH_URL` | `https://<your-api>.onrender.com/actuator/health` |
+| `API_HEALTH_URL` | `https://<your-api>.onrender.com/actuator/health/liveness` |
 
 `.github/workflows/keep-warm.yml` pings it every 12 minutes between 06:30 and 00:30 IST.
 Until this variable exists the workflow does nothing rather than failing noisily.

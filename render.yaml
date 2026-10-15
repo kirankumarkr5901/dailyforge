@@ -18,7 +18,11 @@ services:
     # Closest region to IST. Neon should be created in Singapore too — a database on
     # the other side of the world adds a round trip to every single query.
     region: singapore
-    healthCheckPath: /actuator/health
+    # The liveness probe, never /actuator/health. Render polls this every few seconds while
+    # the instance is up, and the full endpoint includes a datasource check, so every poll
+    # opened a Neon connection and the metered database could never suspend. Liveness
+    # answers "is the process running" and touches nothing (see keep-warm.yml).
+    healthCheckPath: /actuator/health/liveness
     autoDeploy: true
 
     envVars:
