@@ -1,0 +1,21 @@
+<button
+  type="button"
+  class="quest__check"
+  [attr.aria-pressed]="quest().done"
+  [attr.aria-label]="(quest().done ? 'Mark not done: ' : 'Mark done: ') + quest().title"
+  [disabled]="busy()"
+  (click)="toggled.emit()"
+>
+  @if (quest().done) {
+    <lucide-icon [img]="checkIcon" [size]="18" aria-hidden="true" />
+  }
+</button>
+<div class="quest__body">
+  <p class="quest__title">{{ quest().title }}</p>
+  <p class="quest__desc">{{ quest().description }}</p>
+  <div class="quest__meta">
+    <span class="quest__area">{{ areaLabels[quest().area] }}</span>
+    <span class="quest__reward">+{{ quest().xp }} XP</span>
+    <span class="quest__points">+{{ quest().points }} pts</span>
+  </div>
+</div>

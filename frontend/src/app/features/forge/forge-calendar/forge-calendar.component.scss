@@ -1,0 +1,69 @@
+.cal {
+  display: grid;
+  grid-template-columns: repeat(11, minmax(0, 1fr));
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cal__cell {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  border-radius: 4px;
+  background: var(--forge-line);
+  font-size: 0.625rem;
+  font-weight: 700;
+}
+
+.cal__cell--upcoming {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--forge-line);
+}
+
+.cal__cell--today {
+  background: transparent;
+  box-shadow: inset 0 0 0 2px var(--forge-gold);
+  color: var(--forge-gold);
+}
+
+.cal__cell--done {
+  background: linear-gradient(135deg, var(--forge-gold), var(--forge-ember));
+  color: #1a0d03;
+}
+
+.cal__cell--partial {
+  background: var(--forge-ember-wash);
+  box-shadow: inset 0 0 0 1px var(--forge-ember);
+}
+
+.cal__cell--missed {
+  background: var(--forge-line);
+}
+
+.cal__num {
+  line-height: 1;
+}
+
+.cal__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-top: var(--space-3);
+  color: var(--forge-muted);
+  font-size: var(--text-xs);
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+  }
+}
+
+.cal__swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}

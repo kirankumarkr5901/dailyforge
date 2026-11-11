@@ -1,0 +1,14 @@
+<ul class="stats">
+  @for (bar of bars(); track bar.area) {
+    <li class="stats__row" [class]="bar.areaClass">
+      <span class="stats__label">
+        {{ bar.label }}
+        @if (bar.focus) {
+          <span class="stats__focus">Focus</span>
+        }
+      </span>
+      <span class="stats__track"><span class="stats__fill" [style.width.%]="bar.percent"></span></span>
+      <span class="stats__xp">{{ bar.xp }}</span>
+    </li>
+  }
+</ul>

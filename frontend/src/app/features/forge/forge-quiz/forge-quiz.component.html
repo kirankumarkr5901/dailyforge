@@ -1,0 +1,100 @@
+<div class="quiz">
+  <div class="quiz__top">
+    <button type="button" class="quiz__back" (click)="back()" aria-label="Back">
+      <lucide-icon [img]="backIcon" [size]="20" aria-hidden="true" />
+    </button>
+    <div
+      class="quiz__bar"
+      role="progressbar"
+      aria-label="Questionnaire progress"
+      [attr.aria-valuenow]="progressPercent()"
+      aria-valuemin="0"
+      aria-valuemax="100"
+    >
+      <div class="quiz__bar-fill" [style.width.%]="progressPercent()"></div>
+    </div>
+  </div>
+
+  @if (loadError()) {
+    <p class="quiz__error" role="alert">Could not load the questions.</p>
+    <button type="button" class="forge-btn forge-btn--ghost" (click)="load()">Try again</button>
+  } @else if (!questionnaire()) {
+    <p class="quiz__loading">Loading…</p>
+  } @else if (onModeStep()) {
+    <p class="quiz__eyebrow">Last step</p>
+    <h2 class="quiz__prompt">How hard should it push you?</h2>
+
+    <div class="quiz__modes">
+      <button
+        type="button"
+        class="quiz__mode"
+        [class.is-picked]="mode() === 'NORMAL'"
+        [attr.aria-pressed]="mode() === 'NORMAL'"
+        (click)="mode.set('NORMAL')"
+      >
+        <span class="quiz__mode-name">Normal</span>
+        <span class="quiz__mode-body">A missed day resets your streak. Nothing else is lost.</span>
+      </button>
+      <button
+        type="button"
+        class="quiz__mode quiz__mode--hard"
+        [class.is-picked]="mode() === 'HARD'"
+        [attr.aria-pressed]="mode() === 'HARD'"
+        (click)="mode.set('HARD')"
+      >
+        <span class="quiz__mode-name">Hard</span>
+        <span class="quiz__mode-body">
+          20% more XP per quest — but every quest left undone when the day ends costs you XP.
+        </span>
+      </button>
+    </div>
+
+    @if (submitError(); as message) {
+      <p class="quiz__error" role="alert">{{ message }}</p>
+    }
+
+    <button
+      type="button"
+      class="forge-btn forge-btn--primary quiz__cta"
+      [disabled]="!mode() || submitting()"
+      (click)="begin()"
+    >
+      {{ submitting() ? 'Building your plan…' : 'Begin day 1' }}
+    </button>
+  } @else if (current(); as question) {
+    <p class="quiz__eyebrow">Question {{ step() + 1 }} of {{ questionCount() }}</p>
+    <h2 class="quiz__prompt">{{ question.prompt }}</h2>
+    @if (question.hint) {
+      <p class="quiz__hint">{{ question.hint }}</p>
+    }
+
+    <div class="quiz__options" [attr.role]="question.maxPicks === 1 ? 'radiogroup' : 'group'" [attr.aria-label]="question.prompt">
+      @for (option of question.options; track option.code) {
+        <button
+          type="button"
+          class="quiz__option"
+          [class.is-picked]="isPicked(question, option.code)"
+          [attr.role]="question.maxPicks === 1 ? 'radio' : null"
+          [attr.aria-checked]="question.maxPicks === 1 ? isPicked(question, option.code) : null"
+          [attr.aria-pressed]="question.maxPicks === 1 ? null : isPicked(question, option.code)"
+          (click)="choose(question, option.code)"
+        >
+          {{ option.label }}
+        </button>
+      }
+    </div>
+
+    @if (question.maxPicks > 1) {
+      <button
+        type="button"
+        class="forge-btn forge-btn--primary quiz__cta"
+        [disabled]="!canContinue(question)"
+        (click)="next()"
+      >
+        Continue
+      </button>
+    } @else if (picked(question).length > 0) {
+      <button type="button" class="forge-btn forge-btn--ghost quiz__cta" (click)="next()">Keep this answer</button>
+    }
+  }
+</div>

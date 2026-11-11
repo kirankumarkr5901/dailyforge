@@ -1,0 +1,54 @@
+/*
+ * Shared by every Forge 66 component. Colours come from the --forge-* tokens set on
+ * the page root (forge-page.component.scss); this partial only holds rules that more
+ * than one component's template uses, since component styles are encapsulated.
+ */
+
+.forge-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--tap-min);
+  padding-inline: var(--space-5);
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    opacity var(--duration-fast) var(--ease-out);
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+}
+
+.forge-btn--primary {
+  background: linear-gradient(135deg, var(--forge-gold), var(--forge-ember));
+  color: #1a0d03;
+}
+
+.forge-btn--ghost {
+  border-color: var(--forge-line-strong);
+  background: transparent;
+  color: var(--forge-ink);
+
+  &:hover:not(:disabled) {
+    border-color: var(--forge-muted);
+  }
+}
+
+.forge-btn--danger {
+  border-color: var(--forge-line);
+  background: transparent;
+  color: var(--forge-danger);
+}

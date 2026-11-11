@@ -1,0 +1,131 @@
+/* Colours come from the --forge-* tokens defined on the Forge page's root. */
+@use '../forge-shared';
+
+.quiz {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.quiz__top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.quiz__back {
+  display: grid;
+  place-items: center;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  flex: none;
+  border: 1px solid var(--forge-line);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--forge-ink);
+  cursor: pointer;
+}
+
+.quiz__bar {
+  flex: 1;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--forge-line);
+  overflow: hidden;
+}
+
+.quiz__bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--forge-gold), var(--forge-ember));
+  transition: width var(--duration-base) var(--ease-out);
+}
+
+.quiz__eyebrow {
+  margin: var(--space-3) 0 0;
+  color: var(--forge-muted);
+  font-size: var(--text-xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.quiz__prompt {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-variation-settings: 'wdth' var(--display-width);
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+}
+
+.quiz__hint {
+  margin: 0;
+  color: var(--forge-muted);
+  font-size: var(--text-sm);
+}
+
+.quiz__options,
+.quiz__modes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.quiz__option,
+.quiz__mode {
+  min-height: 56px;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--forge-line);
+  border-radius: var(--radius-card);
+  background: var(--forge-panel);
+  color: var(--forge-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
+
+  &:hover {
+    border-color: var(--forge-line-strong);
+  }
+
+  &.is-picked {
+    border-color: var(--forge-gold);
+    background: var(--forge-gold-wash);
+  }
+}
+
+.quiz__mode {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.quiz__mode-name {
+  font-weight: 700;
+}
+
+.quiz__mode-body {
+  color: var(--forge-muted);
+  font-size: var(--text-sm);
+}
+
+.quiz__mode--hard.is-picked {
+  border-color: var(--forge-ember);
+  background: var(--forge-ember-wash);
+}
+
+.quiz__cta {
+  margin-top: var(--space-3);
+}
+
+.quiz__loading {
+  color: var(--forge-muted);
+}
+
+.quiz__error {
+  margin: 0;
+  color: var(--forge-danger);
+  font-size: var(--text-sm);
+}

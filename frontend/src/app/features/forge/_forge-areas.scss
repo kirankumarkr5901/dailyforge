@@ -1,0 +1,23 @@
+/*
+ * Each life area's accent, applied as --area on a host carrying `area--<name>`. The hues
+ * themselves are tokens on the Forge page root (--area-fitness, ...).
+ */
+
+:host(.area--fitness) {
+  --area: var(--area-fitness);
+}
+:host(.area--focus) {
+  --area: var(--area-focus);
+}
+:host(.area--health) {
+  --area: var(--area-health);
+}
+:host(.area--mindset) {
+  --area: var(--area-mindset);
+}
+:host(.area--learning) {
+  --area: var(--area-learning);
+}
+:host(.area--social) {
+  --area: var(--area-social);
+}
