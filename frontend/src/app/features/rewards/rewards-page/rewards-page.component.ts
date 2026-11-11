@@ -204,7 +204,7 @@ export class RewardsPageComponent {
 
   protected redeemReason(reward: Reward): string {
     if (this.isOutOfStock(reward)) {
-      return `Used up ${TIER_WINDOW[reward.tier]}. It comes back on its own.`;
+      return `Out of stock for ${TIER_WINDOW[reward.tier]}.`;
     }
     return `Costs ${reward.cost}. You have ${this.points.total()}.`;
   }
