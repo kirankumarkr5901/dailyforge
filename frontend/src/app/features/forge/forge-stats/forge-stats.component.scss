@@ -1,0 +1,74 @@
+.stats {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stats__row {
+  --area: var(--forge-muted);
+
+  display: grid;
+  grid-template-columns: 7.5rem 1fr 3rem;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--text-sm);
+
+  &.area--fitness {
+    --area: var(--area-fitness);
+  }
+  &.area--focus {
+    --area: var(--area-focus);
+  }
+  &.area--health {
+    --area: var(--area-health);
+  }
+  &.area--mindset {
+    --area: var(--area-mindset);
+  }
+  &.area--learning {
+    --area: var(--area-learning);
+  }
+  &.area--social {
+    --area: var(--area-social);
+  }
+}
+
+.stats__label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.stats__focus {
+  padding: 0 6px;
+  border-radius: var(--radius-pill);
+  background: var(--forge-gold-wash);
+  color: var(--forge-gold);
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.stats__track {
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--forge-line);
+  overflow: hidden;
+}
+
+.stats__fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--area);
+  transition: width var(--duration-slow) var(--ease-out);
+}
+
+.stats__xp {
+  color: var(--forge-muted);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}

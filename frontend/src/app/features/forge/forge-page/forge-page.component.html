@@ -1,0 +1,134 @@
+<section class="forge" aria-labelledby="forge-title">
+  <header class="forge__masthead">
+    <lucide-icon [img]="flameIcon" [size]="22" aria-hidden="true" class="forge__mark" />
+    <h1 class="forge__title" id="forge-title">Forge 66</h1>
+  </header>
+
+  @if (!session.isResolved() || (session.isAuthenticated() && loading() && !overview())) {
+    <div class="forge__panel forge__skeleton" aria-busy="true">
+      <div class="forge__skeleton-line"></div>
+      <div class="forge__skeleton-line forge__skeleton-line--short"></div>
+    </div>
+  } @else if (!session.isAuthenticated()) {
+    <div class="forge__intro">
+      <p class="forge__lede">Sixty-six days. A plan built around your life. Sign in to begin.</p>
+      <button type="button" class="forge-btn forge-btn--primary" (click)="signIn()">Sign in</button>
+    </div>
+  } @else if (error() && !overview()) {
+    <div class="forge__panel">
+      <p class="forge__error" role="alert">{{ error() }}</p>
+      <button type="button" class="forge-btn forge-btn--ghost" (click)="load()">Try again</button>
+    </div>
+  } @else if (quizOpen()) {
+    <df-forge-quiz (started)="onStarted($event)" (cancelled)="quizOpen.set(false)" />
+  } @else if (overview(); as forge) {
+    <!-- Level and XP: always shown, because progression outlives any one program. -->
+    <div class="forge__panel forge__hero">
+      <div class="forge__level">
+        <span class="forge__level-label">Level</span>
+        <span class="forge__level-num">{{ forge.profile.level }}</span>
+      </div>
+      <div class="forge__xp">
+        <div class="forge__xp-row">
+          <span>{{ forge.profile.xpIntoLevel }} / {{ forge.profile.xpForNextLevel }} XP</span>
+          <span class="forge__xp-total">{{ forge.profile.totalXp }} XP total</span>
+        </div>
+        <div
+          class="forge__xp-bar"
+          role="progressbar"
+          aria-label="Progress to the next level"
+          [attr.aria-valuenow]="levelPercent()"
+          aria-valuemin="0"
+          aria-valuemax="100"
+        >
+          <div class="forge__xp-fill" [style.width.%]="levelPercent()"></div>
+        </div>
+        <div class="forge__streaks">
+          <span><strong>{{ forge.profile.currentStreak }}</strong> day streak</span>
+          <span>Best <strong>{{ forge.profile.bestStreak }}</strong></span>
+        </div>
+      </div>
+    </div>
+
+    @if (program(); as p) {
+      <div class="forge__day">
+        <div>
+          <p class="forge__eyebrow">{{ phaseLabels[p.phase] }} phase{{ p.mode === 'HARD' ? ' · Hard mode' : '' }}</p>
+          <h2 class="forge__day-title">Day {{ p.dayNumber }} <span class="forge__day-of">/ {{ p.lengthDays }}</span></h2>
+        </div>
+        <span class="forge__count" [class.is-complete]="p.dayComplete">{{ questsDone() }}/{{ p.quests.length }}</span>
+      </div>
+
+      @if (p.dayComplete) {
+        <p class="forge__banner" role="status">
+          <lucide-icon [img]="trophyIcon" [size]="18" aria-hidden="true" />
+          Day {{ p.dayNumber }} forged. Come back tomorrow.
+        </p>
+      }
+
+      <ul class="forge__quests">
+        @for (quest of p.quests; track quest.id) {
+          <li>
+            <df-forge-quest [quest]="quest" [busy]="busyQuestId() === quest.id" (toggled)="toggle(quest)" />
+          </li>
+        }
+      </ul>
+
+      <h2 class="forge__section">Your 66 days</h2>
+      <div class="forge__panel">
+        <df-forge-calendar [days]="p.calendar" />
+      </div>
+    } @else {
+      <div class="forge__intro">
+        @if (forge.lastProgram; as last) {
+          <p class="forge__eyebrow">
+            {{ last.status === 'COMPLETED' ? 'Program complete' : 'Last program ended early' }}
+          </p>
+          <p class="forge__lede">
+            You completed {{ last.daysCompleted }} of {{ last.lengthDays }} days. Ready for another run?
+          </p>
+        } @else {
+          <p class="forge__lede">
+            Sixty-six days to rebuild how you live. Answer nine questions about your life, and Forge 66 builds a plan
+            around what needs the most work — daily quests that get harder as you get stronger.
+          </p>
+          <ul class="forge__how">
+            <li>Each completed quest earns XP here and points in DailyForge.</li>
+            <li>Finish every quest in a day to grow your streak.</li>
+            <li>Three phases: Foundation, Build, Forge.</li>
+          </ul>
+        }
+        <button type="button" class="forge-btn forge-btn--primary" (click)="openQuiz()">
+          <lucide-icon [img]="swordsIcon" [size]="18" aria-hidden="true" />
+          {{ forge.lastProgram ? 'Start a new program' : 'Begin the questionnaire' }}
+        </button>
+      </div>
+    }
+
+    <h2 class="forge__section">Stats</h2>
+    <div class="forge__panel">
+      <df-forge-stats [stats]="forge.profile.stats" [focusAreas]="program()?.focusAreas ?? []" />
+    </div>
+
+    @if (program()) {
+      <div class="forge__footer">
+        @if (confirmingAbandon()) {
+          <p class="forge__warn">End this program? Days already played keep their XP. This cannot be undone.</p>
+          <div class="forge__footer-actions">
+            <button type="button" class="forge-btn forge-btn--ghost" (click)="confirmingAbandon.set(false)">Keep going</button>
+            <button type="button" class="forge-btn forge-btn--danger" (click)="abandon()">End program</button>
+          </div>
+        } @else {
+          <button type="button" class="forge__link" (click)="confirmingAbandon.set(true)">End this program</button>
+        }
+      </div>
+    }
+  }
+
+  @if (levelUpTo(); as level) {
+    <div class="forge__levelup" role="status" aria-live="polite">
+      <span class="forge__levelup-label">Level up</span>
+      <span class="forge__levelup-num">{{ level }}</span>
+    </div>
+  }
+</section>

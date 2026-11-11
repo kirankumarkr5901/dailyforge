@@ -68,6 +68,12 @@ export const routes: Routes = [
           import('./features/runs/runs-page/runs-page.component').then((m) => m.RunsPageComponent),
       },
       {
+        path: 'forge',
+        title: 'Forge 66 — DailyForge',
+        loadComponent: () =>
+          import('./features/forge/forge-page/forge-page.component').then((m) => m.ForgePageComponent),
+      },
+      {
         path: 'goals',
         title: 'Goals — DailyForge',
         loadComponent: () =>

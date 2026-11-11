@@ -1,0 +1,92 @@
+@use '../forge-areas';
+
+:host {
+  --area: var(--forge-muted);
+
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--forge-line);
+  border-left: 3px solid var(--area);
+  border-radius: var(--radius-card);
+  background: var(--forge-panel);
+  transition: opacity var(--duration-base) var(--ease-out);
+}
+
+:host(.is-done) {
+  opacity: 0.62;
+
+  .quest__title {
+    text-decoration: line-through;
+    text-decoration-color: var(--forge-muted);
+  }
+}
+
+.quest__check {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  border: 2px solid var(--forge-line-strong);
+  border-radius: 50%;
+  background: transparent;
+  color: #1a0d03;
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+
+  &:hover:not(:disabled) {
+    border-color: var(--forge-gold);
+  }
+
+  &[aria-pressed='true'] {
+    border-color: transparent;
+    background: linear-gradient(135deg, var(--forge-gold), var(--forge-ember));
+  }
+
+  &:disabled {
+    opacity: 0.5;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+}
+
+.quest__body {
+  min-width: 0;
+}
+
+.quest__title {
+  margin: 0;
+  font-weight: 700;
+}
+
+.quest__desc {
+  margin: 2px 0 var(--space-2);
+  color: var(--forge-muted);
+  font-size: var(--text-sm);
+}
+
+.quest__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  font-size: var(--text-xs);
+  font-weight: 700;
+}
+
+.quest__area {
+  color: var(--area);
+}
+
+.quest__reward {
+  color: var(--forge-gold);
+}
+
+.quest__points {
+  color: var(--forge-muted);
+}

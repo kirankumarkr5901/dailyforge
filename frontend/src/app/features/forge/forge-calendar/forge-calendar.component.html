@@ -1,0 +1,21 @@
+<ol class="cal" aria-label="Your 66 days">
+  @for (day of days(); track day.dayNumber) {
+    <li
+      class="cal__cell"
+      [class]="'cal__cell cal__cell--' + day.status.toLowerCase()"
+      [class.cal__cell--phase-start]="day.dayNumber === 23 || day.dayNumber === 45"
+      [attr.title]="label(day)"
+      [attr.aria-label]="label(day)"
+    >
+      @if (day.status === 'TODAY' || day.status === 'DONE') {
+        <span class="cal__num" aria-hidden="true">{{ day.dayNumber }}</span>
+      }
+    </li>
+  }
+</ol>
+
+<div class="cal__legend" aria-hidden="true">
+  <span><i class="cal__swatch cal__cell--done"></i>Complete</span>
+  <span><i class="cal__swatch cal__cell--partial"></i>Partial</span>
+  <span><i class="cal__swatch cal__cell--missed"></i>Missed</span>
+</div>
