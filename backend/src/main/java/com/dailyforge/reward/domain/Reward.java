@@ -90,18 +90,6 @@ public class Reward {
         this.stock = stock;
     }
 
-    public void decrementStock() {
-        if (stock != null) {
-            stock = Math.max(0, stock - 1);
-        }
-    }
-
-    public void incrementStock() {
-        if (stock != null) {
-            stock = stock + 1;
-        }
-    }
-
     public void archive(Instant when) {
         if (this.archivedAt == null) {
             this.archivedAt = when;
@@ -112,8 +100,14 @@ public class Reward {
         return archivedAt != null;
     }
 
-    public boolean isOutOfStock() {
-        return stock != null && stock <= 0;
+    /**
+     * Whether this reward has a limit at all. Null stock means unlimited; a number is
+     * an allowance <em>per period</em>, not a pool that drains once — how much of it is
+     * left right now is derived from the redemptions inside the current period, which
+     * is RewardService's job because only it knows the user's time zone.
+     */
+    public boolean hasStockLimit() {
+        return stock != null;
     }
 
     @PrePersist

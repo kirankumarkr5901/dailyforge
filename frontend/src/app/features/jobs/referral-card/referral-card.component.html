@@ -1,0 +1,80 @@
+<df-card>
+  <div class="referral-card__head">
+    <div class="referral-card__id">
+      <h3 class="referral-card__company">{{ app().company }}</h3>
+      <p class="referral-card__role">
+        {{ app().role }}@if (app().referrerName) { <span class="referral-card__referrer">· via {{ app().referrerName }}</span> }
+      </p>
+    </div>
+    <span class="referral-card__state">{{ stateLabel() }}</span>
+  </div>
+
+  <p class="referral-card__waited">{{ waitedLabel() }}</p>
+
+  <dl class="referral-card__fields">
+    @if (app().referralId) {
+      <div class="referral-card__field">
+        <dt>Referral ID</dt>
+        <dd>
+          <span class="referral-card__value">{{ app().referralId }}</span>
+          <button
+            dfIconButton
+            type="button"
+            label="Copy referral ID"
+            variant="ghost"
+            [icon]="copyIcon"
+            [size]="15"
+            (click)="copy(app().referralId, 'Referral ID')"
+          ></button>
+        </dd>
+      </div>
+    }
+
+    @if (app().jobUrl) {
+      <div class="referral-card__field">
+        <dt>Application link</dt>
+        <dd>
+          <span class="referral-card__value referral-card__value--link">{{ app().jobUrl }}</span>
+          <button
+            dfIconButton
+            type="button"
+            label="Copy application link"
+            variant="ghost"
+            [icon]="copyIcon"
+            [size]="15"
+            (click)="copy(app().jobUrl, 'Link')"
+          ></button>
+          <a
+            class="referral-card__open"
+            [href]="app().jobUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Open the application link in a new tab"
+          >
+            <lucide-icon [img]="openIcon" [size]="15" aria-hidden="true" />
+          </a>
+        </dd>
+      </div>
+    }
+
+    @if (app().roleId) {
+      <div class="referral-card__field">
+        <dt>Job ID</dt>
+        <dd>
+          <span class="referral-card__value">{{ app().roleId }}</span>
+          <button
+            dfIconButton
+            type="button"
+            label="Copy job ID"
+            variant="ghost"
+            [icon]="copyIcon"
+            [size]="15"
+            (click)="copy(app().roleId, 'Job ID')"
+          ></button>
+        </dd>
+      </div>
+    }
+  </dl>
+
+  <p class="referral-card__suggestion">{{ suggestion() }}</p>
+</df-card>

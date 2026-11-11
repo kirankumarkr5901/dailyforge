@@ -34,7 +34,7 @@ class JobServiceTest {
         UUID user = TestUsers.create(users, settings);
 
         JobApplication app =
-                jobs.create(user, "Acme", "Engineer", null, "Remote", null, null, JobSource.APPLIED, null, null, LocalDate.of(2026, 3, 1));
+                jobs.create(user, "Acme", "Engineer", null, "Remote", null, null, JobSource.APPLIED, null, null, null, null, LocalDate.of(2026, 3, 1));
 
         assertThat(app.getStatus()).isEqualTo(JobStatus.APPLIED);
         assertThat(jobs.timeline(app.getId(), user)).hasSize(1);
@@ -45,7 +45,7 @@ class JobServiceTest {
     void transitioningWritesAnEventAndAdvancesTheStatus() {
         UUID user = TestUsers.create(users, settings);
         JobApplication app =
-                jobs.create(user, "Acme", "Engineer", null, null, null, null, JobSource.APPLIED, null, null, LocalDate.of(2026, 3, 1));
+                jobs.create(user, "Acme", "Engineer", null, null, null, null, JobSource.APPLIED, null, null, null, null, LocalDate.of(2026, 3, 1));
 
         jobs.transition(app.getId(), user, JobStatus.INTERVIEW, 1, InterviewStage.TECHNICAL, "First round", LocalDate.of(2026, 3, 5));
 
@@ -59,11 +59,11 @@ class JobServiceTest {
     void metricsCountResponsesAndInterviewsCorrectly() {
         UUID user = TestUsers.create(users, settings);
         JobApplication responded =
-                jobs.create(user, "Acme", "Engineer", null, null, null, null, JobSource.APPLIED, null, null, LocalDate.of(2026, 3, 1));
+                jobs.create(user, "Acme", "Engineer", null, null, null, null, JobSource.APPLIED, null, null, null, null, LocalDate.of(2026, 3, 1));
         jobs.transition(
                 responded.getId(), user, JobStatus.INTERVIEW, 1, InterviewStage.TECHNICAL, null, LocalDate.of(2026, 3, 6)); // 5 days to respond
 
-        jobs.create(user, "Ghost Co", "Engineer", null, null, null, null, JobSource.APPLIED, null, null, LocalDate.of(2026, 3, 1)); // never responds
+        jobs.create(user, "Ghost Co", "Engineer", null, null, null, null, JobSource.APPLIED, null, null, null, null, LocalDate.of(2026, 3, 1)); // never responds
 
         var metrics = jobs.metrics(user);
 
@@ -77,7 +77,7 @@ class JobServiceTest {
         UUID userA = TestUsers.create(users, settings);
         UUID userB = TestUsers.create(users, settings);
         JobApplication app =
-                jobs.create(userA, "Acme", "Engineer", null, null, null, null, JobSource.APPLIED, null, null, LocalDate.of(2026, 3, 1));
+                jobs.create(userA, "Acme", "Engineer", null, null, null, null, JobSource.APPLIED, null, null, null, null, LocalDate.of(2026, 3, 1));
 
         assertThatThrownBy(() -> jobs.requireOwned(app.getId(), userB)).isInstanceOf(ApiException.class);
     }
@@ -86,7 +86,7 @@ class JobServiceTest {
     void anInterviewMustSayWhichKindItIs() {
         UUID user = TestUsers.create(users, settings);
         JobApplication app =
-                jobs.create(user, "Acme", "Engineer", null, null, null, null, JobSource.APPLIED, null, null, LocalDate.of(2026, 3, 1));
+                jobs.create(user, "Acme", "Engineer", null, null, null, null, JobSource.APPLIED, null, null, null, null, LocalDate.of(2026, 3, 1));
 
         assertThatThrownBy(() -> jobs.transition(app.getId(), user, JobStatus.INTERVIEW, 1, null, null, LocalDate.of(2026, 3, 5)))
                 .isInstanceOf(ApiException.class)
@@ -97,7 +97,7 @@ class JobServiceTest {
     void eachInterviewStageHasItsOwnCeiling() {
         UUID user = TestUsers.create(users, settings);
         JobApplication app =
-                jobs.create(user, "Acme", "Engineer", null, null, null, null, JobSource.APPLIED, null, null, LocalDate.of(2026, 3, 1));
+                jobs.create(user, "Acme", "Engineer", null, null, null, null, JobSource.APPLIED, null, null, null, null, LocalDate.of(2026, 3, 1));
 
         // Technical runs to 3, HR only to 2 (owner's own vocabulary).
         jobs.transition(app.getId(), user, JobStatus.INTERVIEW, 3, InterviewStage.TECHNICAL, null, LocalDate.of(2026, 3, 5));
@@ -112,7 +112,7 @@ class JobServiceTest {
     void aRejectionRemembersTheInterviewRoundItCameFrom() {
         UUID user = TestUsers.create(users, settings);
         JobApplication app =
-                jobs.create(user, "Acme", "Engineer", null, null, null, null, JobSource.APPLIED, null, null, LocalDate.of(2026, 3, 1));
+                jobs.create(user, "Acme", "Engineer", null, null, null, null, JobSource.APPLIED, null, null, null, null, LocalDate.of(2026, 3, 1));
 
         jobs.transition(app.getId(), user, JobStatus.INTERVIEW, 1, InterviewStage.HR, null, LocalDate.of(2026, 3, 5));
         jobs.transition(app.getId(), user, JobStatus.REJECTED, null, null, null, LocalDate.of(2026, 3, 9));
@@ -130,7 +130,7 @@ class JobServiceTest {
     void aRejectionStraightFromAppliedHasNoInterviewToNameAtAll() {
         UUID user = TestUsers.create(users, settings);
         JobApplication app =
-                jobs.create(user, "Acme", "Engineer", null, null, null, null, JobSource.APPLIED, null, null, LocalDate.of(2026, 3, 1));
+                jobs.create(user, "Acme", "Engineer", null, null, null, null, JobSource.APPLIED, null, null, null, null, LocalDate.of(2026, 3, 1));
 
         jobs.transition(app.getId(), user, JobStatus.REJECTED, null, null, null, LocalDate.of(2026, 3, 4));
 

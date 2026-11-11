@@ -4,12 +4,14 @@ import com.dailyforge.points.api.PointsDtos.PointsEnvelope;
 import com.dailyforge.points.domain.PointsResult;
 import com.dailyforge.reward.domain.Reward;
 import com.dailyforge.reward.domain.RewardRedemption;
+import com.dailyforge.reward.domain.RewardService.RewardView;
 import com.dailyforge.reward.domain.RewardTier;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.UUID;
 
 public final class RewardDtos {
@@ -38,9 +40,16 @@ public final class RewardDtos {
             String icon,
             RewardTier tier,
             boolean isRepeatable,
+            /** The allowance per period, or null for no limit. The tier says how often it refreshes. */
             Integer stock,
+            /** How much of that allowance is left right now; null when there is no limit. */
+            Integer remaining,
+            /** The day the allowance comes back. Null when there is no limit to come back. */
+            LocalDate refreshesOn,
             /** Sent back on edit as If-Match so a stale device cannot overwrite a newer one. */
             long version) {
+
+        /** Without allowance figures — for the write endpoints, which return the row they wrote. */
         public static RewardResponse of(Reward reward) {
             return new RewardResponse(
                     reward.getId(),
@@ -50,6 +59,23 @@ public final class RewardDtos {
                     reward.getTier(),
                     reward.isRepeatable(),
                     reward.getStock(),
+                    null,
+                    null,
+                    reward.getVersion());
+        }
+
+        public static RewardResponse of(RewardView view) {
+            Reward reward = view.reward();
+            return new RewardResponse(
+                    reward.getId(),
+                    reward.getName(),
+                    reward.getCost(),
+                    reward.getIcon(),
+                    reward.getTier(),
+                    reward.isRepeatable(),
+                    reward.getStock(),
+                    view.remaining(),
+                    reward.hasStockLimit() ? view.refreshesOn() : null,
                     reward.getVersion());
         }
     }

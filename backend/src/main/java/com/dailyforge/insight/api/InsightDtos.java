@@ -4,7 +4,14 @@ import com.dailyforge.insight.domain.DailySummary;
 import com.dailyforge.insight.domain.DailySummaryService.CategoryGroup;
 import com.dailyforge.insight.domain.DayState;
 import com.dailyforge.insight.domain.HomeSummaryService.HomeSummary;
+import com.dailyforge.insight.domain.Badge;
+import com.dailyforge.insight.domain.BadgeMetric;
+import com.dailyforge.insight.domain.BadgeService.BadgeProgress;
+import com.dailyforge.insight.domain.BadgeService.ClaimResult;
 import com.dailyforge.insight.domain.MilestoneService.Recap;
+import com.dailyforge.insight.domain.MilestoneService.RecapPeriod;
+import com.dailyforge.points.api.PointsDtos.PointsEnvelope;
+import java.time.Instant;
 import com.dailyforge.insight.domain.Quote;
 import com.dailyforge.goal.api.GoalDtos.GoalResponse;
 import com.dailyforge.points.api.PointsDtos.LedgerEntryResponse;
@@ -94,6 +101,62 @@ public final class InsightDtos {
                     recap.runDistanceMeters(),
                     recap.habitsCompleted(),
                     recap.goalsCompleted());
+        }
+    }
+
+    /**
+     * A badge and this user's standing against it.
+     *
+     * {@code value} and {@code threshold} travel as raw numbers rather than as a
+     * percentage so the UI can render "12 of 15 days" — which tells you what to do
+     * tonight — rather than "80%", which does not.
+     */
+    public record BadgeResponse(
+            String code,
+            String name,
+            String description,
+            /** What to do to earn it, in plain terms. Shown when the badge is opened. */
+            String criteria,
+            RecapPeriod period,
+            BadgeMetric metric,
+            long value,
+            int threshold,
+            int points,
+            String icon,
+            LocalDate periodStart,
+            LocalDate periodEnd,
+            boolean earned,
+            boolean claimed,
+            boolean claimable,
+            Instant claimedAt) {
+
+        public static BadgeResponse of(BadgeProgress progress) {
+            Badge badge = progress.badge();
+            return new BadgeResponse(
+                    badge.getCode(),
+                    badge.getName(),
+                    badge.getDescription(),
+                    badge.getCriteria(),
+                    badge.getPeriod(),
+                    badge.getMetric(),
+                    progress.value(),
+                    badge.getThreshold(),
+                    badge.getPoints(),
+                    badge.getIcon(),
+                    progress.periodStart(),
+                    progress.periodEnd(),
+                    progress.earned(),
+                    progress.claimed(),
+                    progress.claimable(),
+                    progress.claimedAt());
+        }
+    }
+
+    /** The badge as it now stands, plus the points the claim moved. */
+    public record BadgeClaimResponse(BadgeResponse badge, PointsEnvelope points) {
+
+        public static BadgeClaimResponse of(ClaimResult result) {
+            return new BadgeClaimResponse(BadgeResponse.of(result.badge()), PointsEnvelope.of(result.points()));
         }
     }
 }

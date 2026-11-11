@@ -4,7 +4,14 @@ import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { ArchiveRestore, GripVertical, LucideAngularModule, Plus, Settings2, SquarePen, Star, Trash2 } from 'lucide-angular';
 
-import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList, moveItemInArray } from '@angular/cdk/drag-drop';
+import {
+  CdkDrag,
+  CdkDragDrop,
+  CdkDragHandle,
+  CdkDragPlaceholder,
+  CdkDropList,
+  moveItemInArray,
+} from '@angular/cdk/drag-drop';
 
 import { WorkoutsApi } from '../../../core/workouts/workouts.api';
 import { Exercise, PlanExercise, WorkoutPlan } from '../../../core/workouts/workouts.types';
@@ -37,6 +44,7 @@ import { ExercisePickerSheetComponent } from '../exercise-picker-sheet/exercise-
   imports: [
     CdkDrag,
     CdkDragHandle,
+    CdkDragPlaceholder,
     CdkDropList,
     FormsModule,
     NgTemplateOutlet,

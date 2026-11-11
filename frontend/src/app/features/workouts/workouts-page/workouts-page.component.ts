@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } 
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
-import { LucideAngularModule, Plus, Settings2, Target } from 'lucide-angular';
+import { LucideAngularModule, Plus, Settings2, Target, TimerReset } from 'lucide-angular';
 
 import { AuthSheetService } from '../../../core/auth/auth-sheet.service';
 import { PendingActionService } from '../../../core/auth/pending-action.service';
@@ -33,12 +33,34 @@ import { DfCelebrationComponent } from '../../../shared/ui/df-celebration/df-cel
 import { DfMonthCalendarComponent } from '../../../shared/ui/df-month-calendar/df-month-calendar.component';
 import { ToastService } from '../../../shared/ui/df-toast/toast.service';
 import { ExerciseCardComponent } from '../exercise-card/exercise-card.component';
+import {
+  ExerciseEditSheetComponent,
+  ExerciseEditTarget,
+} from '../exercise-edit-sheet/exercise-edit-sheet.component';
 import { ExerciseHistorySheetComponent } from '../exercise-history-sheet/exercise-history-sheet.component';
 import { ExercisePickerSheetComponent } from '../exercise-picker-sheet/exercise-picker-sheet.component';
 import { LogSetSheetComponent } from '../log-set-sheet/log-set-sheet.component';
 import { PlanManagerSheetComponent } from '../plan-manager-sheet/plan-manager-sheet.component';
 import { RestTimerComponent } from '../rest-timer/rest-timer.component';
 import { RestTimerService } from '../rest-timer/rest-timer.service';
+
+/** Where an exercise has got to today. */
+type ExerciseStatus = 'todo' | 'in-progress' | 'done';
+
+/**
+ * Sets logged says the work started; only an explicit mark says it finished. No set
+ * count can stand in for that — three sets is a full job for one lift and a warm-up for
+ * another.
+ */
+function statusOf(entry: ExerciseBoardEntry): ExerciseStatus {
+  if (entry.completedAt) {
+    return 'done';
+  }
+  return entry.sets.length > 0 ? 'in-progress' : 'todo';
+}
+
+/** In progress first, then what is left, then what is finished. */
+const RANK: Record<ExerciseStatus, number> = { 'in-progress': 0, todo: 1, done: 2 };
 
 /**
  * The workout tracker (spec §8.3): a date, a plan day, and every exercise scheduled
@@ -60,6 +82,7 @@ import { RestTimerService } from '../rest-timer/rest-timer.service';
     DfSelectComponent,
     DfSkeletonComponent,
     ExerciseCardComponent,
+    ExerciseEditSheetComponent,
     ExerciseHistorySheetComponent,
     ExercisePickerSheetComponent,
     LogSetSheetComponent,
@@ -75,7 +98,7 @@ export class WorkoutsPageComponent {
   private readonly homeApi = inject(HomeApi);
   private readonly points = inject(PointsStore);
   private readonly toasts = inject(ToastService);
-  private readonly restTimer = inject(RestTimerService);
+  protected readonly restTimer = inject(RestTimerService);
   private readonly pendingAction = inject(PendingActionService);
 
   private readonly sync = inject(SyncStore);
@@ -84,6 +107,7 @@ export class WorkoutsPageComponent {
 
   protected readonly plusIcon = Plus;
   protected readonly settingsIcon = Settings2;
+  protected readonly timerIcon = TimerReset;
   protected readonly targetIcon = Target;
   /** Templates cannot call the global String() directly. */
   protected readonly String = String;
@@ -102,7 +126,11 @@ export class WorkoutsPageComponent {
   protected readonly logSheetOpen = signal(false);
   protected readonly logSheetContext = signal<{ id: string; name: string; equipment: Equipment } | null>(null);
   protected readonly editingSet = signal<WorkoutSet | null>(null);
+  /** What the log sheet is pre-filled from when logging fresh — see openLogSheetForCard. */
+  protected readonly lastSetForSheet = signal<WorkoutSet | null>(null);
   protected readonly celebrationTrigger = signal(0);
+  /** The exercise whose edit sheet is open, or null when none is. */
+  protected readonly editingExercise = signal<ExerciseEditTarget | null>(null);
   protected readonly historySheetOpen = signal(false);
   protected readonly historyContext = signal<{ id: string; name: string; equipment: Equipment } | null>(null);
   /** null means "every muscle group" — the default, unfiltered view. */
@@ -122,10 +150,47 @@ export class WorkoutsPageComponent {
     this.plans().map((p) => ({ value: p.id, label: p.name })),
   );
 
+  /**
+   * How much of the day is done: exercises with at least one set logged, out of every
+   * exercise scheduled. Counted per exercise rather than per set because the plan names
+   * exercises, not set totals — "4 of 6 exercises" is a fact, "12 of ? sets" is not.
+   */
+  protected readonly dayProgress = computed(() => {
+    const exercises = this.workoutSession()?.exercises ?? [];
+    // Finished, not merely started: the bar answers "how much of today is behind me",
+    // and an exercise you are one set into is not behind you.
+    const done = exercises.filter((e) => statusOf(e) === 'done').length;
+    const percent = exercises.length ? (done / exercises.length) * 100 : 0;
+    return { done, total: exercises.length, percent, percentLabel: `${Math.round(percent)}%` };
+  });
+
   /** Unfinished cards first, done ones sink to the bottom (spec §8.3). */
+  /**
+   * The order the board is worked through: what you are in the middle of, then what is
+   * left, then what is finished (owner request).
+   *
+   * This used to be "anything with a set sinks to the bottom", which put the card you
+   * were actively working on at the very bottom the moment you logged your first set —
+   * exactly the wrong end. In progress now rises to the top and stays there until you
+   * say you are done with it.
+   */
   protected readonly sortedExercises = computed<ExerciseBoardEntry[]>(() => {
     const exercises = this.workoutSession()?.exercises ?? [];
-    return [...exercises].sort((a, b) => Number(a.sets.length > 0) - Number(b.sets.length > 0));
+    return [...exercises].sort((a, b) => RANK[statusOf(a)] - RANK[statusOf(b)]);
+  });
+
+  /** The three buckets, in working order, each dropped when it holds nothing. */
+  protected readonly statusSections = computed<{ status: ExerciseStatus; label: string; exercises: ExerciseBoardEntry[] }[]>(() => {
+    const filtered = this.filteredExercises();
+    return (
+      [
+        { status: 'in-progress' as const, label: 'In progress' },
+        { status: 'todo' as const, label: 'To do' },
+        { status: 'done' as const, label: 'Completed' },
+      ]
+        .map((section) => ({ ...section, exercises: filtered.filter((e) => statusOf(e) === section.status) }))
+        .filter((section) => section.exercises.length > 0)
+    );
   });
 
   /** Every muscle group any exercise on today's board targets, for the filter chips —
@@ -288,10 +353,37 @@ export class WorkoutsPageComponent {
     await this.refreshSession();
   }
 
-  protected openLogSheetForCard(entry: ExerciseBoardEntry): void {
+  /**
+   * Opens the log sheet pre-filled with the last thing logged for this exercise.
+   *
+   * Nobody's numbers change much between sets, or between sessions: the sheet used to
+   * open on 0 kg × 8 every time, which meant re-entering the same weight for every set
+   * of every exercise (owner feedback). Today's most recent set wins when there is one;
+   * otherwise the last set from any earlier day, fetched from history. The sheet opens
+   * at once either way — a seed that arrives a moment late fills a still-untouched form,
+   * and one that never arrives leaves the old defaults.
+   */
+  protected async openLogSheetForCard(entry: ExerciseBoardEntry): Promise<void> {
     this.editingSet.set(null);
     this.logSheetContext.set({ id: entry.exerciseId, name: entry.name, equipment: entry.equipment });
+
+    const today = entry.sets[entry.sets.length - 1] ?? null;
+    this.lastSetForSheet.set(today);
     this.logSheetOpen.set(true);
+
+    if (today) {
+      return;
+    }
+    try {
+      const history = await firstValueFrom(this.api.exerciseHistory(entry.exerciseId));
+      // Only if the sheet is still open for this same exercise — the user may have
+      // closed it or moved to another card while the request was out.
+      if (this.logSheetOpen() && this.logSheetContext()?.id === entry.exerciseId) {
+        this.lastSetForSheet.set(history[0]?.set ?? null);
+      }
+    } catch {
+      // History is a convenience; the sheet works without it.
+    }
   }
 
   protected openEditSheet(entry: ExerciseBoardEntry, set: WorkoutSet): void {
@@ -303,6 +395,74 @@ export class WorkoutsPageComponent {
   protected openHistorySheet(entry: ExerciseBoardEntry): void {
     this.historyContext.set({ id: entry.exerciseId, name: entry.name, equipment: entry.equipment });
     this.historySheetOpen.set(true);
+  }
+
+  /**
+   * Marks an exercise finished, moving its card to the Completed section.
+   *
+   * Applied to the local board first so the card moves under the finger rather than
+   * after a round trip; a failure puts it back and says so. No points change hands —
+   * the work was already paid for when the sets were logged.
+   */
+  protected async completeExercise(entry: ExerciseBoardEntry): Promise<void> {
+    await this.setCompletion(entry, new Date().toISOString());
+  }
+
+  protected async reopenExercise(entry: ExerciseBoardEntry): Promise<void> {
+    await this.setCompletion(entry, null);
+  }
+
+  private async setCompletion(entry: ExerciseBoardEntry, completedAt: string | null): Promise<void> {
+    const session = this.workoutSession();
+    if (!session) {
+      return;
+    }
+    const previous = entry.completedAt;
+    this.patchEntry(entry.exerciseId, completedAt);
+    try {
+      await firstValueFrom(
+        completedAt
+          ? this.api.completeExercise(session.id, entry.exerciseId)
+          : this.api.reopenExercise(session.id, entry.exerciseId),
+      );
+    } catch {
+      this.patchEntry(entry.exerciseId, previous);
+      this.toasts.show('That did not save. Check your connection and try again.');
+    }
+  }
+
+  private patchEntry(exerciseId: string, completedAt: string | null): void {
+    this.workoutSession.update((session) =>
+      session
+        ? {
+            ...session,
+            exercises: session.exercises.map((e) => (e.exerciseId === exerciseId ? { ...e, completedAt } : e)),
+          }
+        : session,
+    );
+  }
+
+  protected openExerciseEdit(entry: ExerciseBoardEntry): void {
+    this.editingExercise.set({
+      id: entry.exerciseId,
+      name: entry.name,
+      kind: entry.kind,
+      equipment: entry.equipment,
+      muscleGroups: entry.muscleGroups,
+      isElite: entry.isElite,
+      version: entry.version,
+    });
+  }
+
+  /**
+   * A renamed or recategorised exercise changes the board itself — its card, and the
+   * muscle-group sections it is filed under — so the session is reloaded rather than
+   * patched in place.
+   */
+  protected async onExerciseSaved(): Promise<void> {
+    this.editingExercise.set(null);
+    await this.refreshSession();
+    this.toasts.show('Exercise updated.');
   }
 
   protected closeHistorySheet(): void {
@@ -377,6 +537,26 @@ export class WorkoutsPageComponent {
       });
     } catch {
       this.toasts.show('Could not remove that set. Try again.', { tone: 'penalty' });
+    }
+  }
+
+  /**
+   * A rest asked for rather than triggered by logging a set.
+   *
+   * The first press is also where notification permission is requested — a press is a
+   * real gesture and the intent is unmistakable ("tell me when this ends"), which is
+   * the moment a permission prompt is least likely to be dismissed out of hand. Asking
+   * on page load instead would get it denied permanently, and the denial cannot be
+   * reversed from script.
+   */
+  protected async startRest(): Promise<void> {
+    this.restTimer.start();
+
+    if (this.restTimer.notificationPermission() === 'default') {
+      const outcome = await this.restTimer.requestNotificationPermission();
+      if (outcome === 'granted') {
+        this.toasts.show('You will be notified when a rest ends.');
+      }
     }
   }
 

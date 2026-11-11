@@ -8,6 +8,7 @@ export type PointsCategory =
   | 'GOAL'
   | 'JOB'
   | 'REWARD'
+  | 'BADGE'
   | 'ADJUSTMENT';
 
 export interface LedgerEntry {

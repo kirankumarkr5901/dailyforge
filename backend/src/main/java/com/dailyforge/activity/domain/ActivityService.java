@@ -3,6 +3,7 @@ package com.dailyforge.activity.domain;
 import com.dailyforge.activity.repo.ActivityLogRepository;
 import com.dailyforge.activity.repo.ActivityTypeRepository;
 import com.dailyforge.common.error.ApiException;
+import com.dailyforge.common.error.ErrorCode;
 import com.dailyforge.common.time.DayService;
 import com.dailyforge.identity.domain.IdentityService;
 import com.dailyforge.points.domain.AwardCommand;
@@ -13,6 +14,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -62,6 +64,17 @@ public class ActivityService {
     @Transactional(readOnly = true)
     public List<ActivityType> list(UUID userId) {
         return types.findAllByUserIdAndArchivedAtIsNullOrderBySortOrderAsc(userId);
+    }
+
+    /** Edits an activity type (owner feedback: "make the activities editable"). */
+    @Transactional
+    public ActivityType update(UUID id, UUID userId, String name, ActivityPolarity polarity, Integer points, String icon) {
+        ActivityType type = requireOwnedType(id, userId);
+        if (points != null && points < 1) {
+            throw new ApiException(ErrorCode.VALIDATION_FAILED, HttpStatus.BAD_REQUEST, "Points must be at least 1.");
+        }
+        type.update(name, polarity, points, icon);
+        return types.save(type);
     }
 
     @Transactional

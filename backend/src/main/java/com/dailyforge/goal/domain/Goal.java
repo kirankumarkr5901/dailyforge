@@ -111,6 +111,22 @@ public class Goal {
         this.currentValue = currentValue;
     }
 
+    /**
+     * The fields a goal can change without becoming a different goal: what it is called,
+     * when it ends, what it pays, and how much counts as done. Kind, period, start date
+     * and what it measures are fixed — changing what a goal counts halfway through would
+     * mean its progress so far was measuring something else.
+     *
+     * Every argument is optional: a PATCH changes only what it names.
+     */
+    public void update(String title, String description, LocalDate endDate, Integer rewardPoints, BigDecimal targetValue) {
+        if (title != null) this.title = title;
+        if (description != null) this.description = description;
+        if (endDate != null) this.endDate = endDate;
+        if (rewardPoints != null) this.rewardPoints = rewardPoints;
+        if (targetValue != null) this.targetValue = targetValue;
+    }
+
     public void complete(Instant when) {
         this.status = GoalStatus.COMPLETED;
         this.completedAt = when;

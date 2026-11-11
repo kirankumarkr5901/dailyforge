@@ -38,7 +38,7 @@ public class RewardController {
 
     @GetMapping("/rewards")
     public List<RewardResponse> list() {
-        return rewardService.list(currentUser.require()).stream().map(RewardResponse::of).toList();
+        return rewardService.listWithAllowance(currentUser.require()).stream().map(RewardResponse::of).toList();
     }
 
     @PostMapping("/rewards")

@@ -23,6 +23,10 @@ public final class ActivityDtos {
             @NotNull @Min(1) Integer points,
             @NotBlank @Size(max = 40) String icon) {}
 
+    /** Every field optional: a PATCH changes only what it names. */
+    public record UpdateActivityTypeRequest(
+            @Size(max = 120) String name, ActivityPolarity polarity, @Min(1) Integer points, @Size(max = 40) String icon) {}
+
     public record ActivityTypeResponse(UUID id, String name, ActivityPolarity polarity, int points, String icon, int sortOrder) {
         public static ActivityTypeResponse of(ActivityType type) {
             return new ActivityTypeResponse(type.getId(), type.getName(), type.getPolarity(), type.getPoints(), type.getIcon(), type.getSortOrder());

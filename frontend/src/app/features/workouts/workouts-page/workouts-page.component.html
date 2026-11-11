@@ -2,10 +2,27 @@
   <h1 class="workouts-page__title">Workout</h1>
 
   @if (session.isAuthenticated()) {
-    <button dfButton type="button" variant="ghost" (click)="openPlanManager()">
-      <lucide-icon [img]="settingsIcon" [size]="16" aria-hidden="true" />
-      Plans
-    </button>
+    <div class="workouts-page__header-actions">
+      <!-- Start a rest between sets you did not log through the app — a warm-up, a
+           superset's second half, or simply catching your breath. The timer used to
+           exist only as a consequence of logging a set, which meant no way to ask for
+           one. -->
+      <button
+        dfButton
+        type="button"
+        variant="ghost"
+        [attr.aria-label]="'Start a ' + restTimer.defaultSeconds() + ' second rest timer'"
+        (click)="startRest()"
+      >
+        <lucide-icon [img]="timerIcon" [size]="16" aria-hidden="true" />
+        {{ restTimer.defaultSeconds() }}s
+      </button>
+
+      <button dfButton type="button" variant="ghost" (click)="openPlanManager()">
+        <lucide-icon [img]="settingsIcon" [size]="16" aria-hidden="true" />
+        Plans
+      </button>
+    </div>
   }
 </div>
 
@@ -39,6 +56,28 @@
       @if (dayOptions().length > 0) {
         <df-select label="Day" [options]="dayOptions()" [ngModel]="String(selectedDayIndex())" (ngModelChange)="changeDay($event)" />
       }
+    </div>
+  }
+
+  @if (dayProgress().total > 0) {
+    <div
+      class="workouts-page__progress"
+      [class.workouts-page__progress--complete]="dayProgress().done === dayProgress().total"
+      role="progressbar"
+      [attr.aria-valuenow]="dayProgress().done"
+      [attr.aria-valuemin]="0"
+      [attr.aria-valuemax]="dayProgress().total"
+      [attr.aria-label]="dayProgress().done + ' of ' + dayProgress().total + ' exercises logged'"
+    >
+      <div class="workouts-page__progress-head">
+        <span class="workouts-page__progress-label">
+          {{ dayProgress().done }} of {{ dayProgress().total }} {{ dayProgress().total === 1 ? 'exercise' : 'exercises' }} logged
+        </span>
+        <span class="workouts-page__progress-pct">{{ dayProgress().percentLabel }}</span>
+      </div>
+      <span class="workouts-page__progress-track" aria-hidden="true">
+        <span class="workouts-page__progress-fill" [style.width.%]="dayProgress().percent"></span>
+      </span>
     </div>
   }
 
@@ -82,9 +121,15 @@
   }
 
   <div class="workouts-page__cards">
-    @if (muscleGroupSections().length > 1) {
-      @for (section of muscleGroupSections(); track section.group) {
-        <h2 class="workouts-page__group-title">{{ section.group }}</h2>
+    <!-- Grouped by where each exercise has got to, not by muscle: the board is worked
+         through in that order, and what you are in the middle of belongs at the top.
+         The muscle chips above still filter. -->
+    @if (filteredExercises().length > 0) {
+      @for (section of statusSections(); track section.status) {
+        <div class="workouts-page__status-head">
+          <h2 class="workouts-page__group-title">{{ section.label }}</h2>
+          <span class="workouts-page__status-count">{{ section.exercises.length }}</span>
+        </div>
         @for (entry of section.exercises; track entry.exerciseId) {
           <df-exercise-card
             [entry]="entry"
@@ -92,40 +137,31 @@
             (editSetRequested)="openEditSheet(entry, $event)"
             (deleteSetRequested)="deleteSet($event)"
             (historyRequested)="openHistorySheet(entry)"
+            (editRequested)="openExerciseEdit(entry)"
+            (completeRequested)="completeExercise(entry)"
+            (reopenRequested)="reopenExercise(entry)"
           />
         }
       }
+    } @else if (sortedExercises().length > 0) {
+      <df-empty-state
+        [icon]="targetIcon"
+        title="Nothing for that muscle group today"
+        body="Try a different filter, or show every exercise."
+      >
+        <button dfButton type="button" variant="secondary" (click)="setMuscleFilter(null)">Show all</button>
+      </df-empty-state>
     } @else {
-      @for (entry of filteredExercises(); track entry.exerciseId) {
-        <df-exercise-card
-          [entry]="entry"
-          (logRequested)="openLogSheetForCard(entry)"
-          (editSetRequested)="openEditSheet(entry, $event)"
-          (deleteSetRequested)="deleteSet($event)"
-          (historyRequested)="openHistorySheet(entry)"
-        />
-      } @empty {
-        @if (sortedExercises().length > 0) {
-          <df-empty-state
-            [icon]="targetIcon"
-            title="Nothing for that muscle group today"
-            body="Try a different filter, or show every exercise."
-          >
-            <button dfButton type="button" variant="secondary" (click)="setMuscleFilter(null)">Show all</button>
-          </df-empty-state>
-        } @else {
-          <df-empty-state
-            [icon]="targetIcon"
-            title="Nothing planned for this day"
-            body="Add an exercise to start logging, or manage your plans to fill this day in advance."
-          >
-            <button dfButton type="button" variant="primary" (click)="openAddExercise()">
-              <lucide-icon [img]="plusIcon" [size]="16" aria-hidden="true" />
-              Add exercise
-            </button>
-          </df-empty-state>
-        }
-      }
+      <df-empty-state
+        [icon]="targetIcon"
+        title="Nothing planned for this day"
+        body="Add an exercise to start logging, or manage your plans to fill this day in advance."
+      >
+        <button dfButton type="button" variant="primary" (click)="openAddExercise()">
+          <lucide-icon [img]="plusIcon" [size]="16" aria-hidden="true" />
+          Add exercise
+        </button>
+      </df-empty-state>
     }
   </div>
 
@@ -146,6 +182,7 @@
   [planId]="selectedPlan()?.id ?? null"
   [dayIndex]="selectedPlan() ? selectedDayIndex() : null"
   [editingSet]="editingSet()"
+  [lastSet]="lastSetForSheet()"
   (closed)="closeLogSheet()"
   (saved)="onSetSaved($event)"
 />
@@ -158,6 +195,12 @@
   [exerciseName]="historyContext()?.name ?? ''"
   [equipment]="historyContext()?.equipment ?? 'BARBELL'"
   (closed)="closeHistorySheet()"
+/>
+
+<df-exercise-edit-sheet
+  [exercise]="editingExercise()"
+  (closed)="editingExercise.set(null)"
+  (saved)="onExerciseSaved()"
 />
 
 <df-plan-manager-sheet

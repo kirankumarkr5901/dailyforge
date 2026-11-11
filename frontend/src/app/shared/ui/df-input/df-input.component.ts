@@ -30,7 +30,8 @@ export class DfInputComponent implements ControlValueAccessor {
   readonly label = input.required<string>();
   readonly hint = input<string | null>(null);
   readonly error = input<string | null>(null);
-  readonly type = input<'text' | 'email' | 'password' | 'search' | 'url'>('text');
+  /** 'date' binds a plain yyyy-mm-dd string, which is exactly our LogicalDate. */
+  readonly type = input<'text' | 'email' | 'password' | 'search' | 'url' | 'date'>('text');
   readonly placeholder = input('');
   readonly autocomplete = input('off');
   /** Rendered inside the field, e.g. "kg". Decorative: never the only label. */

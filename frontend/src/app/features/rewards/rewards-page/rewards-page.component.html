@@ -58,8 +58,15 @@
               <div>
                 <h3 class="rewards-page__reward-name">{{ reward.name }}</h3>
                 <span class="rewards-page__reward-cost">{{ reward.cost }} pts</span>
-                @if (reward.stock !== null) {
-                  <span class="rewards-page__reward-stock">{{ reward.stock }} left</span>
+                <!-- The window is half the fact: "2 left" means nothing without knowing
+                     it refreshes tomorrow rather than never. -->
+                @if (stockLabel(reward); as label) {
+                  <span class="rewards-page__reward-stock" [class.rewards-page__reward-stock--spent]="isOutOfStock(reward)">
+                    {{ label }}
+                  </span>
+                }
+                @if (refreshLabel(reward); as refresh) {
+                  <span class="rewards-page__reward-refresh">{{ refresh }}</span>
                 }
               </div>
               <div class="rewards-page__reward-actions">

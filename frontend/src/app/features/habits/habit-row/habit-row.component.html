@@ -2,6 +2,7 @@
   class="df-habit-row__surface"
   [class.df-habit-row__surface--done]="checked()"
   [class.df-habit-row__surface--locked]="!entry().editable"
+  [class.df-habit-row__surface--strict]="entry().type === 'STRICT'"
   role="button"
   [attr.tabindex]="entry().editable ? 0 : -1"
   [attr.aria-pressed]="entry().editable ? checked() : null"
@@ -34,6 +35,12 @@
 
     <div class="df-habit-row__meta">
       <span class="df-habit-row__points">{{ entry().points }} pts</span>
+
+      <!-- A strict habit is the one row where doing nothing costs you, so it says so
+           on every day, not only on the day it has already gone wrong. -->
+      @if (entry().type === 'STRICT') {
+        <span class="df-habit-row__strict">Strict</span>
+      }
 
       @if (entry().currentStreak > 0) {
         <span class="df-habit-row__streak">

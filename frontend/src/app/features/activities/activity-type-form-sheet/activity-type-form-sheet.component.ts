@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
@@ -17,7 +17,14 @@ const POLARITY_OPTIONS: readonly DfSelectOption[] = [
   { value: 'NEGATIVE', label: 'Negative — costs points' },
 ];
 
-/** A new one-off activity type (spec §6 "activity") — a personal positive or negative action worth a fixed point value each time it happens. */
+/**
+ * A one-off activity type (spec §6 "activity") — a personal positive or negative action
+ * worth a fixed point value each time it happens. Creates a new one, or edits an
+ * existing one when `editing` is set (owner feedback: "make the activities editable").
+ *
+ * Changing the points changes what future logs earn, never what past ones did — the
+ * ledger is append-only, and last week's rows keep last week's value.
+ */
 @Component({
   selector: 'df-activity-type-form-sheet',
   imports: [FormsModule, DfButtonComponent, DfInputComponent, DfSelectComponent, DfSheetComponent, DfStepperInputComponent],
@@ -29,6 +36,8 @@ export class ActivityTypeFormSheetComponent {
   private readonly api = inject(ActivityApi);
 
   readonly open = input.required<boolean>();
+  /** The type being edited, or null to create a new one. */
+  readonly editing = input<ActivityType | null>(null);
 
   readonly closed = output<void>();
   readonly saved = output<ActivityType>();
@@ -41,6 +50,27 @@ export class ActivityTypeFormSheetComponent {
   protected readonly saving = signal(false);
   protected readonly error = signal<string | null>(null);
 
+  protected readonly isEditing = computed(() => this.editing() !== null);
+
+  constructor() {
+    // Fill from the type being edited each time the sheet opens on one; a fresh sheet
+    // starts blank.
+    effect(() => {
+      if (!this.open()) {
+        return;
+      }
+      const type = this.editing();
+      this.error.set(null);
+      if (type) {
+        this.name.set(type.name);
+        this.polarity.set(type.polarity);
+        this.points.set(type.points);
+      } else {
+        this.reset();
+      }
+    });
+  }
+
   protected async save(): Promise<void> {
     if (this.saving() || !this.name().trim()) {
       return;
@@ -48,14 +78,14 @@ export class ActivityTypeFormSheetComponent {
     this.saving.set(true);
     this.error.set(null);
     try {
-      const type = await firstValueFrom(
-        this.api.create({
-          name: this.name().trim(),
-          polarity: this.polarity(),
-          points: this.points(),
-          icon: this.polarity() === 'POSITIVE' ? 'sparkles' : 'frown',
-        }),
-      );
+      const payload = {
+        name: this.name().trim(),
+        polarity: this.polarity(),
+        points: this.points(),
+        icon: this.polarity() === 'POSITIVE' ? 'sparkles' : 'frown',
+      };
+      const editing = this.editing();
+      const type = await firstValueFrom(editing ? this.api.update(editing.id, payload) : this.api.create(payload));
       this.saved.emit(type);
       this.reset();
     } catch (error) {

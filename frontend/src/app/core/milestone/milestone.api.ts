@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { LogicalDate } from '../time/logical-date';
+import { Badge, BadgeClaimResponse } from './badge.types';
 import { MilestoneRecap, RecapPeriod } from './milestone.types';
 
 @Injectable({ providedIn: 'root' })
@@ -17,5 +18,26 @@ export class MilestoneApi {
       params = params.set('date', date);
     }
     return this.http.get<MilestoneRecap>(`${this.base}/milestones/recap`, { params });
+  }
+
+  /** Every badge for a period, with this user's progress against each. */
+  badges(period: RecapPeriod, date?: LogicalDate): Observable<Badge[]> {
+    let params = new HttpParams().set('period', period);
+    if (date) {
+      params = params.set('date', date);
+    }
+    return this.http.get<Badge[]>(`${this.base}/badges`, { params });
+  }
+
+  /**
+   * Take the points for an earned badge. A POST because it is an event, not an edit:
+   * it writes a ledger entry, and asking twice is refused rather than paying again.
+   */
+  claimBadge(code: string, date?: LogicalDate): Observable<BadgeClaimResponse> {
+    let params = new HttpParams();
+    if (date) {
+      params = params.set('date', date);
+    }
+    return this.http.post<BadgeClaimResponse>(`${this.base}/badges/${code}/claim`, {}, { params });
   }
 }

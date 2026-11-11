@@ -175,6 +175,36 @@ public class GoalService {
      * complete first: unlike CUSTOM, whose only measure of done is the user saying so,
      * a measurable goal claimed early would hand out points nothing was earned.
      */
+    /**
+     * Edits a goal (owner feedback: "make the goals editable").
+     *
+     * Only an ACTIVE goal takes edits. A completed goal has already paid its reward into
+     * the ledger; changing the reward afterwards would leave the ledger and the goal
+     * disagreeing about what was earned, and re-awarding the difference would be the
+     * kind of retroactive points nothing else in the app allows. Reopen it first, and
+     * the reversal that comes with reopening keeps the books straight.
+     *
+     * There is no If-Match here, deliberately: Goal carries no version because
+     * list() recomputes and saves progress on every read, so a version would advance
+     * without anyone editing and every genuine edit would conflict (see V19).
+     */
+    @Transactional
+    public Goal update(
+            UUID id, UUID userId, String title, String description, LocalDate endDate, Integer rewardPoints, BigDecimal targetValue) {
+        Goal goal = requireOwned(id, userId);
+        if (goal.getStatus() != GoalStatus.ACTIVE) {
+            throw new ApiException(
+                    ErrorCode.CONFLICT,
+                    HttpStatus.CONFLICT,
+                    "Only an active goal can be edited. Reopen this one first if you need to change it.");
+        }
+        if (rewardPoints != null && rewardPoints < 0) {
+            throw new ApiException(ErrorCode.VALIDATION_FAILED, HttpStatus.BAD_REQUEST, "Reward points cannot be negative.");
+        }
+        goal.update(title, description, endDate, rewardPoints, targetValue);
+        return goals.save(goal);
+    }
+
     @Transactional
     public Goal complete(UUID id, UUID userId) {
         Goal goal = requireOwned(id, userId);

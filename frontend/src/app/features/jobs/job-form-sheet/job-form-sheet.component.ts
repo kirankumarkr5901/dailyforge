@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
@@ -34,6 +34,14 @@ export class JobFormSheetComponent {
   protected readonly city = signal('');
   protected readonly source = signal<JobSource>('APPLIED');
   protected readonly referrerName = signal('');
+  protected readonly jobUrl = signal('');
+  protected readonly referralId = signal('');
+  /**
+   * When the referral was asked for. Defaults to today on open, but stays editable —
+   * a referral is often logged a few days after the ask, and the whole referral board
+   * is built on this date being the real one.
+   */
+  protected readonly referralRequestedOn = signal('');
   protected readonly note = signal('');
   protected readonly saving = signal(false);
   protected readonly error = signal<string | null>(null);
@@ -44,6 +52,11 @@ export class JobFormSheetComponent {
     { value: 'REFERRED', label: 'Referred' },
     { value: 'RECRUITER', label: 'Recruiter reached out' },
   ];
+
+  /** Referral fields only exist for a source that actually involves one. */
+  protected readonly isReferral = computed(
+    () => this.source() === 'REFERRAL_REQUESTED' || this.source() === 'REFERRED',
+  );
 
   protected async save(): Promise<void> {
     if (this.saving() || !this.company().trim() || !this.role().trim()) {
@@ -59,6 +72,9 @@ export class JobFormSheetComponent {
           city: this.city().trim() || undefined,
           source: this.source(),
           referrerName: this.referrerName().trim() || undefined,
+          jobUrl: this.jobUrl().trim() || undefined,
+          referralId: this.isReferral() ? this.referralId().trim() || undefined : undefined,
+          referralRequestedOn: this.isReferral() ? this.referralRequestedOn() || this.date()! : undefined,
           note: this.note().trim() || undefined,
           appliedOn: this.date()!,
         }),
@@ -82,6 +98,9 @@ export class JobFormSheetComponent {
     this.city.set('');
     this.source.set('APPLIED');
     this.referrerName.set('');
+    this.jobUrl.set('');
+    this.referralId.set('');
+    this.referralRequestedOn.set('');
     this.note.set('');
   }
 

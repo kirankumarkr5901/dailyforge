@@ -34,6 +34,31 @@
   background: var(--done-wash);
 }
 
+/* A strict habit takes points away when it is missed, which makes it the one row on
+ * the board where doing nothing is not neutral. It is marked on the leading edge in the
+ * same cool red the penalty chip uses, so the warning survives every other state the row
+ * can be in — done, planned, missed, locked — instead of competing with it. */
+.df-habit-row__surface--strict::before {
+  content: '';
+  position: absolute;
+  inset-block: -1px;
+  inset-inline-start: -1px;
+  width: 3px;
+  border-start-start-radius: var(--radius-card);
+  border-end-start-radius: var(--radius-card);
+  background: var(--penalty);
+}
+
+.df-habit-row__strict {
+  padding: 1px var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--penalty-wash);
+  color: var(--penalty-ink);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
 .df-habit-row__surface--locked {
   cursor: default;
 }
