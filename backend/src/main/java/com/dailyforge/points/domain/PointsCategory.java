@@ -10,5 +10,6 @@ public enum PointsCategory {
     JOB,
     REWARD,
     BADGE,
+    FORGE,
     ADJUSTMENT
 }

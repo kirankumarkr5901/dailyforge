@@ -29,4 +29,7 @@ public sealed interface ReconcileScope {
     record RunPr(UUID userId) implements ReconcileScope {}
 
     record Goal(UUID goalId) implements ReconcileScope {}
+
+    /** One Forge 66 quest: paid when completed, reversed when unmarked. */
+    record ForgeQuest(UUID questId) implements ReconcileScope {}
 }
