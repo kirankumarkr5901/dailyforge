@@ -1,4 +1,4 @@
-<df-sheet [open]="open()" (openChange)="$event ? null : close()" heading="New application">
+<df-sheet [open]="open()" (openChange)="$event ? null : close()" [heading]="isEditing() ? 'Edit application' : 'New application'">
   <div class="job-form">
     <df-input label="Company" [ngModel]="company()" (ngModelChange)="company.set($event)" />
     <df-input label="Role" [ngModel]="role()" (ngModelChange)="role.set($event)" />
@@ -7,6 +7,15 @@
 
     @if (source() !== 'APPLIED') {
       <df-input label="Referrer name (optional)" [ngModel]="referrerName()" (ngModelChange)="referrerName.set($event)" />
+      <!-- A name alone is a dead end when a referral goes quiet and you want to nudge.
+           Any URL that reaches them; LinkedIn is just the usual one. -->
+      <df-input
+        label="Referrer profile (optional)"
+        type="url"
+        placeholder="https://www.linkedin.com/in/…"
+        [ngModel]="referrerProfileUrl()"
+        (ngModelChange)="referrerProfileUrl.set($event)"
+      />
     }
 
     <df-input
@@ -51,7 +60,7 @@
       [disabled]="saving() || !company().trim() || !role().trim()"
       (click)="save()"
     >
-      Add application
+      {{ isEditing() ? 'Save changes' : 'Add application' }}
     </button>
   </div>
 </df-sheet>

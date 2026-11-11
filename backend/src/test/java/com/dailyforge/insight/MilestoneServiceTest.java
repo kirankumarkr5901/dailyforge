@@ -57,6 +57,18 @@ class MilestoneServiceTest {
     // days left to run.
     private static final LocalDate MONTH_START = REAL_TODAY.withDayOfMonth(1);
 
+    /**
+     * On the first of a month MONTH_START *is* REAL_TODAY, so the two habit ticks this
+     * test logs land on the same date — and a habit can only be ticked once a day, so
+     * the second is a no-op and the count is one, not two.
+     *
+     * This failed exactly one day in thirty and passed every other, which is the worst
+     * kind of test: green while you are writing the code, red for whoever runs the suite
+     * on the 1st. The expectation now follows the calendar instead of assuming it.
+     */
+    private static final boolean MONTH_JUST_STARTED = MONTH_START.isEqual(REAL_TODAY);
+    private static final long EXPECTED_HABIT_TICKS = MONTH_JUST_STARTED ? 1 : 2;
+
     private void setToday(LocalDate date) {
         clock.set(date.atStartOfDay(ZoneOffset.UTC).toInstant().plusSeconds(3600 * 12));
     }
@@ -97,7 +109,7 @@ class MilestoneServiceTest {
         var recap = milestones.recap(user, RecapPeriod.MONTH, REAL_TODAY);
 
         assertThat(recap.startDate()).isEqualTo(MONTH_START);
-        assertThat(recap.habitsCompleted()).isEqualTo(2);
+        assertThat(recap.habitsCompleted()).isEqualTo(EXPECTED_HABIT_TICKS);
         assertThat(recap.runDays()).isEqualTo(1);
         assertThat(recap.runDistanceMeters()).isEqualTo(5_000);
         assertThat(recap.workoutDays()).isEqualTo(1);

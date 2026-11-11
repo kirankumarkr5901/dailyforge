@@ -28,8 +28,9 @@ EXPOSE 8080
 # Container-aware heap sizing; the free tiers are small and the default guess is not.
 ENV JAVA_OPTS="-XX:MaxRAMPercentage=75 -XX:+UseSerialGC"
 
-# The platform's own health check hits this too (deployment phase 1b).
+# Liveness, not /actuator/health: the full endpoint checks the datasource, and polling it
+# every 30 seconds would keep the metered Neon database from ever suspending.
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-  CMD ["sh", "-c", "wget -qO- http://localhost:8080/actuator/health || exit 1"]
+  CMD ["sh", "-c", "wget -qO- http://localhost:8080/actuator/health/liveness || exit 1"]
 
 ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar app.jar"]

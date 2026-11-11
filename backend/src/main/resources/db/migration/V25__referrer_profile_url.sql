@@ -1,0 +1,11 @@
+-- Where to find the person who referred you (owner request).
+--
+-- referrer_name has been there since M7, but a name alone is a dead end: the thing you
+-- actually want when a referral goes quiet is to open their profile and send a message,
+-- and that meant leaving the app to search for them by name.
+--
+-- Deliberately a plain URL rather than a LinkedIn-specific handle. LinkedIn is what it
+-- will usually hold, but a referrer might be reachable on anything — a company
+-- directory, GitHub, a personal site — and a column that only accepted one network
+-- would force the others into the notes field where nothing can link to them.
+ALTER TABLE job_application ADD COLUMN referrer_profile_url VARCHAR(500);

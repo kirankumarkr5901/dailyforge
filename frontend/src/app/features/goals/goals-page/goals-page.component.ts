@@ -1,14 +1,14 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
-import { Award, LucideAngularModule, Plus, SquarePen } from 'lucide-angular';
+import { Award, EyeOff, LucideAngularModule, Plus, SquarePen, Trash2 } from 'lucide-angular';
 
 import { AuthApi } from '../../../core/auth/auth.api';
 import { AuthSheetService } from '../../../core/auth/auth-sheet.service';
 import { SessionStore } from '../../../core/auth/session.store';
 import { SyncStore } from '../../../core/sync/sync.store';
 import { GoalApi } from '../../../core/goal/goal.api';
-import { Goal } from '../../../core/goal/goal.types';
+import { Goal, GoalStatus } from '../../../core/goal/goal.types';
 import { PointsStore } from '../../../core/points/points.store';
 import { LogicalDate } from '../../../core/time/logical-date';
 import { DfButtonComponent } from '../../../shared/ui/df-button/df-button.component';
@@ -48,6 +48,8 @@ export class GoalsPageComponent {
   protected readonly plusIcon = Plus;
   protected readonly awardIcon = Award;
   protected readonly editIcon = SquarePen;
+  protected readonly hideIcon = EyeOff;
+  protected readonly deleteIcon = Trash2;
 
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
@@ -58,7 +60,17 @@ export class GoalsPageComponent {
   protected readonly editingGoal = signal<Goal | null>(null);
 
   protected readonly activeGoals = computed(() => this.goals().filter((g) => g.status === 'ACTIVE'));
-  protected readonly otherGoals = computed(() => this.goals().filter((g) => g.status !== 'ACTIVE'));
+
+  /**
+   * History, minus anything archived (owner feedback).
+   *
+   * Archiving is how a goal is hidden, so a board that still showed archived goals gave
+   * the action nothing to do. They are not deleted — the API still returns them, and
+   * the points a completed one paid stay in the ledger either way.
+   */
+  protected readonly otherGoals = computed(() =>
+    this.goals().filter((g) => g.status !== 'ACTIVE' && g.status !== 'ARCHIVED'),
+  );
 
   constructor() {
     let wasAuthenticated = false;
@@ -169,6 +181,60 @@ export class GoalsPageComponent {
     } catch {
       this.toasts.show('Could not archive that goal. Try again.', { tone: 'penalty' });
     }
+  }
+
+  /**
+   * Hides a goal from the board without destroying it. Archiving, not deleting: the
+   * difference matters for a completed goal, whose reward is in the ledger.
+   */
+  protected async hide(goal: Goal): Promise<void> {
+    try {
+      await firstValueFrom(this.api.archive(goal.id));
+      await this.refresh();
+      this.toasts.show('Goal hidden.');
+    } catch {
+      this.toasts.show('Could not hide that goal. Try again.', { tone: 'penalty' });
+    }
+  }
+
+  /**
+   * Deleting is irreversible and has no Undo toast to fall back on — the row is gone —
+   * so the button arms on the first press and acts on the second, disarming itself
+   * after a few seconds. A native confirm() would be the quick way, but nothing else in
+   * this app uses one, and a browser dialog in the middle of a bespoke design system
+   * looks like a bug.
+   */
+  protected readonly armedDeleteId = signal<string | null>(null);
+  private disarmTimer?: ReturnType<typeof setTimeout>;
+
+  protected armDelete(goal: Goal): void {
+    this.armedDeleteId.set(goal.id);
+    clearTimeout(this.disarmTimer);
+    this.disarmTimer = setTimeout(() => this.armedDeleteId.set(null), 4000);
+  }
+
+  /**
+   * Deletes a goal outright. A completed goal's reward is reversed on the server as
+   * part of the delete, so the score cannot keep points for a goal that no longer
+   * exists — which is why this is a separate action from hiding rather than a tidier
+   * version of it.
+   */
+  protected async remove(goal: Goal): Promise<void> {
+    clearTimeout(this.disarmTimer);
+    this.armedDeleteId.set(null);
+    try {
+      await firstValueFrom(this.api.delete(goal.id));
+      await this.refresh();
+      void this.points.refresh();
+      this.toasts.show('Goal deleted.');
+    } catch {
+      this.toasts.show('Could not delete that goal. Try again.', { tone: 'penalty' });
+    }
+  }
+
+  /** Sentence case; the raw enum shouting at the user is not a label. */
+  protected statusLabel(status: GoalStatus): string {
+    return status.charAt(0) + status.slice(1).toLowerCase();
   }
 
   protected signIn(): void {

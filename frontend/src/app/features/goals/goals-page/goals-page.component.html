@@ -45,6 +45,28 @@
                   [size]="16"
                   (click)="openEdit(goal)"
                 ></button>
+                <button
+                  dfIconButton
+                  type="button"
+                  [label]="'Hide ' + goal.title"
+                  variant="ghost"
+                  [icon]="hideIcon"
+                  [size]="16"
+                  (click)="hide(goal)"
+                ></button>
+                @if (armedDeleteId() === goal.id) {
+                  <button dfButton type="button" variant="danger" (click)="remove(goal)">Delete?</button>
+                } @else {
+                  <button
+                    dfIconButton
+                    type="button"
+                    [label]="'Delete ' + goal.title"
+                    variant="ghost"
+                    [icon]="deleteIcon"
+                    [size]="16"
+                    (click)="armDelete(goal)"
+                  ></button>
+                }
               </span>
             </div>
 
@@ -84,10 +106,13 @@
       <h2 class="goals-page__section-title">History</h2>
       <div class="goals-page__list">
         @for (goal of otherGoals(); track goal.id) {
-          <df-card>
+          <df-card [class.goals-page__goal--completed]="goal.status === 'COMPLETED'">
             <div class="goals-page__goal-header">
               <h3 class="goals-page__goal-title">{{ goal.title }}</h3>
-              <span class="goals-page__status">{{ goal.status }}</span>
+              <span
+                class="goals-page__status"
+                [class.goals-page__status--completed]="goal.status === 'COMPLETED'"
+              >{{ statusLabel(goal.status) }}</span>
             </div>
 
             <div class="goals-page__goal-actions">
@@ -96,7 +121,12 @@
               }
               @if (goal.status === 'FAILED') {
                 <button dfButton type="button" variant="ghost" (click)="extend(goal)">Extend a week</button>
-                <button dfButton type="button" variant="ghost" (click)="archive(goal)">Archive</button>
+              }
+              <button dfButton type="button" variant="ghost" (click)="hide(goal)">Hide</button>
+              @if (armedDeleteId() === goal.id) {
+                <button dfButton type="button" variant="danger" (click)="remove(goal)">Delete?</button>
+              } @else {
+                <button dfButton type="button" variant="ghost" (click)="armDelete(goal)">Delete</button>
               }
             </div>
           </df-card>

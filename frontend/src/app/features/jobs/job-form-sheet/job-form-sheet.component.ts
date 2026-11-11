@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
@@ -24,6 +24,8 @@ export class JobFormSheetComponent {
   private readonly api = inject(JobApi);
 
   readonly open = input.required<boolean>();
+  /** The application being edited, or null to create a new one. */
+  readonly editing = input<JobApplication | null>(null);
   readonly date = input<LogicalDate | null>(null);
 
   readonly closed = output<void>();
@@ -34,6 +36,7 @@ export class JobFormSheetComponent {
   protected readonly city = signal('');
   protected readonly source = signal<JobSource>('APPLIED');
   protected readonly referrerName = signal('');
+  protected readonly referrerProfileUrl = signal('');
   protected readonly jobUrl = signal('');
   protected readonly referralId = signal('');
   /**
@@ -54,6 +57,34 @@ export class JobFormSheetComponent {
   ];
 
   /** Referral fields only exist for a source that actually involves one. */
+  protected readonly isEditing = computed(() => this.editing() !== null);
+
+  constructor() {
+    // Fill from the application being edited each time the sheet opens on one; a fresh
+    // sheet starts blank.
+    effect(() => {
+      if (!this.open()) {
+        return;
+      }
+      const app = this.editing();
+      this.error.set(null);
+      if (!app) {
+        this.reset();
+        return;
+      }
+      this.company.set(app.company);
+      this.role.set(app.role);
+      this.city.set(app.city ?? '');
+      this.source.set(app.source);
+      this.referrerName.set(app.referrerName ?? '');
+      this.referrerProfileUrl.set(app.referrerProfileUrl ?? '');
+      this.jobUrl.set(app.jobUrl ?? '');
+      this.referralId.set(app.referralId ?? '');
+      this.referralRequestedOn.set(app.referralRequestedOn ?? '');
+      this.note.set(app.note ?? '');
+    });
+  }
+
   protected readonly isReferral = computed(
     () => this.source() === 'REFERRAL_REQUESTED' || this.source() === 'REFERRED',
   );
@@ -65,13 +96,32 @@ export class JobFormSheetComponent {
     this.saving.set(true);
     this.error.set(null);
     try {
+      const editing = this.editing();
       const app = await firstValueFrom(
-        this.api.create({
+        editing
+          ? this.api.update(
+              editing.id,
+              {
+                company: this.company().trim(),
+                role: this.role().trim(),
+                city: this.city().trim() || undefined,
+                source: this.source(),
+                referrerName: this.referrerName().trim() || undefined,
+                referrerProfileUrl: this.referrerProfileUrl().trim() || undefined,
+                jobUrl: this.jobUrl().trim() || undefined,
+                referralId: this.isReferral() ? this.referralId().trim() || undefined : undefined,
+                referralRequestedOn: this.isReferral() ? this.referralRequestedOn() || undefined : undefined,
+                note: this.note().trim() || undefined,
+              },
+              editing.version,
+            )
+          : this.api.create({
           company: this.company().trim(),
           role: this.role().trim(),
           city: this.city().trim() || undefined,
           source: this.source(),
           referrerName: this.referrerName().trim() || undefined,
+          referrerProfileUrl: this.referrerProfileUrl().trim() || undefined,
           jobUrl: this.jobUrl().trim() || undefined,
           referralId: this.isReferral() ? this.referralId().trim() || undefined : undefined,
           referralRequestedOn: this.isReferral() ? this.referralRequestedOn() || this.date()! : undefined,
@@ -98,6 +148,7 @@ export class JobFormSheetComponent {
     this.city.set('');
     this.source.set('APPLIED');
     this.referrerName.set('');
+    this.referrerProfileUrl.set('');
     this.jobUrl.set('');
     this.referralId.set('');
     this.referralRequestedOn.set('');

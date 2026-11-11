@@ -50,6 +50,13 @@ public class JobApplication {
     @Column(name = "referrer_name", length = 120)
     private String referrerName;
 
+    /**
+     * Where to find the referrer — usually a LinkedIn profile, but any URL that reaches
+     * them. A name alone is a dead end when a referral goes quiet and you want to nudge.
+     */
+    @Column(name = "referrer_profile_url", length = 500)
+    private String referrerProfileUrl;
+
     /** Whatever handle the referrer or the company portal gave you, to paste in later. */
     @Column(name = "referral_id", length = 80)
     private String referralId;
@@ -106,6 +113,7 @@ public class JobApplication {
             String resumeVersion,
             JobSource source,
             String referrerName,
+            String referrerProfileUrl,
             String referralId,
             LocalDate referralRequestedOn,
             String note,
@@ -121,6 +129,7 @@ public class JobApplication {
         app.resumeVersion = resumeVersion;
         app.source = source;
         app.referrerName = referrerName;
+        app.referrerProfileUrl = referrerProfileUrl;
         app.referralId = referralId;
         app.referralRequestedOn = referralRequestedOn;
         app.note = note;
@@ -137,7 +146,9 @@ public class JobApplication {
             String city,
             String jobUrl,
             String resumeVersion,
+            JobSource source,
             String referrerName,
+            String referrerProfileUrl,
             String referralId,
             LocalDate referralRequestedOn,
             String note,
@@ -148,7 +159,13 @@ public class JobApplication {
         if (city != null) this.city = city;
         if (jobUrl != null) this.jobUrl = jobUrl;
         if (resumeVersion != null) this.resumeVersion = resumeVersion;
+        // A referral that has been acted on stops being a request: either somebody put
+        // it forward (REFERRED) or the wait was given up on and it was applied to
+        // directly (APPLIED). Either way the waiting clock stops, which is what moves
+        // it off the referral board — see JobService.referrals().
+        if (source != null) this.source = source;
         if (referrerName != null) this.referrerName = referrerName;
+        if (referrerProfileUrl != null) this.referrerProfileUrl = referrerProfileUrl;
         if (referralId != null) this.referralId = referralId;
         if (referralRequestedOn != null) this.referralRequestedOn = referralRequestedOn;
         if (note != null) this.note = note;
@@ -253,6 +270,10 @@ public class JobApplication {
         return version;
     }
 
+
+    public String getReferrerProfileUrl() {
+        return referrerProfileUrl;
+    }
 
     public String getReferralId() {
         return referralId;

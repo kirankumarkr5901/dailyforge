@@ -24,6 +24,8 @@ export interface JobApplication {
   resumeVersion: string | null;
   source: JobSource;
   referrerName: string | null;
+  /** Where to reach the referrer — usually a LinkedIn profile. */
+  referrerProfileUrl: string | null;
   /** The handle the referrer or the company portal gave you, to paste in later. */
   referralId: string | null;
   /** The day the referral was asked for — not appliedOn; the gap between them is the point. */
@@ -50,6 +52,7 @@ export interface CreateApplicationPayload {
   resumeVersion?: string;
   source: JobSource;
   referrerName?: string;
+  referrerProfileUrl?: string;
   referralId?: string;
   referralRequestedOn?: LogicalDate;
   note?: string;
@@ -58,6 +61,8 @@ export interface CreateApplicationPayload {
 
 /** Every field optional: a PATCH changes only what it names. */
 export interface UpdateApplicationPayload {
+  /** Changing this converts a referral request into a live application. */
+  source?: JobSource;
   company?: string;
   role?: string;
   roleId?: string;
@@ -65,6 +70,7 @@ export interface UpdateApplicationPayload {
   jobUrl?: string;
   resumeVersion?: string;
   referrerName?: string;
+  referrerProfileUrl?: string;
   referralId?: string;
   referralRequestedOn?: LogicalDate;
   note?: string;

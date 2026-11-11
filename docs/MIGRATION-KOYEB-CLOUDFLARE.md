@@ -32,7 +32,7 @@ a cure. See the note at the end.
 4. Instance: **Free** (`nano`). Region: **Singapore** (`sin`) — it must match Neon, or
    every query crosses the planet.
 5. Exposed port: **8080**, protocol HTTP, path `/`
-6. Health check: **HTTP**, port 8080, path `/actuator/health`
+6. Health check: **HTTP**, port 8080, path `/actuator/health/liveness` (not the full `/actuator/health`, which wakes the database on every poll)
 
 ### 1.2 Environment variables
 
