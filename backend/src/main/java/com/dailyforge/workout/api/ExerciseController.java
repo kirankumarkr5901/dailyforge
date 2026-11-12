@@ -1,5 +1,6 @@
 package com.dailyforge.workout.api;
 
+import com.dailyforge.common.security.StructuralChange;
 import com.dailyforge.common.error.StaleWrite;
 import com.dailyforge.common.security.CurrentUser;
 import com.dailyforge.workout.api.WorkoutDtos.CreateExerciseRequest;
@@ -48,6 +49,7 @@ public class ExerciseController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @StructuralChange
     public ExerciseResponse create(@Valid @RequestBody CreateExerciseRequest request) {
         UUID userId = currentUser.require();
         Exercise exercise =
@@ -62,6 +64,7 @@ public class ExerciseController {
     }
 
     @PatchMapping("/{id}")
+    @StructuralChange
     public ExerciseResponse update(
             @PathVariable UUID id,
             @RequestHeader(value = "If-Match", required = false) Long ifMatch,
@@ -76,6 +79,7 @@ public class ExerciseController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @StructuralChange
     public void delete(@PathVariable UUID id) {
         exercises.deleteOrArchive(id, currentUser.require());
     }

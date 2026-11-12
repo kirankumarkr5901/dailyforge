@@ -1,5 +1,6 @@
 package com.dailyforge.forge.api;
 
+import com.dailyforge.common.security.StructuralChange;
 import com.dailyforge.common.security.CurrentUser;
 import com.dailyforge.forge.api.ForgeDtos.OverviewResponse;
 import com.dailyforge.forge.api.ForgeDtos.QuestChangeResponse;
@@ -51,11 +52,13 @@ public class ForgeController {
 
     @PostMapping("/program")
     @ResponseStatus(HttpStatus.CREATED)
+    @StructuralChange
     public OverviewResponse start(@Valid @RequestBody StartRequest request) {
         return OverviewResponse.of(forge.start(currentUser.require(), request.answers(), request.mode()));
     }
 
     @DeleteMapping("/program")
+    @StructuralChange
     public OverviewResponse abandon() {
         return OverviewResponse.of(forge.abandon(currentUser.require()));
     }

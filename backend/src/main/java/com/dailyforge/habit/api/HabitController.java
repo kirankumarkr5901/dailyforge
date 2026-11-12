@@ -1,5 +1,6 @@
 package com.dailyforge.habit.api;
 
+import com.dailyforge.common.security.StructuralChange;
 import com.dailyforge.common.error.StaleWrite;
 import com.dailyforge.common.error.ApiException;
 import com.dailyforge.common.security.CurrentUser;
@@ -73,6 +74,7 @@ public class HabitController {
 
     @PostMapping("/habits")
     @ResponseStatus(HttpStatus.CREATED)
+    @StructuralChange
     public HabitResponse create(@Valid @RequestBody CreateHabitRequest request) {
         UUID userId = currentUser.require();
         validateScheduleDays(request.scheduleDays());
@@ -100,6 +102,7 @@ public class HabitController {
     }
 
     @PatchMapping("/habits/{id}")
+    @StructuralChange
     public HabitResponse update(
             @PathVariable UUID id,
             @RequestHeader(value = "If-Match", required = false) Long ifMatch,
@@ -123,6 +126,7 @@ public class HabitController {
     }
 
     @PatchMapping("/habits/order")
+    @StructuralChange
     public List<HabitResponse> reorder(@Valid @RequestBody ReorderRequest request) {
         UUID userId = currentUser.require();
         habits.reorder(userId, request.orderedIds());
@@ -131,6 +135,7 @@ public class HabitController {
 
     @DeleteMapping("/habits/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @StructuralChange
     public void delete(@PathVariable UUID id) {
         habits.deleteOrArchive(id, currentUser.require());
     }
