@@ -1,5 +1,7 @@
 package com.dailyforge.insight.domain;
 
+import com.dailyforge.points.domain.PointsEntry;
+import com.dailyforge.points.repo.PointsEntryRepository;
 import com.dailyforge.common.time.DayService;
 import com.dailyforge.goal.domain.Goal;
 import com.dailyforge.goal.domain.GoalService;
@@ -31,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class MilestoneService {
 
     private final DailySummaryService dailySummaries;
+    private final PointsEntryRepository entries;
     private final HabitLogService habitLogService;
     private final RunService runService;
     private final GoalService goalService;
@@ -39,12 +42,14 @@ public class MilestoneService {
 
     public MilestoneService(
             DailySummaryService dailySummaries,
+            PointsEntryRepository entries,
             HabitLogService habitLogService,
             RunService runService,
             GoalService goalService,
             DayService dayService,
             IdentityService identity) {
         this.dailySummaries = dailySummaries;
+        this.entries = entries;
         this.habitLogService = habitLogService;
         this.runService = runService;
         this.goalService = goalService;
@@ -82,13 +87,21 @@ public class MilestoneService {
 
         List<DailySummary> days = dailySummaries.heatmap(userId, start, end);
 
+        // Earnings, not balance (owner feedback): only what was earned counts. Spending on
+        // rewards and penalties never pull the figure down; the one thing that does is an
+        // undo, because a reversed award is no longer an active entry at all.
         int totalPoints = 0;
         Map<PointsCategory, Integer> byCategory = new EnumMap<>(PointsCategory.class);
+        for (PointsEntry entry : entries.findAllByUserIdAndOccurredOnBetweenAndReversedFalseAndReversesIdIsNull(userId, start, end)) {
+            if (entry.getAmount() > 0) {
+                totalPoints += entry.getAmount();
+                byCategory.merge(entry.getCategory(), entry.getAmount(), Integer::sum);
+            }
+        }
+
         int workoutDays = 0;
         int runDays = 0;
         for (DailySummary day : days) {
-            totalPoints += day.pointsTotal();
-            day.pointsByCategory().forEach((category, amount) -> byCategory.merge(category, amount, Integer::sum));
             if (day.hasWorkout()) {
                 workoutDays++;
             }
