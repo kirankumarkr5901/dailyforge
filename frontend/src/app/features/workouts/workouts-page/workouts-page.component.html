@@ -18,10 +18,12 @@
         {{ restTimer.defaultSeconds() }}s
       </button>
 
-      <button dfButton type="button" variant="ghost" (click)="openPlanManager()">
-        <lucide-icon [img]="settingsIcon" [size]="16" aria-hidden="true" />
-        Plans
-      </button>
+      @if (session.editingEnabled()) {
+        <button dfButton type="button" variant="ghost" (click)="openPlanManager()">
+          <lucide-icon [img]="settingsIcon" [size]="16" aria-hidden="true" />
+          Plans
+        </button>
+      }
     </div>
   }
 </div>

@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { Flame, LucideAngularModule, Swords, Trophy } from 'lucide-angular';
 
@@ -26,7 +27,7 @@ import { ForgeStatsComponent } from '../forge-stats/forge-stats.component';
  */
 @Component({
   selector: 'df-forge-page',
-  imports: [LucideAngularModule, ForgeQuizComponent, ForgeCalendarComponent, ForgeQuestComponent, ForgeStatsComponent],
+  imports: [LucideAngularModule, RouterLink, ForgeQuizComponent, ForgeCalendarComponent, ForgeQuestComponent, ForgeStatsComponent],
   templateUrl: './forge-page.component.html',
   styleUrl: './forge-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

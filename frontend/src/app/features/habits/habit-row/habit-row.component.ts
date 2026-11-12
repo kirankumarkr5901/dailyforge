@@ -48,6 +48,8 @@ export class HabitRowComponent {
   readonly date = input.required<LogicalDate>();
   /** Shows the drag handle. Off unless the containing list is actually a drop list. */
   readonly reorderable = input(false);
+  /** False while "Enable edit" is off: the row can still be ticked, but not edited. */
+  readonly structureEditable = input(true);
 
   protected readonly gripIcon = GripVertical;
 

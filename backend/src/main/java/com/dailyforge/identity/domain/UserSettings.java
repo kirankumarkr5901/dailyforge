@@ -52,6 +52,10 @@ public class UserSettings {
     @Column(name = "reminder_time")
     private LocalTime reminderTime;
 
+    /** "Enable edit": structural changes are refused while this is false (V27). */
+    @Column(name = "editing_enabled", nullable = false)
+    private boolean editingEnabled = false;
+
     @Column(name = "onboarding_completed_at")
     private Instant onboardingCompletedAt;
 
@@ -143,6 +147,14 @@ public class UserSettings {
 
     public void setReminderTime(LocalTime reminderTime) {
         this.reminderTime = reminderTime;
+    }
+
+    public boolean isEditingEnabled() {
+        return editingEnabled;
+    }
+
+    public void setEditingEnabled(boolean editingEnabled) {
+        this.editingEnabled = editingEnabled;
     }
 
     public Instant getOnboardingCompletedAt() {

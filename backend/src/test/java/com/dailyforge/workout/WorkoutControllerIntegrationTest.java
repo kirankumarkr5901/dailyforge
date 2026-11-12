@@ -60,7 +60,9 @@ class WorkoutControllerIntegrationTest {
                         .andReturn()
                         .getResponse()
                         .getContentAsString();
-        return json.readTree(body).get("accessToken").asString();
+        String token = json.readTree(body).get("accessToken").asString();
+        com.dailyforge.testsupport.TestEditing.enable(mockMvc, token);
+        return token;
     }
 
     private String createExercise(String access, String name) throws Exception {

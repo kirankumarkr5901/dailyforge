@@ -123,6 +123,10 @@ public class MeController {
             settings.setOnboardingCompletedAt(Instant.now());
         }
 
+        if (request.editingEnabled() != null) {
+            settings.setEditingEnabled(request.editingEnabled());
+        }
+
         settingsRepository.save(settings);
         return SettingsResponse.of(settings);
     }

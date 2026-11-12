@@ -28,6 +28,10 @@
           </li>
         }
       </ul>
+    } @else if (query().trim().length > 0 && !loading() && !session.editingEnabled()) {
+      <p class="exercise-picker__create-hint">
+        No match. Turn on "Enable edit" in Settings to create a new exercise.
+      </p>
     } @else if (query().trim().length > 0 && !loading()) {
       <div class="exercise-picker__create">
         <p class="exercise-picker__create-hint">No match — create it:</p>

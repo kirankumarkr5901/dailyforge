@@ -37,6 +37,10 @@ public enum ErrorCode {
      * from. The client re-reads and shows the latest rather than overwriting it. */
     STALE_WRITE,
 
+    /** A structural change (a habit, a plan, a reward…) while "Enable edit" is off.
+     * Logging is never refused for this reason. */
+    EDITING_LOCKED,
+
     CONFLICT,
     INTERNAL_ERROR
 }

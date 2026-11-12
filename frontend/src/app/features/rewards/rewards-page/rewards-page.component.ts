@@ -14,6 +14,7 @@ import { DfButtonComponent } from '../../../shared/ui/df-button/df-button.compon
 import { DfCardComponent } from '../../../shared/ui/df-card/df-card.component';
 import { DfEmptyStateComponent } from '../../../shared/ui/df-empty-state/df-empty-state.component';
 import { DfIconButtonComponent } from '../../../shared/ui/df-icon-button/df-icon-button.component';
+import { DfEditingNoteComponent } from '../../../shared/ui/df-editing-note/df-editing-note.component';
 import { DfSkeletonComponent } from '../../../shared/ui/df-skeleton/df-skeleton.component';
 import { ToastService } from '../../../shared/ui/df-toast/toast.service';
 import { RewardFormSheetComponent } from '../reward-form-sheet/reward-form-sheet.component';
@@ -43,6 +44,7 @@ const TIER_WINDOW: Record<RewardTier, string> = {
     DfEmptyStateComponent,
     DfIconButtonComponent,
     DfSkeletonComponent,
+    DfEditingNoteComponent,
     RewardFormSheetComponent,
   ],
   templateUrl: './rewards-page.component.html',

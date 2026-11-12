@@ -1,5 +1,6 @@
 package com.dailyforge.reward.api;
 
+import com.dailyforge.common.security.StructuralChange;
 import com.dailyforge.common.error.StaleWrite;
 import com.dailyforge.common.security.CurrentUser;
 import com.dailyforge.reward.api.RewardDtos.CreateRewardRequest;
@@ -43,6 +44,7 @@ public class RewardController {
 
     @PostMapping("/rewards")
     @ResponseStatus(HttpStatus.CREATED)
+    @StructuralChange
     public RewardResponse create(@Valid @RequestBody CreateRewardRequest request) {
         var reward =
                 rewardService.create(
@@ -58,6 +60,7 @@ public class RewardController {
 
     /** Same body as create — a reward is small enough that a full replace beats a patch language. */
     @PutMapping("/rewards/{id}")
+    @StructuralChange
     public RewardResponse update(
             @PathVariable UUID id,
             @RequestHeader(value = "If-Match", required = false) Long ifMatch,
@@ -78,6 +81,7 @@ public class RewardController {
 
     @DeleteMapping("/rewards/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @StructuralChange
     public void archive(@PathVariable UUID id) {
         rewardService.archive(id, currentUser.require());
     }

@@ -1,7 +1,7 @@
 <div class="habits-page__header">
   <h1 class="habits-page__title">{{ view() === 'habits' ? 'Habits' : 'Activities' }}</h1>
 
-  @if (session.isAuthenticated()) {
+  @if (session.isAuthenticated() && session.editingEnabled()) {
     @if (view() === 'habits') {
       <button dfButton type="button" variant="primary" (click)="openCreate()">
         <lucide-icon [img]="plusIcon" [size]="16" aria-hidden="true" />
@@ -58,6 +58,10 @@
     <p class="habits-page__error" role="alert">{{ message }}</p>
   }
 
+  @if (!session.editingEnabled()) {
+    <df-editing-note [what]="view() === 'habits' ? 'add, edit or reorder habits' : 'add or change activities'" />
+  }
+
   @if (view() === 'habits') {
   @if (viewedDate() && todayDate()) {
     <df-date-stepper
@@ -92,17 +96,20 @@
         title="Nothing scheduled for this day"
         body="Create a habit, or check a different date — a habit only shows up on the days it is scheduled for."
       >
-        <button dfButton type="button" variant="primary" (click)="openCreate()">New habit</button>
+        @if (session.editingEnabled()) {
+          <button dfButton type="button" variant="primary" (click)="openCreate()">New habit</button>
+        }
       </df-empty-state>
     } @else {
       <div class="habits-page__list" cdkDropList (cdkDropListDropped)="onHabitDropped($event)">
         @for (entry of current.habits; track entry.id) {
           <df-habit-row
             cdkDrag
-            [cdkDragDisabled]="reordering()"
+            [cdkDragDisabled]="reordering() || !session.editingEnabled()"
             [entry]="entry"
             [date]="viewedDate()!"
-            [reorderable]="true"
+            [reorderable]="session.editingEnabled()"
+            [structureEditable]="session.editingEnabled()"
             (toggled)="onToggled($event)"
             (editRequested)="openEdit($event)"
             (errored)="onRowError($event)"
@@ -120,7 +127,9 @@
         title="Nothing here yet"
         body="A positive or negative one-off action — outside your habits and trackers — worth its own point value each time it happens."
       >
-        <button dfButton type="button" variant="secondary" (click)="openActivityForm()">New activity</button>
+        @if (session.editingEnabled()) {
+          <button dfButton type="button" variant="secondary" (click)="openActivityForm()">New activity</button>
+        }
       </df-empty-state>
     } @else {
       @for (group of activityGroups(); track group.polarity) {
@@ -145,22 +154,24 @@
               >
                 Log
               </button>
-              <button
-                dfIconButton
-                type="button"
-                [label]="'Edit ' + type.name"
-                variant="ghost"
-                [icon]="editIcon"
-                (click)="openActivityEdit(type)"
-              ></button>
-              <button
-                dfIconButton
-                type="button"
-                label="Remove this activity"
-                variant="ghost"
-                [icon]="deleteIcon"
-                (click)="archiveActivityType(type)"
-              ></button>
+              @if (session.editingEnabled()) {
+                <button
+                  dfIconButton
+                  type="button"
+                  [label]="'Edit ' + type.name"
+                  variant="ghost"
+                  [icon]="editIcon"
+                  (click)="openActivityEdit(type)"
+                ></button>
+                <button
+                  dfIconButton
+                  type="button"
+                  label="Remove this activity"
+                  variant="ghost"
+                  [icon]="deleteIcon"
+                  (click)="archiveActivityType(type)"
+                ></button>
+              }
             </df-card>
           }
         </div>

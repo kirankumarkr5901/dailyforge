@@ -98,10 +98,16 @@
             <li>Three phases: Foundation, Build, Forge.</li>
           </ul>
         }
-        <button type="button" class="forge-btn forge-btn--primary" (click)="openQuiz()">
-          <lucide-icon [img]="swordsIcon" [size]="18" aria-hidden="true" />
-          {{ forge.lastProgram ? 'Start a new program' : 'Begin the questionnaire' }}
-        </button>
+        @if (session.editingEnabled()) {
+          <button type="button" class="forge-btn forge-btn--primary" (click)="openQuiz()">
+            <lucide-icon [img]="swordsIcon" [size]="18" aria-hidden="true" />
+            {{ forge.lastProgram ? 'Start a new program' : 'Begin the questionnaire' }}
+          </button>
+        } @else {
+          <p class="forge__warn">
+            Editing is off. <a routerLink="/settings">Turn it on in Settings</a> to start a program.
+          </p>
+        }
       </div>
     }
 
@@ -110,7 +116,7 @@
       <df-forge-stats [stats]="forge.profile.stats" [focusAreas]="program()?.focusAreas ?? []" />
     </div>
 
-    @if (program()) {
+    @if (program() && session.editingEnabled()) {
       <div class="forge__footer">
         @if (confirmingAbandon()) {
           <p class="forge__warn">End this program? Days already played keep their XP. This cannot be undone.</p>

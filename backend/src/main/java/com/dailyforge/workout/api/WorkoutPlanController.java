@@ -1,5 +1,6 @@
 package com.dailyforge.workout.api;
 
+import com.dailyforge.common.security.StructuralChange;
 import com.dailyforge.common.error.StaleWrite;
 import com.dailyforge.common.error.ApiException;
 import com.dailyforge.common.security.CurrentUser;
@@ -58,6 +59,7 @@ public class WorkoutPlanController {
     }
 
     @PostMapping("/{id}/unarchive")
+    @StructuralChange
     public PlanResponse unarchive(@PathVariable UUID id) {
         UUID userId = currentUser.require();
         return toResponse(plans.unarchive(id, userId));
@@ -65,6 +67,7 @@ public class WorkoutPlanController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @StructuralChange
     public PlanResponse create(@Valid @RequestBody CreatePlanRequest request) {
         UUID userId = currentUser.require();
         if (request.dayCount() < 1 || request.dayCount() > 14) {
@@ -75,6 +78,7 @@ public class WorkoutPlanController {
     }
 
     @PatchMapping("/{id}")
+    @StructuralChange
     public PlanResponse update(
             @PathVariable UUID id,
             @RequestHeader(value = "If-Match", required = false) Long ifMatch,
@@ -86,6 +90,7 @@ public class WorkoutPlanController {
     }
 
     @PatchMapping("/{id}/days/{dayIndex}")
+    @StructuralChange
     public PlanResponse relabelDay(
             @PathVariable UUID id, @PathVariable int dayIndex, @Valid @RequestBody RelabelDayRequest request) {
         UUID userId = currentUser.require();
@@ -95,12 +100,14 @@ public class WorkoutPlanController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @StructuralChange
     public void archive(@PathVariable UUID id) {
         plans.archive(id, currentUser.require());
     }
 
     @PostMapping("/{id}/exercises")
     @ResponseStatus(HttpStatus.CREATED)
+    @StructuralChange
     public PlanExerciseResponse addExercise(@PathVariable UUID id, @Valid @RequestBody AddPlanExerciseRequest request) {
         UUID userId = currentUser.require();
         PlanExercise pe =
@@ -111,11 +118,13 @@ public class WorkoutPlanController {
 
     @DeleteMapping("/{id}/exercises/{planExerciseId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @StructuralChange
     public void removeExercise(@PathVariable UUID id, @PathVariable UUID planExerciseId) {
         plans.removeExercise(id, currentUser.require(), planExerciseId);
     }
 
     @PatchMapping("/{id}/exercises/{planExerciseId}")
+    @StructuralChange
     public PlanExerciseResponse updateExercise(
             @PathVariable UUID id,
             @PathVariable UUID planExerciseId,
@@ -127,6 +136,7 @@ public class WorkoutPlanController {
     }
 
     @PostMapping("/{id}/exercises/{planExerciseId}/move")
+    @StructuralChange
     public PlanExerciseResponse moveExercise(
             @PathVariable UUID id, @PathVariable UUID planExerciseId, @Valid @RequestBody MoveExerciseRequest request) {
         UUID userId = currentUser.require();
@@ -135,6 +145,7 @@ public class WorkoutPlanController {
     }
 
     @PatchMapping("/{id}/days/{dayIndex}/exercises/order")
+    @StructuralChange
     public List<PlanExerciseResponse> reorderDay(
             @PathVariable UUID id, @PathVariable int dayIndex, @Valid @RequestBody ReorderDayRequest request) {
         UUID userId = currentUser.require();

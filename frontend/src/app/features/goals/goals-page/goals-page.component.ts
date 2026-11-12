@@ -15,6 +15,7 @@ import { DfButtonComponent } from '../../../shared/ui/df-button/df-button.compon
 import { DfCardComponent } from '../../../shared/ui/df-card/df-card.component';
 import { DfEmptyStateComponent } from '../../../shared/ui/df-empty-state/df-empty-state.component';
 import { DfIconButtonComponent } from '../../../shared/ui/df-icon-button/df-icon-button.component';
+import { DfEditingNoteComponent } from '../../../shared/ui/df-editing-note/df-editing-note.component';
 import { DfSkeletonComponent } from '../../../shared/ui/df-skeleton/df-skeleton.component';
 import { ToastService } from '../../../shared/ui/df-toast/toast.service';
 import { GoalFormSheetComponent } from '../goal-form-sheet/goal-form-sheet.component';
@@ -23,6 +24,7 @@ import { GoalFormSheetComponent } from '../goal-form-sheet/goal-form-sheet.compo
 @Component({
   selector: 'df-goals-page',
   imports: [
+    DfEditingNoteComponent,
     LucideAngularModule,
     DfButtonComponent,
     DfCardComponent,

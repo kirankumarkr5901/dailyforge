@@ -16,6 +16,7 @@ import { DfCardComponent } from '../../shared/ui/df-card/df-card.component';
 import { DfEmptyStateComponent } from '../../shared/ui/df-empty-state/df-empty-state.component';
 import { DfSelectComponent, DfSelectOption } from '../../shared/ui/df-select/df-select.component';
 import { DfStepperInputComponent } from '../../shared/ui/df-stepper-input/df-stepper-input.component';
+import { DfSwitchComponent } from '../../shared/ui/df-switch/df-switch.component';
 import { ToastService } from '../../shared/ui/df-toast/toast.service';
 import { RestTimerService } from '../workouts/rest-timer/rest-timer.service';
 import { LucideAngularModule, Settings as SettingsIcon } from 'lucide-angular';
@@ -39,6 +40,7 @@ import { LucideAngularModule, Settings as SettingsIcon } from 'lucide-angular';
     DfStepperInputComponent,
     DfButtonComponent,
     DfEmptyStateComponent,
+    DfSwitchComponent,
   ],
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.scss',
@@ -123,6 +125,10 @@ export class SettingsComponent {
 
   protected setUnits(value: string): void {
     void this.persist({ unitSystem: value });
+  }
+
+  protected setEditing(enabled: boolean): void {
+    void this.persist({ editingEnabled: enabled });
   }
 
   protected setRestTimerDefault(seconds: number): void {

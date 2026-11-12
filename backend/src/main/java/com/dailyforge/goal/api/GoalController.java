@@ -1,5 +1,6 @@
 package com.dailyforge.goal.api;
 
+import com.dailyforge.common.security.StructuralChange;
 import com.dailyforge.common.security.CurrentUser;
 import com.dailyforge.goal.api.GoalDtos.CreateGoalRequest;
 import com.dailyforge.goal.api.GoalDtos.ExtendGoalRequest;
@@ -42,6 +43,7 @@ public class GoalController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @StructuralChange
     public GoalResponse create(@Valid @RequestBody CreateGoalRequest request) {
         var goal =
                 goalService.create(
@@ -70,11 +72,13 @@ public class GoalController {
     }
 
     @PostMapping("/{id}/extend")
+    @StructuralChange
     public GoalResponse extend(@PathVariable UUID id, @Valid @RequestBody ExtendGoalRequest request) {
         return GoalResponse.of(goalService.extend(id, currentUser.require(), request.newEndDate()));
     }
 
     @PatchMapping("/{id}")
+    @StructuralChange
     public GoalResponse update(@PathVariable UUID id, @Valid @RequestBody UpdateGoalRequest request) {
         return GoalResponse.of(
                 goalService.update(
@@ -88,12 +92,14 @@ public class GoalController {
     }
 
     @PatchMapping("/{id}/archive")
+    @StructuralChange
     public GoalResponse archive(@PathVariable UUID id) {
         return GoalResponse.of(goalService.archive(id, currentUser.require()));
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @StructuralChange
     public void delete(@PathVariable UUID id) {
         goalService.delete(id, currentUser.require());
     }

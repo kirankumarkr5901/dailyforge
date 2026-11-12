@@ -118,6 +118,45 @@ class MilestoneServiceTest {
     }
 
     @Test
+    void theRecapCountsEarningsNotTheBalanceSoSpendingAndPenaltiesDoNotLowerIt() {
+        setToday(REAL_TODAY);
+        UUID user = TestUsers.create(users, settings);
+
+        points.award(
+                AwardCommand.withoutSource(
+                        user, REAL_TODAY, PointsCategory.WORKOUT, "TEST_WORKOUT", 300, "earned", "wk:" + UUID.randomUUID()));
+        points.award(
+                AwardCommand.withoutSource(
+                        user, REAL_TODAY, PointsCategory.HABIT, "TEST_HABIT", 200, "earned", "hb:" + UUID.randomUUID()));
+        // Spent on a reward, and charged a penalty: neither is "earned less".
+        points.award(
+                AwardCommand.withoutSource(
+                        user, REAL_TODAY, PointsCategory.REWARD, "REWARD_REDEEM", -250, "spent", "rw:" + UUID.randomUUID()));
+        points.award(
+                AwardCommand.withoutSource(
+                        user, REAL_TODAY, PointsCategory.HABIT, "HABIT_PENALTY", -40, "penalty", "pn:" + UUID.randomUUID()));
+
+        var recap = milestones.recap(user, RecapPeriod.MONTH, REAL_TODAY);
+
+        assertThat(recap.totalPoints()).isEqualTo(500);
+        assertThat(recap.byCategory().get(PointsCategory.HABIT)).isEqualTo(200);
+        assertThat(recap.byCategory()).doesNotContainKey(PointsCategory.REWARD);
+    }
+
+    @Test
+    void anUndoneEarningNoLongerCounts() {
+        setToday(REAL_TODAY);
+        UUID user = TestUsers.create(users, settings);
+        UUID source = UUID.randomUUID();
+        points.award(
+                new AwardCommand(
+                        user, REAL_TODAY, PointsCategory.ACTIVITY, "TEST_ACTIVITY", 80, "TEST_SOURCE", source, "earned", "ac:" + source));
+        points.reverseBySource("TEST_SOURCE", source, "undo");
+
+        assertThat(milestones.recap(user, RecapPeriod.MONTH, REAL_TODAY).totalPoints()).isZero();
+    }
+
+    @Test
     void aRecapForTheCurrentMonthNeverWalksPastToday() {
         setToday(REAL_TODAY);
         UUID user = TestUsers.create(users, settings);

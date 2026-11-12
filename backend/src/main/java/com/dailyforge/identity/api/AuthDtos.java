@@ -82,6 +82,8 @@ public final class AuthDtos {
             BigDecimal heightCm,
             LocalTime reminderTime,
             Instant onboardingCompletedAt,
+            /** "Enable edit": while false, structural changes are refused. */
+            boolean editingEnabled,
             /** Sent back on edit as If-Match so a stale device cannot overwrite a newer one. */
             long version) {
 
@@ -95,6 +97,7 @@ public final class AuthDtos {
                     settings.getHeightCm(),
                     settings.getReminderTime(),
                     settings.getOnboardingCompletedAt(),
+                    settings.isEditingEnabled(),
                     settings.getVersion());
         }
     }
@@ -107,7 +110,8 @@ public final class AuthDtos {
             Integer commitmentBonus,
             BigDecimal heightCm,
             LocalTime reminderTime,
-            Boolean onboardingCompleted) {}
+            Boolean onboardingCompleted,
+            Boolean editingEnabled) {}
 
     /** Tells the frontend which sign-in methods this deployment actually offers. */
     /** {@code googleClientId} is null when Google is off; it is public, not a secret. */

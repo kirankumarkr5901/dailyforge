@@ -1,5 +1,6 @@
 package com.dailyforge.activity.api;
 
+import com.dailyforge.common.security.StructuralChange;
 import com.dailyforge.activity.api.ActivityDtos.ActivityLogResponse;
 import com.dailyforge.activity.api.ActivityDtos.ActivityTypeResponse;
 import com.dailyforge.activity.api.ActivityDtos.CreateActivityTypeRequest;
@@ -43,6 +44,7 @@ public class ActivityController {
 
     @PostMapping("/activities")
     @ResponseStatus(HttpStatus.CREATED)
+    @StructuralChange
     public ActivityTypeResponse create(@Valid @RequestBody CreateActivityTypeRequest request) {
         var type =
                 activities.create(currentUser.require(), request.name().trim(), request.polarity(), request.points(), request.icon());
@@ -50,6 +52,7 @@ public class ActivityController {
     }
 
     @PatchMapping("/activities/{id}")
+    @StructuralChange
     public ActivityTypeResponse update(@PathVariable UUID id, @Valid @RequestBody UpdateActivityTypeRequest request) {
         var type =
                 activities.update(
@@ -64,6 +67,7 @@ public class ActivityController {
 
     @DeleteMapping("/activities/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @StructuralChange
     public void archive(@PathVariable UUID id) {
         activities.archive(id, currentUser.require());
     }

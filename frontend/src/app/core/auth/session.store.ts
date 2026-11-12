@@ -34,6 +34,12 @@ export class SessionStore {
   readonly isAuthenticated = computed(() => this._status() === 'authenticated');
   readonly isResolved = computed(() => this._status() !== 'unknown');
   readonly displayName = computed(() => this._user()?.displayName ?? null);
+  /**
+   * "Enable edit" (Settings). While false, screens hide the controls that change the
+   * app's structure — new/edit/delete/reorder — and keep every logging control. The
+   * server enforces the same rule, so this only decides what is shown.
+   */
+  readonly editingEnabled = computed(() => this._user()?.settings.editingEnabled ?? false);
 
   /**
    * The user's time zone. Everything day-shaped in this app belongs to it, so it is read

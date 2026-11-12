@@ -75,12 +75,14 @@
     </span>
   }
 
-  <button
-    dfIconButton
-    type="button"
-    [label]="'Edit ' + entry().name"
-    variant="ghost"
-    [icon]="editIcon"
-    (click)="requestEdit($event)"
-  ></button>
+  @if (structureEditable()) {
+    <button
+      dfIconButton
+      type="button"
+      [label]="'Edit ' + entry().name"
+      variant="ghost"
+      [icon]="editIcon"
+      (click)="requestEdit($event)"
+    ></button>
+  }
 </div>

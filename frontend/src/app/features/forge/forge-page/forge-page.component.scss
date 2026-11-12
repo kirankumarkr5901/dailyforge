@@ -255,6 +255,10 @@
   margin: 0 0 var(--space-3);
   color: var(--forge-muted);
   font-size: var(--text-sm);
+
+  a {
+    color: var(--forge-gold);
+  }
 }
 
 .forge__link {
@@ -326,3 +330,4 @@
     transform: scale(1);
   }
 }
+
