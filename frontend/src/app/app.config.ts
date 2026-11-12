@@ -17,6 +17,7 @@ import { AppUpdateService } from './core/sync/app-update.service';
 import { coldStartInterceptor } from './core/sync/cold-start.interceptor';
 import { InstallService } from './core/sync/install.service';
 import { staleWriteInterceptor } from './core/sync/stale-write.interceptor';
+import { editingLockInterceptor } from './core/sync/editing-lock.interceptor';
 import { SyncStore } from './core/sync/sync.store';
 
 export const appConfig: ApplicationConfig = {
@@ -29,7 +30,7 @@ export const appConfig: ApplicationConfig = {
       // Returning to a list should return to where you were in it.
       withInMemoryScrolling({ scrollPositionRestoration: 'enabled', anchorScrolling: 'enabled' }),
     ),
-    provideHttpClient(withInterceptors([authInterceptor, staleWriteInterceptor, coldStartInterceptor])),
+    provideHttpClient(withInterceptors([authInterceptor, staleWriteInterceptor, editingLockInterceptor, coldStartInterceptor])),
 
     /**
      * Resolve the session before the first render.

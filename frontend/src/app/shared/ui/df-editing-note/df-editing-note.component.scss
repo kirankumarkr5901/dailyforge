@@ -1,0 +1,17 @@
+.df-editing-note {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-4);
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+
+  lucide-icon {
+    flex: none;
+  }
+
+  a {
+    color: var(--info-ink);
+    font-weight: 600;
+  }
+}

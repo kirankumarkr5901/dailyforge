@@ -14,6 +14,7 @@ import { DfSheetComponent } from '../../../shared/ui/df-sheet/df-sheet.component
 import { equipmentLabel, equipmentTone } from '../equipment-tone';
 import { EQUIPMENT_OPTIONS, KIND_OPTIONS, MUSCLE_GROUPS } from '../muscle-groups';
 
+import { SessionStore } from '../../../core/auth/session.store';
 /**
  * "A search field that suggests from the shared catalog as the user types, with
  * 'Create «bench press»' always available as the last option" (spec §8.2) — never
@@ -35,6 +36,7 @@ import { EQUIPMENT_OPTIONS, KIND_OPTIONS, MUSCLE_GROUPS } from '../muscle-groups
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ExercisePickerSheetComponent {
+  protected readonly session = inject(SessionStore);
   private readonly api = inject(WorkoutsApi);
   private readonly destroyRef = inject(DestroyRef);
 

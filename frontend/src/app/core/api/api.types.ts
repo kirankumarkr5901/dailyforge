@@ -27,6 +27,8 @@ export type ApiErrorCode =
   | 'IDEMPOTENCY_CONFLICT'
   /** Written against a copy another device has since changed; re-read, never retry. */
   | 'STALE_WRITE'
+  /** A structural change while "Enable edit" is off. Logging is never refused for this. */
+  | 'EDITING_LOCKED'
   | 'CONFLICT'
   | 'INTERNAL_ERROR'
   | 'NETWORK';
@@ -40,6 +42,8 @@ export interface UserSettings {
   heightCm: number | null;
   reminderTime: string | null;
   onboardingCompletedAt: string | null;
+  /** "Enable edit": while false the server refuses structural changes (EDITING_LOCKED). */
+  editingEnabled: boolean;
   /** Echoed back on edit so a stale device cannot overwrite a newer one. */
   version: number;
 }
@@ -88,4 +92,5 @@ export interface UpdateSettingsPayload {
   heightCm?: number;
   reminderTime?: string;
   onboardingCompleted?: boolean;
+  editingEnabled?: boolean;
 }

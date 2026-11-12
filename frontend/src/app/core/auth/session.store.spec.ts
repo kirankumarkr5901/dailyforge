@@ -22,6 +22,7 @@ const user: CurrentUser = {
     heightCm: null,
     reminderTime: null,
     onboardingCompletedAt: null,
+    editingEnabled: false,
     version: 0,
   },
 };

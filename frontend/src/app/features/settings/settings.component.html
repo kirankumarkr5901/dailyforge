@@ -83,6 +83,18 @@
 
 @if (session.isAuthenticated()) {
   <section class="page__section">
+    <h2 class="page__heading">Editing</h2>
+    <df-card>
+      <df-switch
+        label="Enable edit"
+        hint="Off: you can log everything, but habits, workout plans, activities, rewards, goals and Forge 66 stay as they are — no adding, editing, deleting or reordering. Turn on to change them."
+        [ngModel]="session.editingEnabled()"
+        (ngModelChange)="setEditing($event)"
+      />
+    </df-card>
+  </section>
+
+  <section class="page__section">
     <h2 class="page__heading">{{ 'settings.account' | t }}</h2>
     <df-card>
       <div class="stack">

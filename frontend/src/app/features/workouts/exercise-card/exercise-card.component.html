@@ -12,7 +12,7 @@
       }
       <!-- Only an exercise you own can be edited; the shared catalogue is not yours to
            rename, and the server refuses it anyway. -->
-      @if (entry().ownedByMe) {
+      @if (entry().ownedByMe && session.editingEnabled()) {
         <button
           dfIconButton
           type="button"

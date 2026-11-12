@@ -1,7 +1,7 @@
 <div class="rewards-page__header">
   <h1 class="rewards-page__title">Rewards</h1>
 
-  @if (session.isAuthenticated()) {
+  @if (session.isAuthenticated() && session.editingEnabled()) {
     <button dfButton type="button" variant="primary" (click)="openForm()">
       <lucide-icon [img]="plusIcon" [size]="16" aria-hidden="true" />
       New reward
@@ -23,9 +23,15 @@
     <p class="rewards-page__error" role="alert">{{ message }}</p>
   }
 
+  @if (!session.editingEnabled()) {
+    <df-editing-note what="add, edit or remove rewards" />
+  }
+
   @if (rewards().length === 0) {
     <df-empty-state [icon]="giftIcon" title="No rewards yet" body="Create something worth earning — points need somewhere to go.">
-      <button dfButton type="button" variant="primary" (click)="openForm()">New reward</button>
+      @if (session.editingEnabled()) {
+        <button dfButton type="button" variant="primary" (click)="openForm()">New reward</button>
+      }
     </df-empty-state>
   } @else {
     <div class="rewards-page__tier-filter" role="group" aria-label="Filter by tier">
@@ -69,24 +75,26 @@
                   <span class="rewards-page__reward-refresh">{{ refresh }}</span>
                 }
               </div>
-              <div class="rewards-page__reward-actions">
-                <button
-                  dfIconButton
-                  type="button"
-                  label="Edit this reward"
-                  variant="ghost"
-                  [icon]="editIcon"
-                  (click)="openEdit(reward)"
-                ></button>
-                <button
-                  dfIconButton
-                  type="button"
-                  label="Remove this reward"
-                  variant="ghost"
-                  [icon]="deleteIcon"
-                  (click)="archive(reward)"
-                ></button>
-              </div>
+              @if (session.editingEnabled()) {
+                <div class="rewards-page__reward-actions">
+                  <button
+                    dfIconButton
+                    type="button"
+                    label="Edit this reward"
+                    variant="ghost"
+                    [icon]="editIcon"
+                    (click)="openEdit(reward)"
+                  ></button>
+                  <button
+                    dfIconButton
+                    type="button"
+                    label="Remove this reward"
+                    variant="ghost"
+                    [icon]="deleteIcon"
+                    (click)="archive(reward)"
+                  ></button>
+                </div>
+              }
             </div>
 
             <button

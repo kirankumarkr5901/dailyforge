@@ -1,7 +1,7 @@
 <div class="goals-page__header">
   <h1 class="goals-page__title">Goals</h1>
 
-  @if (session.isAuthenticated()) {
+  @if (session.isAuthenticated() && session.editingEnabled()) {
     <button dfButton type="button" variant="primary" (click)="openForm()">
       <lucide-icon [img]="plusIcon" [size]="16" aria-hidden="true" />
       New goal
@@ -23,9 +23,15 @@
     <p class="goals-page__error" role="alert">{{ message }}</p>
   }
 
+  @if (!session.editingEnabled()) {
+    <df-editing-note what="add, edit or remove goals" />
+  }
+
   @if (goals().length === 0) {
     <df-empty-state [icon]="awardIcon" title="No goals yet" body="Create a goal and its progress will track itself from what you log.">
-      <button dfButton type="button" variant="primary" (click)="openForm()">New goal</button>
+      @if (session.editingEnabled()) {
+        <button dfButton type="button" variant="primary" (click)="openForm()">New goal</button>
+      }
     </df-empty-state>
   } @else {
     @if (activeGoals().length > 0) {
@@ -36,36 +42,38 @@
               <h3 class="goals-page__goal-title">{{ goal.title }}</h3>
               <span class="goals-page__goal-header-side">
                 <span class="goals-page__goal-reward">+{{ goal.rewardPoints }} pts</span>
-                <button
-                  dfIconButton
-                  type="button"
-                  [label]="'Edit ' + goal.title"
-                  variant="ghost"
-                  [icon]="editIcon"
-                  [size]="16"
-                  (click)="openEdit(goal)"
-                ></button>
-                <button
-                  dfIconButton
-                  type="button"
-                  [label]="'Hide ' + goal.title"
-                  variant="ghost"
-                  [icon]="hideIcon"
-                  [size]="16"
-                  (click)="hide(goal)"
-                ></button>
-                @if (armedDeleteId() === goal.id) {
-                  <button dfButton type="button" variant="danger" (click)="remove(goal)">Delete?</button>
-                } @else {
+                @if (session.editingEnabled()) {
                   <button
                     dfIconButton
                     type="button"
-                    [label]="'Delete ' + goal.title"
+                    [label]="'Edit ' + goal.title"
                     variant="ghost"
-                    [icon]="deleteIcon"
+                    [icon]="editIcon"
                     [size]="16"
-                    (click)="armDelete(goal)"
+                    (click)="openEdit(goal)"
                   ></button>
+                  <button
+                    dfIconButton
+                    type="button"
+                    [label]="'Hide ' + goal.title"
+                    variant="ghost"
+                    [icon]="hideIcon"
+                    [size]="16"
+                    (click)="hide(goal)"
+                  ></button>
+                  @if (armedDeleteId() === goal.id) {
+                    <button dfButton type="button" variant="danger" (click)="remove(goal)">Delete?</button>
+                  } @else {
+                    <button
+                      dfIconButton
+                      type="button"
+                      [label]="'Delete ' + goal.title"
+                      variant="ghost"
+                      [icon]="deleteIcon"
+                      [size]="16"
+                      (click)="armDelete(goal)"
+                    ></button>
+                  }
                 }
               </span>
             </div>
@@ -119,14 +127,16 @@
               @if (goal.status === 'COMPLETED') {
                 <button dfButton type="button" variant="ghost" (click)="reopen(goal)">Reopen</button>
               }
-              @if (goal.status === 'FAILED') {
-                <button dfButton type="button" variant="ghost" (click)="extend(goal)">Extend a week</button>
-              }
-              <button dfButton type="button" variant="ghost" (click)="hide(goal)">Hide</button>
-              @if (armedDeleteId() === goal.id) {
-                <button dfButton type="button" variant="danger" (click)="remove(goal)">Delete?</button>
-              } @else {
-                <button dfButton type="button" variant="ghost" (click)="armDelete(goal)">Delete</button>
+              @if (session.editingEnabled()) {
+                @if (goal.status === 'FAILED') {
+                  <button dfButton type="button" variant="ghost" (click)="extend(goal)">Extend a week</button>
+                }
+                <button dfButton type="button" variant="ghost" (click)="hide(goal)">Hide</button>
+                @if (armedDeleteId() === goal.id) {
+                  <button dfButton type="button" variant="danger" (click)="remove(goal)">Delete?</button>
+                } @else {
+                  <button dfButton type="button" variant="ghost" (click)="armDelete(goal)">Delete</button>
+                }
               }
             </div>
           </df-card>

@@ -24,6 +24,7 @@ import { DfDateStepperComponent } from '../../../shared/ui/df-date-stepper/df-da
 import { DfEmptyStateComponent } from '../../../shared/ui/df-empty-state/df-empty-state.component';
 import { DfIconButtonComponent } from '../../../shared/ui/df-icon-button/df-icon-button.component';
 import { DfMonthCalendarComponent } from '../../../shared/ui/df-month-calendar/df-month-calendar.component';
+import { DfEditingNoteComponent } from '../../../shared/ui/df-editing-note/df-editing-note.component';
 import { DfSkeletonComponent } from '../../../shared/ui/df-skeleton/df-skeleton.component';
 import { ToastService } from '../../../shared/ui/df-toast/toast.service';
 import { ActivityTypeFormSheetComponent } from '../../activities/activity-type-form-sheet/activity-type-form-sheet.component';
@@ -42,6 +43,7 @@ import { HabitRowComponent, HabitToggled } from '../habit-row/habit-row.componen
 @Component({
   selector: 'df-habits-page',
   imports: [
+    DfEditingNoteComponent,
     CdkDrag,
     CdkDragPlaceholder,
     CdkDropList,

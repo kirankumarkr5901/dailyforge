@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output, inject } from '@angular/core';
 import { CircleCheck, History, LucideAngularModule, Plus, RotateCcw, SquarePen, Trash2 } from 'lucide-angular';
 
 import { ExerciseBoardEntry, WorkoutSet } from '../../../core/workouts/workouts.types';
@@ -8,6 +8,7 @@ import { DfChipComponent } from '../../../shared/ui/df-chip/df-chip.component';
 import { DfIconButtonComponent } from '../../../shared/ui/df-icon-button/df-icon-button.component';
 import { equipmentLabel, equipmentTone } from '../equipment-tone';
 
+import { SessionStore } from '../../../core/auth/session.store';
 /**
  * One exercise's log card (spec §8.3): PRs, logged sets, and the Log action. A card
  * with at least one set gets the "done" treatment — the parent is what actually moves
@@ -23,6 +24,7 @@ import { equipmentLabel, equipmentTone } from '../equipment-tone';
   host: { '[class]': '"exercise-card--" + state()' },
 })
 export class ExerciseCardComponent {
+  protected readonly session = inject(SessionStore);
   readonly entry = input.required<ExerciseBoardEntry>();
 
   readonly logRequested = output<void>();
