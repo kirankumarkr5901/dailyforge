@@ -35,4 +35,10 @@ export interface BodySummary {
   deltaSince30Days: number | null;
   movingAverage: MovingAveragePoint[];
   weeklyStreak: number;
+  /** Latest 7-day average weight. */
+  weeklyAverageKg: number | null;
+  /** How much that average moved over two weeks; null without enough history. */
+  weeklyAverageChange14Days: number | null;
+  /** The average moved less than 0.2 kg in two weeks. */
+  stalled: boolean;
 }

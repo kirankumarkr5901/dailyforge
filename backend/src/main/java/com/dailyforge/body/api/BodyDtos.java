@@ -44,7 +44,13 @@ public final class BodyDtos {
             BigDecimal deltaSinceLastLog,
             BigDecimal deltaSince30Days,
             List<MovingAveragePointResponse> movingAverage,
-            int weeklyStreak) {
+            int weeklyStreak,
+            /** Latest 7-day average weight. */
+            BigDecimal weeklyAverageKg,
+            /** How much that average moved over two weeks; null without enough history. */
+            BigDecimal weeklyAverageChange14Days,
+            /** The average moved less than 0.2 kg in two weeks. */
+            boolean stalled) {
 
         public static SummaryResponse of(Summary summary) {
             return new SummaryResponse(
@@ -55,7 +61,10 @@ public final class BodyDtos {
                     summary.deltaSinceLastLog(),
                     summary.deltaSince30Days(),
                     summary.movingAverage().stream().map(MovingAveragePointResponse::of).toList(),
-                    summary.weeklyStreak());
+                    summary.weeklyStreak(),
+                    summary.trend().weeklyAverageKg(),
+                    summary.trend().change14Days(),
+                    summary.trend().stalled());
         }
     }
 }

@@ -156,3 +156,12 @@ export interface ExerciseHistoryEntry {
   date: LogicalDate;
   set: WorkoutSet;
 }
+
+/** Sets per primary muscle for one Monday-to-Sunday week, with the usual target band. */
+export interface WeeklyVolume {
+  weekStart: LogicalDate;
+  weekEnd: LogicalDate;
+  targetLow: number;
+  targetHigh: number;
+  muscles: { group: string; sets: number }[];
+}

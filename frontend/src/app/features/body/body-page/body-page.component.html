@@ -75,7 +75,31 @@
               {{ deltaLabel(body.deltaSince30Days) }}
             </span>
           </div>
+          @if (body.weeklyAverageKg !== null) {
+            <div>
+              <span class="body-page__delta-label">7-day average</span>
+              <span class="body-page__delta-value">{{ body.weeklyAverageKg.toFixed(1) }} kg</span>
+            </div>
+            <div>
+              <span class="body-page__delta-label">Average, last 2 weeks</span>
+              <span class="body-page__delta-value">
+                @if (body.weeklyAverageChange14Days !== null) {
+                  <lucide-icon [img]="deltaIcon(body.weeklyAverageChange14Days)" [size]="14" aria-hidden="true" />
+                  {{ deltaLabel(body.weeklyAverageChange14Days) }}
+                } @else {
+                  needs 2 weeks of logs
+                }
+              </span>
+            </div>
+          }
         </div>
+
+        @if (body.stalled) {
+          <p class="body-page__stall" role="status">
+            Your 7-day average has barely moved in 2 weeks. If you're trying to lose weight, eat about 150–200 kcal
+            less a day.
+          </p>
+        }
       </df-card>
 
       @if (body.entries.length > 1) {

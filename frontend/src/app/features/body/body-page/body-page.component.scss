@@ -153,3 +153,14 @@
   font-size: var(--text-sm);
   font-weight: 600;
 }
+
+/* The two-week stall nudge: a note, not an alarm. */
+.body-page__stall {
+  margin: var(--space-3) 0 0;
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--heat-2);
+  border-radius: 6px;
+  background: var(--surface-sunken);
+  color: var(--ink);
+  font-size: var(--text-sm);
+}

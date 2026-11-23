@@ -45,6 +45,7 @@ public class WorkoutController {
     private final DayService dayService;
     private final IdentityService identity;
     private final WorkoutCompletionService completionService;
+    private final com.dailyforge.workout.domain.WeeklyVolumeService weeklyVolume;
 
     public WorkoutController(
             WorkoutSetService setService,
@@ -52,13 +53,23 @@ public class WorkoutController {
             CurrentUser currentUser,
             DayService dayService,
             IdentityService identity,
-            WorkoutCompletionService completionService) {
+            WorkoutCompletionService completionService,
+            com.dailyforge.workout.domain.WeeklyVolumeService weeklyVolume) {
         this.setService = setService;
         this.board = board;
         this.currentUser = currentUser;
         this.dayService = dayService;
         this.identity = identity;
         this.completionService = completionService;
+        this.weeklyVolume = weeklyVolume;
+    }
+
+    /** Sets per muscle for the Monday-to-Sunday week containing {@code date} (today if omitted). */
+    @GetMapping("/weekly-volume")
+    public WorkoutDtos.WeeklyVolumeResponse weeklyVolume(@RequestParam(required = false) LocalDate date) {
+        UUID userId = currentUser.require();
+        LocalDate resolved = date != null ? date : dayService.today(dayService.zoneOf(identity.requireSettings(userId).getTimeZone()));
+        return WorkoutDtos.WeeklyVolumeResponse.of(weeklyVolume.forWeekOf(userId, resolved));
     }
 
     /**

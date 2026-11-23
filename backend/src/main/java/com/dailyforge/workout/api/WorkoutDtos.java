@@ -240,4 +240,21 @@ public final class WorkoutDtos {
             return new DeleteSetResponse(PointsEnvelope.of(result));
         }
     }
+
+    // ---------------------------------------------------------------- weekly volume
+
+    public record MuscleSetsResponse(String group, int sets) {}
+
+    /** Sets per primary muscle for one Monday-to-Sunday week, plus the usual target band. */
+    public record WeeklyVolumeResponse(
+            LocalDate weekStart, LocalDate weekEnd, int targetLow, int targetHigh, List<MuscleSetsResponse> muscles) {
+        public static WeeklyVolumeResponse of(com.dailyforge.workout.domain.WeeklyVolumeService.WeeklyVolume v) {
+            return new WeeklyVolumeResponse(
+                    v.weekStart(),
+                    v.weekEnd(),
+                    com.dailyforge.workout.domain.WeeklyVolumeService.TARGET_LOW,
+                    com.dailyforge.workout.domain.WeeklyVolumeService.TARGET_HIGH,
+                    v.muscles().stream().map(m -> new MuscleSetsResponse(m.group(), m.sets())).toList());
+        }
+    }
 }

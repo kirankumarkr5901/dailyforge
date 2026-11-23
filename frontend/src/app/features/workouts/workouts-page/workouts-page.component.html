@@ -173,6 +173,10 @@
       Add another exercise
     </button>
   }
+
+  @if (weeklyVolume(); as volume) {
+    <df-weekly-volume-card class="workouts-page__volume" [volume]="volume" />
+  }
 }
 
 <df-log-set-sheet

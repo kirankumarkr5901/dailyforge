@@ -16,6 +16,7 @@ import {
   UpdateSetPayload,
   WorkoutPlan,
   WorkoutSession,
+  WeeklyVolume,
 } from './workouts.types';
 
 @Injectable({ providedIn: 'root' })
@@ -49,6 +50,11 @@ export class WorkoutsApi {
 
   exerciseHistory(id: string): Observable<ExerciseHistoryEntry[]> {
     return this.http.get<ExerciseHistoryEntry[]>(`${this.base}/exercises/${id}/history`);
+  }
+
+  /** Sets per muscle for the week containing `date`. */
+  weeklyVolume(date: LogicalDate): Observable<WeeklyVolume> {
+    return this.http.get<WeeklyVolume>(`${this.base}/workouts/weekly-volume`, { params: new HttpParams().set('date', date) });
   }
 
   plans(): Observable<WorkoutPlan[]> {
