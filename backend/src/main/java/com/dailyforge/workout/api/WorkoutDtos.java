@@ -207,7 +207,23 @@ public final class WorkoutDtos {
              * it finished. No set count can stand in for it — three sets is a full job
              * for one lift and a warm-up for another.
              */
-            java.time.Instant completedAt) {}
+            java.time.Instant completedAt,
+            /** The plan's target for today; null on a freeform session or when none was set. */
+            Integer targetSets,
+            Integer targetReps,
+            String notes,
+            /** Present only when last time hit every target. */
+            ProgressionResponse progression) {}
+
+    /** "Last time: 4 x 8 at 60 kg, every set on target. Try 62.5 kg." */
+    public record ProgressionResponse(
+            LocalDate lastDate, BigDecimal lastWeightKg, int lastSets, int lastReps, BigDecimal suggestedWeightKg) {
+        public static ProgressionResponse of(com.dailyforge.workout.domain.ProgressionCalculator.Suggestion s) {
+            return s == null
+                    ? null
+                    : new ProgressionResponse(s.lastDate(), s.lastWeightKg(), s.lastSets(), s.lastReps(), s.suggestedWeightKg());
+        }
+    }
 
     public record SessionResponse(
             UUID id, LocalDate date, UUID planId, Integer dayIndex, boolean completed, List<ExerciseBoardEntry> exercises) {}

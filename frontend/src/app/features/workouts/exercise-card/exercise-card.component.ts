@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input, output, inject } from '@angular/core';
-import { CircleCheck, History, LucideAngularModule, Plus, RotateCcw, SquarePen, Trash2 } from 'lucide-angular';
+import { CircleCheck, History, LucideAngularModule, Plus, RotateCcw, SquarePen, Trash2, TrendingUp } from 'lucide-angular';
 
 import { ExerciseBoardEntry, WorkoutSet } from '../../../core/workouts/workouts.types';
 import { DfButtonComponent } from '../../../shared/ui/df-button/df-button.component';
@@ -44,6 +44,7 @@ export class ExerciseCardComponent {
   protected readonly doneIcon = CircleCheck;
   protected readonly historyIcon = History;
   protected readonly reopenIcon = RotateCcw;
+  protected readonly upIcon = TrendingUp;
 
   protected readonly equipmentTone = equipmentTone;
   protected readonly equipmentLabel = equipmentLabel;
@@ -64,6 +65,42 @@ export class ExerciseCardComponent {
   });
 
   protected readonly done = computed(() => this.state() === 'done');
+
+  /**
+   * One bubble per planned set, filled as sets are logged. Extra sets past the target
+   * get their own filled bubbles, so the row never under-reports what was done.
+   */
+  protected readonly bubbles = computed<boolean[] | null>(() => {
+    const { targetSets, sets } = this.entry();
+    if (!targetSets) {
+      return null;
+    }
+    return Array.from({ length: Math.max(targetSets, sets.length) }, (_, i) => i < sets.length);
+  });
+
+  protected readonly targetLabel = computed<string | null>(() => {
+    const { targetSets, targetReps, sets } = this.entry();
+    if (!targetSets && !targetReps) {
+      return null;
+    }
+    const setsPart = targetSets ? `${sets.length} / ${targetSets} sets` : `${sets.length} sets`;
+    return targetReps ? `${setsPart} · ${targetReps} reps` : setsPart;
+  });
+
+  /** Shown until work on the exercise starts; once you are lifting, it has done its job. */
+  protected readonly hint = computed<string | null>(() => {
+    const entry = this.entry();
+    const p = entry.progression;
+    if (!p || entry.sets.length > 0 || entry.completedAt) {
+      return null;
+    }
+    const last = this.weightLabel(p.lastWeightKg);
+    return `Last time ${p.lastSets} × ${p.lastReps} at ${last}, every set on target. Try ${this.weightLabel(p.suggestedWeightKg)}.`;
+  });
+
+  private weightLabel(kg: number): string {
+    return this.entry().equipment === 'BODYWEIGHT' ? (kg > 0 ? `BW + ${kg} kg` : 'bodyweight') : `${kg} kg`;
+  }
 
   protected prLabel(pr: { totalWeightKg: number; reps: number } | null): string {
     if (!pr) {

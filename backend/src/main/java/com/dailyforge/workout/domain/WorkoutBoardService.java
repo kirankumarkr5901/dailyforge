@@ -59,7 +59,13 @@ public class WorkoutBoardService {
             List<WorkoutSet> sets,
             WorkoutSetService.PrView recentPr,
             WorkoutSetService.PrView lifetimePr,
-            java.time.Instant completedAt) {}
+            java.time.Instant completedAt,
+            /** From the plan day; null on a freeform session or when no target was set. */
+            Integer targetSets,
+            Integer targetReps,
+            String notes,
+            /** Present only when last time hit every target: time to go up in weight. */
+            ProgressionCalculator.Suggestion progression) {}
 
     @Transactional(readOnly = true)
     public List<BoardExercise> board(UUID userId, WorkoutSession session) {
@@ -74,10 +80,14 @@ public class WorkoutBoardService {
                                         WorkoutExerciseCompletion::getExerciseId, WorkoutExerciseCompletion::getCompletedAt));
 
         Set<UUID> exerciseIds = new LinkedHashSet<>();
+        Map<UUID, PlanExercise> planned = new java.util.HashMap<>();
         if (session.getPlanId() != null && session.getDayIndex() != null) {
             planExercises
                     .findAllByPlanIdAndDayIndexOrderBySortOrderAsc(session.getPlanId(), session.getDayIndex())
-                    .forEach(pe -> exerciseIds.add(pe.getExerciseId()));
+                    .forEach(pe -> {
+                        exerciseIds.add(pe.getExerciseId());
+                        planned.put(pe.getExerciseId(), pe);
+                    });
         }
         loggedSets.forEach(s -> exerciseIds.add(s.getExerciseId()));
 
@@ -88,13 +98,22 @@ public class WorkoutBoardService {
                 continue;
             }
             List<WorkoutSet> sets = loggedSets.stream().filter(s -> s.getExerciseId().equals(exerciseId)).toList();
+            PlanExercise pe = planned.get(exerciseId);
+            Integer targetSets = pe == null ? null : pe.getTargetSets();
+            Integer targetReps = pe == null ? null : pe.getTargetReps();
             board.add(
                     new BoardExercise(
                             exercise,
                             sets,
                             setService.recentPr(userId, exerciseId, today),
                             setService.lifetimePr(userId, exerciseId),
-                            completedAt.get(exerciseId)));
+                            completedAt.get(exerciseId),
+                            targetSets,
+                            targetReps,
+                            pe == null ? null : pe.getNotes(),
+                            setService
+                                    .progression(userId, exercise, targetSets, targetReps, session.getOccurredOn())
+                                    .orElse(null)));
         }
         return board;
     }

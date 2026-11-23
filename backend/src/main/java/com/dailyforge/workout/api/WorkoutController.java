@@ -90,7 +90,11 @@ public class WorkoutController {
                                                 be.sets().stream().map(SetResponse::of).toList(),
                                                 be.exercise().isOwnedBy(userId),
                                                 be.exercise().getVersion(),
-                                                be.completedAt()))
+                                                be.completedAt(),
+                                                be.targetSets(),
+                                                be.targetReps(),
+                                                be.notes(),
+                                                WorkoutDtos.ProgressionResponse.of(be.progression())))
                         .toList();
         return new SessionResponse(session.getId(), session.getOccurredOn(), session.getPlanId(), session.getDayIndex(), session.isCompleted(), exercises);
     }

@@ -160,6 +160,58 @@ class WorkoutCompletionTest {
         assertThat(e.completedAt()).isNotNull();
     }
 
+    /** The plan says 3 sets; the third one finishes the exercise. */
+    @Test
+    void reachingTheTargetSetsFinishesTheExercise() {
+        logASet();
+        logASet();
+        assertThat(entry().completedAt()).isNull();
+
+        logASet();
+
+        assertThat(entry().completedAt()).isNotNull();
+    }
+
+    /** Reopened to do an extra set: that set must not close it again. */
+    @Test
+    void anExtraSetAfterReopeningDoesNotFinishItAgain() {
+        logASet();
+        logASet();
+        logASet();
+        completions.clearComplete(session.getId(), exerciseId, user);
+
+        logASet();
+
+        assertThat(entry().completedAt()).isNull();
+    }
+
+    @Test
+    void lastTimeOnTargetShowsTheAddWeightHint() {
+        LocalDate yesterday = TODAY.minusDays(1);
+        for (int i = 0; i < 3; i++) {
+            setService.logSet(user, yesterday, exerciseId, session.getPlanId(), session.getDayIndex(),
+                    new java.math.BigDecimal("60"), WeightMode.COMBINED, null, 8);
+        }
+
+        var hint = entry().progression();
+
+        assertThat(hint).isNotNull();
+        assertThat(hint.lastDate()).isEqualTo(yesterday);
+        assertThat(hint.suggestedWeightKg()).isEqualByComparingTo("62.5");
+    }
+
+    @Test
+    void noHistoryMeansNoHint() {
+        assertThat(entry().progression()).isNull();
+    }
+
+    @Test
+    void theBoardCarriesThePlanTargets() {
+        var e = entry();
+        assertThat(e.targetSets()).isEqualTo(3);
+        assertThat(e.targetReps()).isEqualTo(8);
+    }
+
     @Test
     void anotherUsersSessionCannotBeMarked() {
         UUID intruder = TestUsers.create(users, settings);

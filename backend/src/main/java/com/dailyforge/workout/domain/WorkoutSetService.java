@@ -42,6 +42,7 @@ public class WorkoutSetService {
     private final PointsRuleConfigService ruleConfigs;
     private final DayService dayService;
     private final IdentityService identity;
+    private final WorkoutCompletionService completions;
 
     public WorkoutSetService(
             WorkoutSessionRepository sessions,
@@ -51,7 +52,8 @@ public class WorkoutSetService {
             PointsService points,
             PointsRuleConfigService ruleConfigs,
             DayService dayService,
-            IdentityService identity) {
+            IdentityService identity,
+            WorkoutCompletionService completions) {
         this.sessions = sessions;
         this.sets = sets;
         this.planExercises = planExercises;
@@ -60,6 +62,7 @@ public class WorkoutSetService {
         this.ruleConfigs = ruleConfigs;
         this.dayService = dayService;
         this.identity = identity;
+        this.completions = completions;
     }
 
     @Transactional
@@ -109,6 +112,7 @@ public class WorkoutSetService {
         WorkoutSet set =
                 WorkoutSet.log(session.getId(), exerciseId, exercise.getEquipment(), setNumber, enteredWeight, weightMode, addedWeight, reps);
         sets.save(set);
+        completeOnTarget(session, exerciseId, setNumber, userId);
 
         PointsResult reconciled = points.reconcile(userId, new ReconcileScope.ExercisePr(userId, exerciseId));
         PointsResult completion = checkSessionComplete(session);
@@ -142,6 +146,37 @@ public class WorkoutSetService {
         sets.save(set);
 
         return points.reconcile(userId, new ReconcileScope.ExercisePr(userId, set.getExerciseId()));
+    }
+
+    /**
+     * The set that reaches the plan's target finishes the exercise. Only the set that
+     * lands exactly on the target does it: once you reopen an exercise to do an extra
+     * set, logging that set must not close it again behind your back.
+     */
+    private void completeOnTarget(WorkoutSession session, UUID exerciseId, int setNumber, UUID userId) {
+        if (session.getPlanId() == null || session.getDayIndex() == null) {
+            return;
+        }
+        boolean reachedTarget =
+                planExercises.findAllByPlanIdAndDayIndexOrderBySortOrderAsc(session.getPlanId(), session.getDayIndex()).stream()
+                        .anyMatch(pe -> pe.getExerciseId().equals(exerciseId)
+                                && pe.getTargetSets() != null
+                                && pe.getTargetSets() == setNumber);
+        if (reachedTarget) {
+            completions.markComplete(session.getId(), exerciseId, userId);
+        }
+    }
+
+    /** The add-weight hint for an exercise on {@code date}, judged on the last day it was done before that. */
+    @Transactional(readOnly = true)
+    public java.util.Optional<ProgressionCalculator.Suggestion> progression(
+            UUID userId, Exercise exercise, Integer targetSets, Integer targetReps, LocalDate date) {
+        if (targetReps == null) {
+            return java.util.Optional.empty();
+        }
+        return sets.findLastDateBefore(userId, exercise.getId(), date)
+                .flatMap(last -> ProgressionCalculator.suggest(
+                        exercise.getEquipment(), targetSets, targetReps, last, sets.findOnDate(userId, exercise.getId(), last)));
     }
 
     /** Recent (last 90 days) and lifetime best set for an exercise — display only (spec §5.5). */

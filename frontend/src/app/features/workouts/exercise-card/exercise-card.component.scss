@@ -121,3 +121,70 @@
   display: flex;
   gap: var(--space-1);
 }
+
+/* The plan's target: "2 / 4 sets · 8 reps" with one bubble per planned set. Filled
+ * bubbles use the live heat, matching the in-progress edge bar. */
+.exercise-card__target {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.exercise-card__target-label {
+  color: var(--ink);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.exercise-card__bubbles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.exercise-card__bubble {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--line);
+  border-radius: 50%;
+  transition: background-color var(--duration-base) var(--ease-out), border-color var(--duration-base) var(--ease-out);
+}
+
+.exercise-card__bubble--filled {
+  border-color: var(--heat-2);
+  background: var(--heat-2);
+}
+
+:host(.exercise-card--done) .exercise-card__bubble--filled {
+  border-color: var(--done);
+  background: var(--done);
+}
+
+.exercise-card__notes {
+  margin: 0 0 var(--space-3);
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+}
+
+.exercise-card__hint {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--heat-2);
+  border-radius: var(--radius-sm, 6px);
+  background: var(--surface-sunken);
+  color: var(--ink);
+  font-size: var(--text-sm);
+}
+
+.exercise-card__hint lucide-icon {
+  flex: none;
+  margin-top: 2px;
+  color: var(--heat-2);
+}
