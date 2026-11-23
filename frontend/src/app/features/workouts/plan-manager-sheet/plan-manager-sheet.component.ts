@@ -116,6 +116,8 @@ export class PlanManagerSheetComponent {
    * literally zero sets or reps would be meaningless anyway. */
   protected readonly targetSetsDraft = signal(0);
   protected readonly targetRepsDraft = signal(0);
+  /** 0 = use the default rest; the plan manager keeps it simple. */
+  protected readonly restDraft = signal(0);
   protected readonly notesDraft = signal('');
 
   protected readonly planOptions = computed<readonly DfSelectOption[]>(() =>
@@ -292,6 +294,7 @@ export class PlanManagerSheetComponent {
     this.editingExerciseId.set(pe.id);
     this.targetSetsDraft.set(pe.targetSets ?? 0);
     this.targetRepsDraft.set(pe.targetReps ?? 0);
+    this.restDraft.set(pe.restSeconds ?? 0);
     this.notesDraft.set(pe.notes ?? '');
   }
 
@@ -309,6 +312,7 @@ export class PlanManagerSheetComponent {
         targetSets: this.targetSetsDraft() || null,
         targetReps: this.targetRepsDraft() || null,
         notes: this.notesDraft().trim() || null,
+        restSeconds: this.restDraft() || null,
       }),
     );
     this.editingExerciseId.set(null);

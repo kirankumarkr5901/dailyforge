@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
-import { LucideAngularModule, Plus, SquarePen, Trash2 } from 'lucide-angular';
+import { ChevronDown, LucideAngularModule, Plus, SquarePen, Trash2 } from 'lucide-angular';
 
 import { SessionStore } from '../../../core/auth/session.store';
 import { ProteinApi } from '../../../core/nutrition/protein.api';
@@ -43,6 +43,7 @@ export class ProteinSettingsComponent {
   protected readonly session = inject(SessionStore);
 
   protected readonly plusIcon = Plus;
+  protected readonly chevronIcon = ChevronDown;
   protected readonly editIcon = SquarePen;
   protected readonly deleteIcon = Trash2;
 
@@ -50,6 +51,8 @@ export class ProteinSettingsComponent {
   protected readonly savedTarget = signal(140);
   protected readonly targetDraft = signal(140);
   protected readonly foods = signal<ProteinFood[]>([]);
+  /** The list is long; it stays folded until asked for. */
+  protected readonly foodsOpen = signal(false);
 
   protected readonly newName = signal('');
   protected readonly newGrams = signal(10);

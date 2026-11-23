@@ -61,6 +61,13 @@ export class NutritionPageComponent {
   /** One write at a time, so a quick double tap cannot log the same food twice. */
   protected readonly busy = signal(false);
 
+  protected readonly search = signal('');
+  protected readonly visibleFoods = computed(() => {
+    const foods = this.day()?.foods ?? [];
+    const q = this.search().trim().toLowerCase();
+    return q ? foods.filter((f) => f.name.toLowerCase().includes(q)) : foods;
+  });
+
   protected readonly otherName = signal('');
   protected readonly otherGrams = signal(10);
 

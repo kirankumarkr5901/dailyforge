@@ -63,3 +63,10 @@
   font-size: var(--text-sm);
   font-weight: 600;
 }
+
+.settings__height {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3);
+}

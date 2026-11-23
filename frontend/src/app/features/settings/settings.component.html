@@ -83,6 +83,26 @@
 
 @if (session.isAuthenticated()) {
   <section class="page__section">
+    <h2 class="page__heading">Body</h2>
+    <df-card>
+      <div class="settings__height">
+        <df-stepper-input
+          label="Height"
+          suffix="cm"
+          [hint]="savedHeight() === null ? 'Used to work out your BMI on Body. Not set yet.' : 'Used to work out your BMI on Body.'"
+          [min]="100"
+          [max]="250"
+          [ngModel]="heightDraft()"
+          (ngModelChange)="heightDraft.set($event)"
+        />
+        @if (heightDraft() !== savedHeight()) {
+          <button dfButton type="button" variant="primary" [disabled]="saving()" (click)="saveHeight()">Save height</button>
+        }
+      </div>
+    </df-card>
+  </section>
+
+  <section class="page__section">
     <h2 class="page__heading">Protein</h2>
     <df-protein-settings />
   </section>

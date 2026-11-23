@@ -131,7 +131,8 @@ public class WorkoutPlanController {
             @Valid @RequestBody WorkoutDtos.UpdatePlanExerciseRequest request) {
         UUID userId = currentUser.require();
         PlanExercise pe =
-                plans.updateExercise(id, userId, planExerciseId, request.targetSets(), request.targetReps(), request.notes());
+                plans.updateExercise(
+                        id, userId, planExerciseId, request.targetSets(), request.targetReps(), request.notes(), request.restSeconds());
         return PlanExerciseResponse.of(pe, exercises.requireVisible(pe.getExerciseId(), userId));
     }
 

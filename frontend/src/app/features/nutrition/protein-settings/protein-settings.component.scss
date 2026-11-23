@@ -15,9 +15,39 @@
   gap: var(--space-3);
 }
 
-.protein-settings__title {
-  margin: 0 0 var(--space-2);
-  font-size: var(--text-base, 1rem);
+.protein-settings__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 44px;
+  margin-bottom: var(--space-2);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.protein-settings__toggle:focus-visible {
+  outline: 2px solid var(--heat-2);
+  outline-offset: 2px;
+}
+
+.protein-settings__chevron {
+  transition: transform var(--duration-base) var(--ease-out);
+}
+
+.protein-settings__chevron--open {
+  transform: rotate(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .protein-settings__chevron {
+    transition: none;
+  }
 }
 
 .protein-settings__muted {

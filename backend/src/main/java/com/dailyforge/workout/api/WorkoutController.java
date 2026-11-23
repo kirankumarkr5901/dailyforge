@@ -122,7 +122,9 @@ public class WorkoutController {
                                                 be.targetSets(),
                                                 be.targetReps(),
                                                 be.notes(),
-                                                WorkoutDtos.ProgressionResponse.of(be.progression())))
+                                                WorkoutDtos.ProgressionResponse.of(be.progression()),
+                                                be.planExerciseId(),
+                                                be.restSeconds()))
                         .toList();
         return new SessionResponse(
                 session.getId(),
@@ -135,14 +137,14 @@ public class WorkoutController {
     }
 
     /**
-     * "I am finished with this exercise." Carries no points: the work was already paid
-     * for when the sets were logged, and paying again for saying so would pay twice for
-     * one effort.
+     * "I am finished with this exercise." Carries no points of its own: the work was
+     * already paid for when the sets were logged. The response still carries a points
+     * envelope, because the last exercise marked complete finishes the session, and that
+     * is a celebration.
      */
     @PostMapping("/sessions/{sessionId}/exercises/{exerciseId}/complete")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void completeExercise(@PathVariable UUID sessionId, @PathVariable UUID exerciseId) {
-        completionService.markComplete(sessionId, exerciseId, currentUser.require());
+    public WorkoutDtos.CompletionResponse completeExercise(@PathVariable UUID sessionId, @PathVariable UUID exerciseId) {
+        return WorkoutDtos.CompletionResponse.of(completionService.markComplete(sessionId, exerciseId, currentUser.require()));
     }
 
     @DeleteMapping("/sessions/{sessionId}/exercises/{exerciseId}/complete")

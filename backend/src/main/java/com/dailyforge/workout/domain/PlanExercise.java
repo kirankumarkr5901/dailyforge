@@ -44,6 +44,10 @@ public class PlanExercise {
     @Column(name = "notes", length = 200)
     private String notes;
 
+    /** Rest between sets for this exercise; null means the user's default rest. */
+    @Column(name = "rest_seconds")
+    private Integer restSeconds;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
@@ -81,6 +85,10 @@ public class PlanExercise {
         this.targetSets = targetSets;
         this.targetReps = targetReps;
         this.notes = notes;
+    }
+
+    public void updateRestSeconds(Integer restSeconds) {
+        this.restSeconds = restSeconds;
     }
 
     @PrePersist
@@ -125,5 +133,9 @@ public class PlanExercise {
 
     public String getNotes() {
         return notes;
+    }
+
+    public Integer getRestSeconds() {
+        return restSeconds;
     }
 }

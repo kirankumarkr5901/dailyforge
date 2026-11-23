@@ -48,6 +48,8 @@ export interface PlanExercise {
   targetSets: number | null;
   targetReps: number | null;
   notes: string | null;
+  /** Rest between sets for this exercise; null means the default rest. */
+  restSeconds: number | null;
 }
 
 export interface WorkoutPlan {
@@ -105,6 +107,10 @@ export interface ExerciseBoardEntry {
   notes: string | null;
   /** Present only when last time every working set hit the target reps. */
   progression: Progression | null;
+  /** The plan row this card comes from, for editing its targets; null on a freeform session. */
+  planExerciseId: string | null;
+  /** Rest between sets for this exercise; null means the default rest. */
+  restSeconds: number | null;
 }
 
 /** "Last time: 4 x 8 at 60 kg, every set on target. Try 62.5 kg." Weights are totals, as the board shows them. */

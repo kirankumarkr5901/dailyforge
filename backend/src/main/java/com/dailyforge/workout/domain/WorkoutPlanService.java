@@ -149,6 +149,24 @@ public class WorkoutPlanService {
         return planExercises.save(pe);
     }
 
+    /** Targets plus rest time, replaced together — the form that edits them always sends all four. */
+    @Transactional
+    public PlanExercise updateExercise(
+            UUID planId,
+            UUID userId,
+            UUID planExerciseId,
+            Integer targetSets,
+            Integer targetReps,
+            String notes,
+            Integer restSeconds) {
+        if (restSeconds != null && (restSeconds < 0 || restSeconds > 900)) {
+            throw ApiException.outOfRange("restSeconds", "Rest must be between 0 and 900 seconds.");
+        }
+        PlanExercise pe = updateExercise(planId, userId, planExerciseId, targetSets, targetReps, notes);
+        pe.updateRestSeconds(restSeconds);
+        return planExercises.save(pe);
+    }
+
     /** Reorders every exercise on one day to match the given sequence (keyboard-reachable per spec §8.2). */
     @Transactional
     public void reorderDay(UUID planId, UUID userId, int dayIndex, List<UUID> orderedPlanExerciseIds) {

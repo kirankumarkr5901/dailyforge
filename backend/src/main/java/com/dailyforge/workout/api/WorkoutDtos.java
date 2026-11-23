@@ -82,7 +82,8 @@ public final class WorkoutDtos {
 
     public record MoveExerciseRequest(@NotNull Integer toDayIndex) {}
 
-    public record UpdatePlanExerciseRequest(Integer targetSets, Integer targetReps, @Size(max = 200) String notes) {}
+    public record UpdatePlanExerciseRequest(
+            Integer targetSets, Integer targetReps, @Size(max = 200) String notes, Integer restSeconds) {}
 
     public record ReorderDayRequest(@NotNull List<UUID> orderedPlanExerciseIds) {}
 
@@ -96,7 +97,8 @@ public final class WorkoutDtos {
             int sortOrder,
             Integer targetSets,
             Integer targetReps,
-            String notes) {
+            String notes,
+            Integer restSeconds) {
 
         public static PlanExerciseResponse of(PlanExercise pe, Exercise exercise) {
             return new PlanExerciseResponse(
@@ -109,7 +111,8 @@ public final class WorkoutDtos {
                     pe.getSortOrder(),
                     pe.getTargetSets(),
                     pe.getTargetReps(),
-                    pe.getNotes());
+                    pe.getNotes(),
+                    pe.getRestSeconds());
         }
     }
 
@@ -213,7 +216,11 @@ public final class WorkoutDtos {
             Integer targetReps,
             String notes,
             /** Present only when last time hit every target. */
-            ProgressionResponse progression) {}
+            ProgressionResponse progression,
+            /** The plan row this card comes from, for editing its targets; null on a freeform session. */
+            UUID planExerciseId,
+            /** Rest between sets for this exercise; null means the default rest. */
+            Integer restSeconds) {}
 
     /** "Last time: 4 x 8 at 60 kg, every set on target. Try 62.5 kg." */
     public record ProgressionResponse(
@@ -243,6 +250,13 @@ public final class WorkoutDtos {
     public record SetWriteResponse(SetResponse set, PointsEnvelope points) {
         public static SetWriteResponse of(WorkoutSet set, PointsResult result) {
             return new SetWriteResponse(SetResponse.of(set), PointsEnvelope.of(result));
+        }
+    }
+
+    /** Marking an exercise complete can finish the whole session, which is a celebration. */
+    public record CompletionResponse(PointsEnvelope points) {
+        public static CompletionResponse of(PointsResult result) {
+            return new CompletionResponse(PointsEnvelope.of(result));
         }
     }
 

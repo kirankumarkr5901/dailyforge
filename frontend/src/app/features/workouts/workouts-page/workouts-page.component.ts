@@ -44,6 +44,7 @@ import { ExercisePickerSheetComponent } from '../exercise-picker-sheet/exercise-
 import { LogSetSheetComponent } from '../log-set-sheet/log-set-sheet.component';
 import { PlanManagerSheetComponent } from '../plan-manager-sheet/plan-manager-sheet.component';
 import { WeeklyVolumeCardComponent } from '../weekly-volume-card/weekly-volume-card.component';
+import { ExerciseTargetsSheetComponent, TargetsContext } from '../exercise-targets-sheet/exercise-targets-sheet.component';
 import { RestTimerComponent } from '../rest-timer/rest-timer.component';
 import { RestTimerService } from '../rest-timer/rest-timer.service';
 
@@ -91,6 +92,7 @@ const RANK: Record<ExerciseStatus, number> = { 'in-progress': 0, todo: 1, done: 
     LogSetSheetComponent,
     PlanManagerSheetComponent,
     WeeklyVolumeCardComponent,
+    ExerciseTargetsSheetComponent,
     DfSwitchComponent,
     RestTimerComponent,
   ],
@@ -121,6 +123,7 @@ export class WorkoutsPageComponent {
   protected readonly error = signal<string | null>(null);
   protected readonly plans = signal<WorkoutPlan[]>([]);
   protected readonly weeklyVolume = signal<WeeklyVolume | null>(null);
+  protected readonly targetsContext = signal<TargetsContext | null>(null);
   protected readonly todayDate = signal<LogicalDate | null>(null);
   protected readonly viewedDate = signal<LogicalDate | null>(null);
   protected readonly selectedPlanId = signal<string | null>(null);
@@ -439,8 +442,23 @@ export class WorkoutsPageComponent {
    * after a round trip; a failure puts it back and says so. No points change hands —
    * the work was already paid for when the sets were logged.
    */
+  /** Finishing an exercise starts the default rest: the break before the next one. */
   protected async completeExercise(entry: ExerciseBoardEntry): Promise<void> {
+    this.restTimer.start();
     await this.setCompletion(entry, new Date().toISOString());
+  }
+
+  protected openTargets(entry: ExerciseBoardEntry): void {
+    const planId = this.workoutSession()?.planId;
+    if (planId && entry.planExerciseId) {
+      this.targetsContext.set({ planId, entry });
+    }
+  }
+
+  protected async onTargetsSaved(): Promise<void> {
+    this.targetsContext.set(null);
+    await this.refreshSession();
+    this.toasts.show('Targets saved.');
   }
 
   protected async reopenExercise(entry: ExerciseBoardEntry): Promise<void> {
@@ -455,11 +473,17 @@ export class WorkoutsPageComponent {
     const previous = entry.completedAt;
     this.patchEntry(entry.exerciseId, completedAt);
     try {
-      await firstValueFrom(
-        completedAt
-          ? this.api.completeExercise(session.id, entry.exerciseId)
-          : this.api.reopenExercise(session.id, entry.exerciseId),
-      );
+      if (completedAt) {
+        const result = await firstValueFrom(this.api.completeExercise(session.id, entry.exerciseId));
+        this.points.applyEnvelope(result.points);
+        // The last exercise marked complete finishes the session.
+        if (result.points.celebrations.some((c) => c.type === 'WORKOUT_COMPLETE')) {
+          this.toasts.show('Session complete!', { tone: 'earned' });
+          this.celebrationTrigger.update((n) => n + 1);
+        }
+      } else {
+        await firstValueFrom(this.api.reopenExercise(session.id, entry.exerciseId));
+      }
     } catch {
       this.patchEntry(entry.exerciseId, previous);
       this.toasts.show('That did not save. Check your connection and try again.');
@@ -531,14 +555,19 @@ export class WorkoutsPageComponent {
       this.points.applyEnvelope(response.points);
     }
     const wasEditing = this.editingSet() !== null;
+    const loggedExerciseId = this.logSheetContext()?.id ?? null;
     this.closeLogSheet();
     await this.refreshSession();
     if (this.todayDate()) {
       void this.loadWorkoutDates(this.todayDate()!);
     }
 
+    // Between sets, each exercise rests for its own time when it has one. A set that
+    // reached the target finished the exercise, and finishing rests for the default,
+    // the same as pressing Complete.
     if (!wasEditing) {
-      this.restTimer.start();
+      const entry = this.workoutSession()?.exercises.find((e) => e.exerciseId === loggedExerciseId);
+      this.restTimer.start(entry?.completedAt ? undefined : (entry?.restSeconds ?? undefined));
     }
 
     const delta = responses.reduce((sum, r) => sum + r.points.delta, 0);

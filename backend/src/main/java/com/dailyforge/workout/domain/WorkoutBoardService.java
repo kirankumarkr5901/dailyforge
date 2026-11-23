@@ -68,7 +68,9 @@ public class WorkoutBoardService {
             Integer targetReps,
             String notes,
             /** Present only when last time hit every target: time to go up in weight. */
-            ProgressionCalculator.Suggestion progression) {}
+            ProgressionCalculator.Suggestion progression,
+            UUID planExerciseId,
+            Integer restSeconds) {}
 
     @Transactional(readOnly = true)
     public List<BoardExercise> board(UUID userId, WorkoutSession session) {
@@ -110,7 +112,7 @@ public class WorkoutBoardService {
                     new BoardExercise(
                             exercise,
                             sets,
-                            setService.recentPr(userId, exerciseId, today),
+                            setService.lastSessionBest(userId, exerciseId, session.getOccurredOn()),
                             setService.lifetimePr(userId, exerciseId),
                             completedAt.get(exerciseId),
                             targetSets,
@@ -121,7 +123,9 @@ public class WorkoutBoardService {
                                     ? null
                                     : setService
                                             .progression(userId, exercise, targetSets, targetReps, session.getOccurredOn())
-                                            .orElse(null)));
+                                            .orElse(null),
+                            pe == null ? null : pe.getId(),
+                            pe == null ? null : pe.getRestSeconds()));
         }
         return board;
     }

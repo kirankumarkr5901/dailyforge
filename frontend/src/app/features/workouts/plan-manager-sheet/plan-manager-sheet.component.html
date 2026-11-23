@@ -165,9 +165,9 @@
           <lucide-icon [img]="eliteIcon" [size]="14" aria-hidden="true" />
         }
       </span>
-      @if (pe.targetSets || pe.targetReps) {
+      @if (pe.targetSets || pe.targetReps || pe.restSeconds) {
         <span class="plan-manager__exercise-targets">
-          {{ pe.targetSets ?? '—' }} sets × {{ pe.targetReps ?? '—' }} reps
+          {{ pe.targetSets ?? '—' }} sets × {{ pe.targetReps ?? '—' }} reps{{ pe.restSeconds ? ' · rest ' + pe.restSeconds + 's' : '' }}
         </span>
       }
       @if (pe.notes) {
@@ -222,6 +222,16 @@
         [max]="100"
         [ngModel]="targetRepsDraft()"
         (ngModelChange)="targetRepsDraft.set($event)"
+      />
+      <df-stepper-input
+        label="Rest"
+        suffix="sec"
+        hint="0 = your default rest"
+        [min]="0"
+        [max]="900"
+        [step]="15"
+        [ngModel]="restDraft()"
+        (ngModelChange)="restDraft.set($event)"
       />
       <df-input label="Notes" [ngModel]="notesDraft()" (ngModelChange)="notesDraft.set($event)" />
       <div class="plan-manager__targets-form-actions">

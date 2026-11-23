@@ -158,6 +158,7 @@
             (editRequested)="openExerciseEdit(entry)"
             (completeRequested)="completeExercise(entry)"
             (reopenRequested)="reopenExercise(entry)"
+            (targetsRequested)="openTargets(entry)"
           />
         }
       }
@@ -217,6 +218,12 @@
   [exerciseName]="historyContext()?.name ?? ''"
   [equipment]="historyContext()?.equipment ?? 'BARBELL'"
   (closed)="closeHistorySheet()"
+/>
+
+<df-exercise-targets-sheet
+  [context]="targetsContext()"
+  (closed)="targetsContext.set(null)"
+  (saved)="onTargetsSaved()"
 />
 
 <df-exercise-edit-sheet
