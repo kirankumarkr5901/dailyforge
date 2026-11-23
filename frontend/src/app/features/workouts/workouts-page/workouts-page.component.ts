@@ -28,6 +28,7 @@ import { DfButtonComponent } from '../../../shared/ui/df-button/df-button.compon
 import { DfDateStepperComponent } from '../../../shared/ui/df-date-stepper/df-date-stepper.component';
 import { DfEmptyStateComponent } from '../../../shared/ui/df-empty-state/df-empty-state.component';
 import { DfSelectComponent, DfSelectOption } from '../../../shared/ui/df-select/df-select.component';
+import { DfSwitchComponent } from '../../../shared/ui/df-switch/df-switch.component';
 import { DfSkeletonComponent } from '../../../shared/ui/df-skeleton/df-skeleton.component';
 import { DfCardComponent } from '../../../shared/ui/df-card/df-card.component';
 import { DfCelebrationComponent } from '../../../shared/ui/df-celebration/df-celebration.component';
@@ -90,6 +91,7 @@ const RANK: Record<ExerciseStatus, number> = { 'in-progress': 0, todo: 1, done: 
     LogSetSheetComponent,
     PlanManagerSheetComponent,
     WeeklyVolumeCardComponent,
+    DfSwitchComponent,
     RestTimerComponent,
   ],
   templateUrl: './workouts-page.component.html',
@@ -336,6 +338,25 @@ export class WorkoutsPageComponent {
       void this.loadWeeklyVolume(session.date);
     } catch {
       this.toasts.show('Could not load this session. Check your connection.', { tone: 'penalty' });
+    }
+  }
+
+  /**
+   * Deload this week: every target on the board halves. The board is reloaded rather
+   * than patched, since the server owns the halving and the auto-complete that follows it.
+   */
+  protected async setDeload(on: boolean): Promise<void> {
+    const session = this.workoutSession();
+    if (!session) {
+      return;
+    }
+    this.workoutSession.set({ ...session, deload: on });
+    try {
+      await firstValueFrom(this.api.setDeload(session.date, on));
+      await this.refreshSession();
+    } catch {
+      this.workoutSession.set({ ...session, deload: !on });
+      this.toasts.show('That did not save. Check your connection and try again.');
     }
   }
 

@@ -10,6 +10,7 @@ export type PointsCategory =
   | 'REWARD'
   | 'BADGE'
   | 'FORGE'
+  | 'NUTRITION'
   | 'ADJUSTMENT';
 
 export interface LedgerEntry {

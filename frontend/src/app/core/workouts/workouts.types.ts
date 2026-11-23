@@ -123,6 +123,8 @@ export interface WorkoutSession {
   dayIndex: number | null;
   completed: boolean;
   exercises: ExerciseBoardEntry[];
+  /** This week is a deload: the targets on the board are already halved. */
+  deload: boolean;
 }
 
 export interface LogSetPayload {

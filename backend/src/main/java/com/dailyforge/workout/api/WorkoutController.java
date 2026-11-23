@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -46,6 +47,7 @@ public class WorkoutController {
     private final IdentityService identity;
     private final WorkoutCompletionService completionService;
     private final com.dailyforge.workout.domain.WeeklyVolumeService weeklyVolume;
+    private final com.dailyforge.workout.domain.DeloadService deload;
 
     public WorkoutController(
             WorkoutSetService setService,
@@ -54,7 +56,8 @@ public class WorkoutController {
             DayService dayService,
             IdentityService identity,
             WorkoutCompletionService completionService,
-            com.dailyforge.workout.domain.WeeklyVolumeService weeklyVolume) {
+            com.dailyforge.workout.domain.WeeklyVolumeService weeklyVolume,
+            com.dailyforge.workout.domain.DeloadService deload) {
         this.setService = setService;
         this.board = board;
         this.currentUser = currentUser;
@@ -62,6 +65,20 @@ public class WorkoutController {
         this.identity = identity;
         this.completionService = completionService;
         this.weeklyVolume = weeklyVolume;
+        this.deload = deload;
+    }
+
+    /**
+     * Marks the week containing {@code date} as a deload, or takes it back. Not a
+     * structural change: it is a choice about this week's training, so it works with
+     * "Enable edit" off.
+     */
+    @PutMapping("/deload")
+    public WorkoutDtos.DeloadResponse setDeload(@Valid @RequestBody WorkoutDtos.DeloadRequest request) {
+        UUID userId = currentUser.require();
+        deload.set(userId, request.date(), request.deload());
+        return new WorkoutDtos.DeloadResponse(
+                com.dailyforge.workout.domain.WeeklyVolumeService.mondayOf(request.date()), request.deload());
     }
 
     /** Sets per muscle for the Monday-to-Sunday week containing {@code date} (today if omitted). */
@@ -107,7 +124,14 @@ public class WorkoutController {
                                                 be.notes(),
                                                 WorkoutDtos.ProgressionResponse.of(be.progression())))
                         .toList();
-        return new SessionResponse(session.getId(), session.getOccurredOn(), session.getPlanId(), session.getDayIndex(), session.isCompleted(), exercises);
+        return new SessionResponse(
+                session.getId(),
+                session.getOccurredOn(),
+                session.getPlanId(),
+                session.getDayIndex(),
+                session.isCompleted(),
+                exercises,
+                deload.isDeload(userId, session.getOccurredOn()));
     }
 
     /**

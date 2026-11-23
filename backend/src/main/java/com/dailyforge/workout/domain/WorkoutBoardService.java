@@ -33,6 +33,7 @@ public class WorkoutBoardService {
     private final DayService dayService;
     private final IdentityService identity;
     private final WorkoutExerciseCompletionRepository completions;
+    private final DeloadService deload;
 
     public WorkoutBoardService(
             WorkoutSetService setService,
@@ -40,13 +41,15 @@ public class WorkoutBoardService {
             ExerciseRepository exercises,
             DayService dayService,
             IdentityService identity,
-            WorkoutExerciseCompletionRepository completions) {
+            WorkoutExerciseCompletionRepository completions,
+            DeloadService deload) {
         this.setService = setService;
         this.planExercises = planExercises;
         this.exercises = exercises;
         this.dayService = dayService;
         this.identity = identity;
         this.completions = completions;
+        this.deload = deload;
     }
 
     /**
@@ -73,6 +76,7 @@ public class WorkoutBoardService {
         LocalDate today = dayService.today(zone);
 
         List<WorkoutSet> loggedSets = setService.setsFor(session.getId());
+        boolean deloadWeek = deload.isDeload(userId, session.getOccurredOn());
         Map<UUID, java.time.Instant> completedAt =
                 completions.findAllBySessionId(session.getId()).stream()
                         .collect(
@@ -99,7 +103,8 @@ public class WorkoutBoardService {
             }
             List<WorkoutSet> sets = loggedSets.stream().filter(s -> s.getExerciseId().equals(exerciseId)).toList();
             PlanExercise pe = planned.get(exerciseId);
-            Integer targetSets = pe == null ? null : pe.getTargetSets();
+            Integer plannedSets = pe == null ? null : pe.getTargetSets();
+            Integer targetSets = deloadWeek ? DeloadService.deloadSets(plannedSets) : plannedSets;
             Integer targetReps = pe == null ? null : pe.getTargetReps();
             board.add(
                     new BoardExercise(
@@ -111,9 +116,12 @@ public class WorkoutBoardService {
                             targetSets,
                             targetReps,
                             pe == null ? null : pe.getNotes(),
-                            setService
-                                    .progression(userId, exercise, targetSets, targetReps, session.getOccurredOn())
-                                    .orElse(null)));
+                            // A deload week goes lighter on purpose: no nudge to add weight.
+                            deloadWeek
+                                    ? null
+                                    : setService
+                                            .progression(userId, exercise, targetSets, targetReps, session.getOccurredOn())
+                                            .orElse(null)));
         }
         return board;
     }

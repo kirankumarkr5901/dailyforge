@@ -1,0 +1,98 @@
+<div class="nutrition__header">
+  <h1 class="nutrition__title">Nutrition</h1>
+</div>
+
+@if (!session.isResolved() || (session.isAuthenticated() && loading() && !day())) {
+  <df-card>
+    <df-skeleton height="6rem" />
+    <df-skeleton height="8rem" />
+  </df-card>
+} @else if (!session.isAuthenticated()) {
+  <df-empty-state [icon]="foodIcon" title="You are browsing as a guest" body="Sign in to track your daily protein.">
+    <button dfButton type="button" variant="primary" (click)="signIn()">Sign in</button>
+  </df-empty-state>
+} @else {
+  @if (error(); as message) {
+    <p class="nutrition__error" role="alert">{{ message }}</p>
+  }
+
+  @if (day(); as d) {
+    <df-card class="nutrition__meter-card">
+      <h2 class="nutrition__section-title">Protein today</h2>
+      <div class="nutrition__total">
+        <span class="nutrition__total-value">{{ d.totalG }}</span>
+        <span class="nutrition__total-target">/ {{ d.targetG }} g</span>
+      </div>
+      <div
+        class="nutrition__meter"
+        [class.nutrition__meter--reached]="reached()"
+        role="progressbar"
+        [attr.aria-valuenow]="d.totalG"
+        [attr.aria-valuemin]="0"
+        [attr.aria-valuemax]="d.targetG"
+        [attr.aria-label]="d.totalG + ' of ' + d.targetG + ' grams of protein'"
+      >
+        <span class="nutrition__meter-fill" [style.width.%]="percent()"></span>
+      </div>
+      <p class="nutrition__message" aria-live="polite">{{ message() }}</p>
+    </df-card>
+
+    <df-card class="nutrition__foods-card">
+      <h2 class="nutrition__section-title">Tap what you ate</h2>
+      @if (d.foods.length > 0) {
+        <div class="nutrition__foods">
+          @for (food of d.foods; track food.id) {
+            <button type="button" class="nutrition__food" [disabled]="busy()" (click)="eat(food)">
+              {{ food.name }} <span class="nutrition__food-grams">+{{ food.grams }} g</span>
+            </button>
+          }
+        </div>
+      } @else {
+        <p class="nutrition__muted">No foods yet. Add some in <a routerLink="/settings">Settings</a>.</p>
+      }
+
+      <div class="nutrition__other">
+        <df-input label="Something else" [ngModel]="otherName()" (ngModelChange)="otherName.set($event)" />
+        <df-stepper-input
+          label="Protein (g)"
+          [min]="1"
+          [max]="200"
+          [ngModel]="otherGrams()"
+          (ngModelChange)="otherGrams.set($event)"
+        />
+        <button dfButton type="button" variant="secondary" [disabled]="busy()" (click)="eatOther()">
+          <lucide-icon [img]="plusIcon" [size]="16" aria-hidden="true" />
+          Add
+        </button>
+      </div>
+      <p class="nutrition__muted">
+        Change the daily target and your food list in <a routerLink="/settings">Settings</a>.
+      </p>
+    </df-card>
+
+    @if (d.entries.length > 0) {
+      <h2 class="nutrition__section-title">Eaten today</h2>
+      <df-card [flush]="true">
+        <ul class="nutrition__entries">
+          @for (entry of d.entries; track entry.id) {
+            <li class="nutrition__entry">
+              <span>{{ entry.foodName }}</span>
+              <span class="nutrition__entry-side">
+                <span class="nutrition__entry-grams">{{ entry.grams }} g</span>
+                <button
+                  dfIconButton
+                  type="button"
+                  [label]="'Remove ' + entry.foodName"
+                  variant="ghost"
+                  [icon]="deleteIcon"
+                  [disabled]="busy()"
+                  (click)="remove(entry)"
+                ></button>
+              </span>
+            </li>
+          }
+        </ul>
+      </df-card>
+    }
+  }
+}

@@ -1,0 +1,89 @@
+:host {
+  display: block;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.protein-settings__target {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3);
+}
+
+.protein-settings__title {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-base, 1rem);
+}
+
+.protein-settings__muted {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+}
+
+.protein-settings__foods {
+  margin: 0 0 var(--space-3);
+  padding: 0;
+  list-style: none;
+}
+
+.protein-settings__food {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: 44px;
+  padding-block: var(--space-1);
+  border-top: 1px solid var(--line);
+  font-size: var(--text-sm);
+}
+
+.protein-settings__food:first-child {
+  border-top: 0;
+}
+
+.protein-settings__food-side {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.protein-settings__grams {
+  margin-right: var(--space-1);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.protein-settings__edit {
+  display: grid;
+  flex: 1;
+  gap: var(--space-2);
+  padding-block: var(--space-2);
+}
+
+.protein-settings__edit-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.protein-settings__add {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: end;
+  gap: var(--space-3);
+}
+
+@media (max-width: 520px) {
+  .protein-settings__add {
+    grid-template-columns: 1fr auto;
+  }
+
+  .protein-settings__add df-input {
+    grid-column: 1 / -1;
+  }
+}

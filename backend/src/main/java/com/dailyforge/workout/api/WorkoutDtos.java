@@ -226,7 +226,18 @@ public final class WorkoutDtos {
     }
 
     public record SessionResponse(
-            UUID id, LocalDate date, UUID planId, Integer dayIndex, boolean completed, List<ExerciseBoardEntry> exercises) {}
+            UUID id,
+            LocalDate date,
+            UUID planId,
+            Integer dayIndex,
+            boolean completed,
+            List<ExerciseBoardEntry> exercises,
+            /** This week is a deload: the targets above are already halved. */
+            boolean deload) {}
+
+    public record DeloadRequest(@NotNull LocalDate date, @NotNull Boolean deload) {}
+
+    public record DeloadResponse(LocalDate weekStart, boolean deload) {}
 
     /** A set write returns the affected set plus the points envelope (spec §7). */
     public record SetWriteResponse(SetResponse set, PointsEnvelope points) {

@@ -43,6 +43,7 @@ public class WorkoutSetService {
     private final DayService dayService;
     private final IdentityService identity;
     private final WorkoutCompletionService completions;
+    private final DeloadService deload;
 
     public WorkoutSetService(
             WorkoutSessionRepository sessions,
@@ -53,7 +54,8 @@ public class WorkoutSetService {
             PointsRuleConfigService ruleConfigs,
             DayService dayService,
             IdentityService identity,
-            WorkoutCompletionService completions) {
+            WorkoutCompletionService completions,
+            DeloadService deload) {
         this.sessions = sessions;
         this.sets = sets;
         this.planExercises = planExercises;
@@ -63,6 +65,7 @@ public class WorkoutSetService {
         this.dayService = dayService;
         this.identity = identity;
         this.completions = completions;
+        this.deload = deload;
     }
 
     @Transactional
@@ -157,11 +160,12 @@ public class WorkoutSetService {
         if (session.getPlanId() == null || session.getDayIndex() == null) {
             return;
         }
+        boolean deloadWeek = deload.isDeload(userId, session.getOccurredOn());
         boolean reachedTarget =
                 planExercises.findAllByPlanIdAndDayIndexOrderBySortOrderAsc(session.getPlanId(), session.getDayIndex()).stream()
-                        .anyMatch(pe -> pe.getExerciseId().equals(exerciseId)
-                                && pe.getTargetSets() != null
-                                && pe.getTargetSets() == setNumber);
+                        .filter(pe -> pe.getExerciseId().equals(exerciseId) && pe.getTargetSets() != null)
+                        .map(pe -> deloadWeek ? DeloadService.deloadSets(pe.getTargetSets()) : pe.getTargetSets())
+                        .anyMatch(target -> target == setNumber);
         if (reachedTarget) {
             completions.markComplete(session.getId(), exerciseId, userId);
         }

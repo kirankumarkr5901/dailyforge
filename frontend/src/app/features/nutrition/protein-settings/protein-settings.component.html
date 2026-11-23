@@ -1,0 +1,98 @@
+<df-card>
+  @if (loaded()) {
+    <div class="stack">
+      <div class="protein-settings__target">
+        <df-stepper-input
+          label="Daily protein target"
+          suffix="g"
+          hint="Reaching it earns points once a day."
+          [min]="10"
+          [max]="500"
+          [step]="5"
+          [ngModel]="targetDraft()"
+          (ngModelChange)="targetDraft.set($event)"
+        />
+        @if (targetDraft() !== savedTarget()) {
+          <button dfButton type="button" variant="primary" (click)="saveTarget()">Save target</button>
+        }
+      </div>
+
+      <div>
+        <h3 class="protein-settings__title">One-tap foods</h3>
+        @if (foods().length === 0) {
+          <p class="protein-settings__muted">No foods yet.</p>
+        }
+        <ul class="protein-settings__foods">
+          @for (food of foods(); track food.id) {
+            <li class="protein-settings__food">
+              @if (editingId() === food.id) {
+                <div class="protein-settings__edit">
+                  <df-input label="Name" [ngModel]="editName()" (ngModelChange)="editName.set($event)" />
+                  <df-stepper-input
+                    label="Protein"
+                    suffix="g"
+                    [min]="1"
+                    [max]="200"
+                    [ngModel]="editGrams()"
+                    (ngModelChange)="editGrams.set($event)"
+                  />
+                  <div class="protein-settings__edit-actions">
+                    <button dfButton type="button" variant="primary" (click)="saveEdit()">Save</button>
+                    <button dfButton type="button" variant="ghost" (click)="editingId.set(null)">Cancel</button>
+                  </div>
+                </div>
+              } @else {
+                <span>{{ food.name }}</span>
+                <span class="protein-settings__food-side">
+                  <span class="protein-settings__grams">{{ food.grams }} g</span>
+                  @if (session.editingEnabled()) {
+                    <button
+                      dfIconButton
+                      type="button"
+                      [label]="'Edit ' + food.name"
+                      variant="ghost"
+                      [icon]="editIcon"
+                      [size]="16"
+                      (click)="startEdit(food)"
+                    ></button>
+                    <button
+                      dfIconButton
+                      type="button"
+                      [label]="'Remove ' + food.name"
+                      variant="ghost"
+                      [icon]="deleteIcon"
+                      [size]="16"
+                      (click)="removeFood(food)"
+                    ></button>
+                  }
+                </span>
+              }
+            </li>
+          }
+        </ul>
+
+        @if (session.editingEnabled()) {
+          <div class="protein-settings__add">
+            <df-input label="New food" [ngModel]="newName()" (ngModelChange)="newName.set($event)" />
+            <df-stepper-input
+              label="Protein"
+              suffix="g"
+              [min]="1"
+              [max]="200"
+              [ngModel]="newGrams()"
+              (ngModelChange)="newGrams.set($event)"
+            />
+            <button dfButton type="button" variant="secondary" (click)="addFood()">
+              <lucide-icon [img]="plusIcon" [size]="16" aria-hidden="true" />
+              Add
+            </button>
+          </div>
+        } @else {
+          <df-editing-note what="add or change foods" />
+        }
+      </div>
+    </div>
+  } @else {
+    <p class="protein-settings__muted">Loading…</p>
+  }
+</df-card>
