@@ -60,6 +60,7 @@ export const STRINGS = {
   'nav.goals': 'Goals',
   'nav.jobs': 'Jobs',
   'nav.body': 'Body',
+  'nav.nutrition': 'Nutrition',
   'nav.rewards': 'Rewards',
   'nav.milestones': 'Milestones',
   'nav.forge': 'Forge 66',

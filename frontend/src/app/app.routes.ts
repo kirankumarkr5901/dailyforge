@@ -92,6 +92,12 @@ export const routes: Routes = [
           import('./features/body/body-page/body-page.component').then((m) => m.BodyPageComponent),
       },
       {
+        path: 'nutrition',
+        title: 'Nutrition — DailyForge',
+        loadComponent: () =>
+          import('./features/nutrition/nutrition-page/nutrition-page.component').then((m) => m.NutritionPageComponent),
+      },
+      {
         path: 'rewards',
         title: 'Rewards — DailyForge',
         loadComponent: () =>

@@ -1,0 +1,77 @@
+:host {
+  display: block;
+}
+
+.volume__title {
+  margin: 0;
+  font-size: var(--text-lg);
+}
+
+.volume__sub,
+.volume__empty {
+  margin: var(--space-1) 0 var(--space-3);
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+}
+
+.volume__rows {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.volume__row {
+  display: grid;
+  grid-template-columns: 6.5rem minmax(0, 1fr) 2rem;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--text-sm);
+}
+
+.volume__group {
+  overflow: hidden;
+  color: var(--ink);
+  text-overflow: ellipsis;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.volume__track {
+  position: relative;
+  height: 14px;
+  border-radius: 4px;
+  background: var(--surface-sunken);
+}
+
+/* The target band sits behind the bar: present, never louder than the data. */
+.volume__zone {
+  position: absolute;
+  inset-block: 0;
+  border-inline: 1px dashed var(--line);
+  background: color-mix(in srgb, var(--ink-muted) 14%, transparent);
+}
+
+.volume__bar {
+  position: absolute;
+  inset-block: 3px;
+  left: 0;
+  min-width: 4px;
+  border-radius: 0 4px 4px 0;
+  background: var(--heat-2);
+  transition: width var(--duration-base) var(--ease-out);
+}
+
+.volume__count {
+  color: var(--ink);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .volume__bar {
+    transition: none;
+  }
+}

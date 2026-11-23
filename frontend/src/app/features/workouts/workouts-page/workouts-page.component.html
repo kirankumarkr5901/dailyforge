@@ -61,6 +61,22 @@
     </div>
   }
 
+  @if (workoutSession(); as ws) {
+    <div class="workouts-page__deload" [class.workouts-page__deload--on]="ws.deload">
+      <df-switch
+        label="Deload this week"
+        hint="Halves every exercise's target sets for this week."
+        [ngModel]="ws.deload"
+        (ngModelChange)="setDeload($event)"
+      />
+      @if (ws.deload) {
+        <p class="workouts-page__deload-note">
+          Deload week: the sets below are already halved. Use about 10% lighter weights and leave feeling fresh.
+        </p>
+      }
+    </div>
+  }
+
   @if (dayProgress().total > 0) {
     <div
       class="workouts-page__progress"
@@ -172,6 +188,10 @@
       <lucide-icon [img]="plusIcon" [size]="16" aria-hidden="true" />
       Add another exercise
     </button>
+  }
+
+  @if (weeklyVolume(); as volume) {
+    <df-weekly-volume-card class="workouts-page__volume" [volume]="volume" />
   }
 }
 

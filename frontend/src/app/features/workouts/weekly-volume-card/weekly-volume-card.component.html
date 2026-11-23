@@ -1,0 +1,24 @@
+<df-card>
+  <h2 class="volume__title">Sets per muscle this week</h2>
+  <p class="volume__sub">
+    The shaded zone is {{ volume().targetLow }}–{{ volume().targetHigh }} sets, the usual weekly target. Each set counts
+    toward its exercise's main muscle.
+  </p>
+
+  @if (volume().muscles.length === 0) {
+    <p class="volume__empty">No sets logged this week yet.</p>
+  } @else {
+    <ul class="volume__rows">
+      @for (m of volume().muscles; track m.group) {
+        <li class="volume__row" [attr.aria-label]="m.group + ': ' + status(m.sets)" [attr.title]="status(m.sets)">
+          <span class="volume__group">{{ m.group }}</span>
+          <span class="volume__track" aria-hidden="true">
+            <span class="volume__zone" [style.left.%]="band().left" [style.width.%]="band().width"></span>
+            <span class="volume__bar" [style.width.%]="width(m.sets)"></span>
+          </span>
+          <span class="volume__count">{{ m.sets }}</span>
+        </li>
+      }
+    </ul>
+  }
+</df-card>

@@ -21,12 +21,14 @@ import {
   WorkoutPlan,
   WorkoutSession,
   WorkoutSet,
+  WeeklyVolume,
 } from '../../../core/workouts/workouts.types';
 import { DayDetailSheetComponent } from '../../../shared/day-detail-sheet/day-detail-sheet.component';
 import { DfButtonComponent } from '../../../shared/ui/df-button/df-button.component';
 import { DfDateStepperComponent } from '../../../shared/ui/df-date-stepper/df-date-stepper.component';
 import { DfEmptyStateComponent } from '../../../shared/ui/df-empty-state/df-empty-state.component';
 import { DfSelectComponent, DfSelectOption } from '../../../shared/ui/df-select/df-select.component';
+import { DfSwitchComponent } from '../../../shared/ui/df-switch/df-switch.component';
 import { DfSkeletonComponent } from '../../../shared/ui/df-skeleton/df-skeleton.component';
 import { DfCardComponent } from '../../../shared/ui/df-card/df-card.component';
 import { DfCelebrationComponent } from '../../../shared/ui/df-celebration/df-celebration.component';
@@ -41,6 +43,7 @@ import { ExerciseHistorySheetComponent } from '../exercise-history-sheet/exercis
 import { ExercisePickerSheetComponent } from '../exercise-picker-sheet/exercise-picker-sheet.component';
 import { LogSetSheetComponent } from '../log-set-sheet/log-set-sheet.component';
 import { PlanManagerSheetComponent } from '../plan-manager-sheet/plan-manager-sheet.component';
+import { WeeklyVolumeCardComponent } from '../weekly-volume-card/weekly-volume-card.component';
 import { RestTimerComponent } from '../rest-timer/rest-timer.component';
 import { RestTimerService } from '../rest-timer/rest-timer.service';
 
@@ -87,6 +90,8 @@ const RANK: Record<ExerciseStatus, number> = { 'in-progress': 0, todo: 1, done: 
     ExercisePickerSheetComponent,
     LogSetSheetComponent,
     PlanManagerSheetComponent,
+    WeeklyVolumeCardComponent,
+    DfSwitchComponent,
     RestTimerComponent,
   ],
   templateUrl: './workouts-page.component.html',
@@ -115,6 +120,7 @@ export class WorkoutsPageComponent {
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
   protected readonly plans = signal<WorkoutPlan[]>([]);
+  protected readonly weeklyVolume = signal<WeeklyVolume | null>(null);
   protected readonly todayDate = signal<LogicalDate | null>(null);
   protected readonly viewedDate = signal<LogicalDate | null>(null);
   protected readonly selectedPlanId = signal<string | null>(null);
@@ -329,8 +335,37 @@ export class WorkoutsPageComponent {
         this.todayDate.set(session.date);
       }
       this.viewedDate.set(session.date);
+      void this.loadWeeklyVolume(session.date);
     } catch {
       this.toasts.show('Could not load this session. Check your connection.', { tone: 'penalty' });
+    }
+  }
+
+  /**
+   * Deload this week: every target on the board halves. The board is reloaded rather
+   * than patched, since the server owns the halving and the auto-complete that follows it.
+   */
+  protected async setDeload(on: boolean): Promise<void> {
+    const session = this.workoutSession();
+    if (!session) {
+      return;
+    }
+    this.workoutSession.set({ ...session, deload: on });
+    try {
+      await firstValueFrom(this.api.setDeload(session.date, on));
+      await this.refreshSession();
+    } catch {
+      this.workoutSession.set({ ...session, deload: !on });
+      this.toasts.show('That did not save. Check your connection and try again.');
+    }
+  }
+
+  /** A convenience panel: if it fails to load, the board still works without it. */
+  private async loadWeeklyVolume(date: LogicalDate): Promise<void> {
+    try {
+      this.weeklyVolume.set(await firstValueFrom(this.api.weeklyVolume(date)));
+    } catch {
+      this.weeklyVolume.set(null);
     }
   }
 

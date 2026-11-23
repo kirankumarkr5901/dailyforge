@@ -35,6 +35,30 @@
     </span>
   </div>
 
+  @if (targetLabel(); as label) {
+    <div class="exercise-card__target">
+      <span class="exercise-card__target-label">{{ label }}</span>
+      @if (bubbles(); as dots) {
+        <span class="exercise-card__bubbles" aria-hidden="true">
+          @for (filled of dots; track $index) {
+            <span class="exercise-card__bubble" [class.exercise-card__bubble--filled]="filled"></span>
+          }
+        </span>
+      }
+    </div>
+  }
+
+  @if (entry().notes; as notes) {
+    <p class="exercise-card__notes">{{ notes }}</p>
+  }
+
+  @if (hint(); as text) {
+    <p class="exercise-card__hint">
+      <lucide-icon [img]="upIcon" [size]="16" aria-hidden="true" />
+      <span>{{ text }}</span>
+    </p>
+  }
+
   <div class="exercise-card__prs">
     <div class="exercise-card__pr">
       <span class="exercise-card__pr-label">Recent PR</span>

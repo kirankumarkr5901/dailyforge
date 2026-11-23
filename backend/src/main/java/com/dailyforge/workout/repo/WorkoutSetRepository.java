@@ -67,4 +67,29 @@ public interface WorkoutSetRepository extends JpaRepository<WorkoutSet, UUID> {
                     + "and s.deletedAt is null "
                     + "order by sess.occurredOn desc, s.setNumber desc")
     List<Object[]> findHistory(@Param("userId") UUID userId, @Param("exerciseId") UUID exerciseId);
+
+    /** The most recent day before {@code before} on which this exercise had a live set. */
+    @Query(
+            "select max(sess.occurredOn) from WorkoutSet s, WorkoutSession sess "
+                    + "where sess.id = s.sessionId and sess.userId = :userId and s.exerciseId = :exerciseId "
+                    + "and s.deletedAt is null and sess.occurredOn < :before")
+    Optional<LocalDate> findLastDateBefore(
+            @Param("userId") UUID userId, @Param("exerciseId") UUID exerciseId, @Param("before") LocalDate before);
+
+    /** Every live set of this exercise on one day, across all of that day's sessions. */
+    @Query(
+            "select s from WorkoutSet s, WorkoutSession sess "
+                    + "where sess.id = s.sessionId and sess.userId = :userId and s.exerciseId = :exerciseId "
+                    + "and s.deletedAt is null and sess.occurredOn = :date "
+                    + "order by s.setNumber asc")
+    List<WorkoutSet> findOnDate(
+            @Param("userId") UUID userId, @Param("exerciseId") UUID exerciseId, @Param("date") LocalDate date);
+
+    /** Every live set this user logged between two days, inclusive, across all exercises. */
+    @Query(
+            "select s from WorkoutSet s, WorkoutSession sess "
+                    + "where sess.id = s.sessionId and sess.userId = :userId and s.deletedAt is null "
+                    + "and sess.occurredOn between :from and :to")
+    List<WorkoutSet> findAllForUserBetween(
+            @Param("userId") UUID userId, @Param("from") LocalDate from, @Param("to") LocalDate to);
 }

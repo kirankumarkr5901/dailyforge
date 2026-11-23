@@ -99,6 +99,21 @@ export interface ExerciseBoardEntry {
    * finished. No set count can stand in for it.
    */
   completedAt: string | null;
+  /** The plan's target for today; null on a freeform session or when none was set. */
+  targetSets: number | null;
+  targetReps: number | null;
+  notes: string | null;
+  /** Present only when last time every working set hit the target reps. */
+  progression: Progression | null;
+}
+
+/** "Last time: 4 x 8 at 60 kg, every set on target. Try 62.5 kg." Weights are totals, as the board shows them. */
+export interface Progression {
+  lastDate: LogicalDate;
+  lastWeightKg: number;
+  lastSets: number;
+  lastReps: number;
+  suggestedWeightKg: number;
 }
 
 export interface WorkoutSession {
@@ -108,6 +123,8 @@ export interface WorkoutSession {
   dayIndex: number | null;
   completed: boolean;
   exercises: ExerciseBoardEntry[];
+  /** This week is a deload: the targets on the board are already halved. */
+  deload: boolean;
 }
 
 export interface LogSetPayload {
@@ -140,4 +157,13 @@ export interface DeleteSetResponse {
 export interface ExerciseHistoryEntry {
   date: LogicalDate;
   set: WorkoutSet;
+}
+
+/** Sets per primary muscle for one Monday-to-Sunday week, with the usual target band. */
+export interface WeeklyVolume {
+  weekStart: LogicalDate;
+  weekEnd: LogicalDate;
+  targetLow: number;
+  targetHigh: number;
+  muscles: { group: string; sets: number }[];
 }

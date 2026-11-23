@@ -45,6 +45,7 @@ class WorkoutCompletionTest {
     @Autowired private WorkoutPlanService plans;
     @Autowired private UserRepository users;
     @Autowired private UserSettingsRepository settings;
+    @Autowired private com.dailyforge.workout.domain.DeloadService deload;
 
     private static final LocalDate TODAY = LocalDate.now(ZoneOffset.UTC);
 
@@ -158,6 +159,77 @@ class WorkoutCompletionTest {
         var e = entry();
         assertThat(e.sets()).hasSize(1);
         assertThat(e.completedAt()).isNotNull();
+    }
+
+    /** The plan says 3 sets; the third one finishes the exercise. */
+    @Test
+    void reachingTheTargetSetsFinishesTheExercise() {
+        logASet();
+        logASet();
+        assertThat(entry().completedAt()).isNull();
+
+        logASet();
+
+        assertThat(entry().completedAt()).isNotNull();
+    }
+
+    /** Reopened to do an extra set: that set must not close it again. */
+    @Test
+    void anExtraSetAfterReopeningDoesNotFinishItAgain() {
+        logASet();
+        logASet();
+        logASet();
+        completions.clearComplete(session.getId(), exerciseId, user);
+
+        logASet();
+
+        assertThat(entry().completedAt()).isNull();
+    }
+
+    @Test
+    void lastTimeOnTargetShowsTheAddWeightHint() {
+        LocalDate yesterday = TODAY.minusDays(1);
+        for (int i = 0; i < 3; i++) {
+            setService.logSet(user, yesterday, exerciseId, session.getPlanId(), session.getDayIndex(),
+                    new java.math.BigDecimal("60"), WeightMode.COMBINED, null, 8);
+        }
+
+        var hint = entry().progression();
+
+        assertThat(hint).isNotNull();
+        assertThat(hint.lastDate()).isEqualTo(yesterday);
+        assertThat(hint.suggestedWeightKg()).isEqualByComparingTo("62.5");
+    }
+
+    @Test
+    void noHistoryMeansNoHint() {
+        assertThat(entry().progression()).isNull();
+    }
+
+    /** Deload: 3 planned sets become 2, the second set finishes it, and there is no add-weight nudge. */
+    @Test
+    void aDeloadWeekHalvesTheTargetAndDropsTheHint() {
+        for (int i = 0; i < 3; i++) {
+            setService.logSet(user, TODAY.minusDays(1), exerciseId, session.getPlanId(), session.getDayIndex(),
+                    new java.math.BigDecimal("60"), WeightMode.COMBINED, null, 8);
+        }
+        deload.set(user, TODAY, true);
+        // Yesterday may sit in last week; mark it too so its sets count the same way.
+        deload.set(user, TODAY.minusDays(1), true);
+
+        assertThat(entry().targetSets()).isEqualTo(2);
+        assertThat(entry().progression()).isNull();
+
+        logASet();
+        logASet();
+        assertThat(entry().completedAt()).isNotNull();
+    }
+
+    @Test
+    void theBoardCarriesThePlanTargets() {
+        var e = entry();
+        assertThat(e.targetSets()).isEqualTo(3);
+        assertThat(e.targetReps()).isEqualTo(8);
     }
 
     @Test

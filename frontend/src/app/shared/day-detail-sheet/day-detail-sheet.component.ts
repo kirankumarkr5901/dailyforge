@@ -18,6 +18,7 @@ const CATEGORY_LABELS: Record<PointsCategory, string> = {
   REWARD: 'Reward',
   BADGE: 'Badge',
   FORGE: 'Forge 66',
+  NUTRITION: 'Nutrition',
   ADJUSTMENT: 'Adjustment',
 };
 

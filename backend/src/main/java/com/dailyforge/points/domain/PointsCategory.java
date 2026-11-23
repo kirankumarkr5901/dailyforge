@@ -11,5 +11,6 @@ public enum PointsCategory {
     REWARD,
     BADGE,
     FORGE,
+    NUTRITION,
     ADJUSTMENT
 }

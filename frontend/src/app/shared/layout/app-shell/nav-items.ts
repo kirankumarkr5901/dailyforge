@@ -1,4 +1,4 @@
-import { Award, Briefcase, Dumbbell, Flame, Footprints, Gift, House, PartyPopper, Scale, Settings, Target } from 'lucide-angular';
+import { Award, Beef, Briefcase, Dumbbell, Flame, Footprints, Gift, House, PartyPopper, Scale, Settings, Target } from 'lucide-angular';
 import { LucideIconData } from 'lucide-angular';
 import { StringKey } from '../../../core/i18n/strings';
 
@@ -28,6 +28,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { path: '/goals', labelKey: 'nav.goals', icon: Award, primary: false, ready: true },
   { path: '/jobs', labelKey: 'nav.jobs', icon: Briefcase, primary: false, ready: true },
   { path: '/body', labelKey: 'nav.body', icon: Scale, primary: false, ready: true },
+  { path: '/nutrition', labelKey: 'nav.nutrition', icon: Beef, primary: false, ready: true },
   { path: '/rewards', labelKey: 'nav.rewards', icon: Gift, primary: false, ready: true },
   { path: '/milestones', labelKey: 'nav.milestones', icon: PartyPopper, primary: false, ready: true },
   { path: '/settings', labelKey: 'nav.settings', icon: Settings, primary: false, ready: true },

@@ -1,0 +1,174 @@
+:host {
+  display: block;
+}
+
+.nutrition__header {
+  margin-bottom: var(--space-5);
+}
+
+.nutrition__title {
+  margin: 0;
+  font-size: var(--text-2xl);
+}
+
+.nutrition__error {
+  margin: 0 0 var(--space-4);
+  color: var(--penalty-ink);
+  font-size: var(--text-sm);
+}
+
+.nutrition__meter-card,
+.nutrition__foods-card {
+  display: block;
+  margin-bottom: var(--space-4);
+}
+
+.nutrition__section-title {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-lg);
+}
+
+.nutrition__total {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.nutrition__total-value {
+  font-size: var(--text-3xl, 2.25rem);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.nutrition__total-target {
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+}
+
+/* One value against one target: the fill warms as you go and turns the "done" tone
+ * once the target is reached. */
+.nutrition__meter {
+  height: 14px;
+  margin: var(--space-3) 0 var(--space-2);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-sunken);
+}
+
+.nutrition__meter-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--heat-2);
+  transition: width var(--duration-base) var(--ease-out);
+}
+
+.nutrition__meter--reached .nutrition__meter-fill {
+  background: var(--done);
+}
+
+.nutrition__message,
+.nutrition__muted {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+}
+
+.nutrition__muted {
+  margin-top: var(--space-3);
+}
+
+.nutrition__foods {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.nutrition__food {
+  min-height: 40px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-sunken);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.nutrition__food:hover:not(:disabled) {
+  border-color: var(--heat-2);
+}
+
+.nutrition__food:focus-visible {
+  outline: 2px solid var(--heat-2);
+  outline-offset: 2px;
+}
+
+.nutrition__food:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.nutrition__food-grams {
+  color: var(--ink-muted);
+  font-weight: 500;
+}
+
+.nutrition__other {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: end;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+@media (max-width: 520px) {
+  .nutrition__other {
+    grid-template-columns: 1fr auto;
+  }
+
+  .nutrition__other df-input {
+    grid-column: 1 / -1;
+  }
+}
+
+.nutrition__entries {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nutrition__entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  border-top: 1px solid var(--line);
+  font-size: var(--text-sm);
+}
+
+.nutrition__entry:first-child {
+  border-top: 0;
+}
+
+.nutrition__entry-side {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.nutrition__entry-grams {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nutrition__meter-fill {
+    transition: none;
+  }
+}

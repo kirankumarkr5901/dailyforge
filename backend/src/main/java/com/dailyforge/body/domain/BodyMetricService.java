@@ -42,7 +42,41 @@ public class BodyMetricService {
             BigDecimal deltaSinceLastLog,
             BigDecimal deltaSince30Days,
             List<MovingAveragePoint> movingAverage,
-            int weeklyStreak) {}
+            int weeklyStreak,
+            Trend trend) {}
+
+    /**
+     * The 7-day average now, and how far it moved over the last two weeks. Daily
+     * weigh-ins swing with water and food, so the average is the number worth judging.
+     * {@code change14Days} is null until there is an average from about two weeks back
+     * to compare with; {@code stalled} is true when it moved less than {@link #STALL_KG}.
+     */
+    public record Trend(BigDecimal weeklyAverageKg, BigDecimal change14Days, boolean stalled) {}
+
+    /** Less movement than this over 14 days counts as "hasn't moved". */
+    public static final BigDecimal STALL_KG = new BigDecimal("0.2");
+
+    /**
+     * Compares the latest average with the one closest to 14 days before it. An average
+     * from 14 to 21 days earlier counts. Anything older is too far back to call it a
+     * two-week change, so there is no comparison then.
+     */
+    public static Trend trendOf(List<MovingAveragePoint> movingAverage) {
+        if (movingAverage.isEmpty()) {
+            return new Trend(null, null, false);
+        }
+        MovingAveragePoint latest = movingAverage.get(movingAverage.size() - 1);
+        LocalDate mark = latest.date().minusDays(14);
+        MovingAveragePoint earlier = movingAverage.stream()
+                .filter(p -> !p.date().isAfter(mark) && !p.date().isBefore(mark.minusDays(7)))
+                .reduce((first, second) -> second)
+                .orElse(null);
+        if (earlier == null) {
+            return new Trend(latest.average(), null, false);
+        }
+        BigDecimal change = latest.average().subtract(earlier.average());
+        return new Trend(latest.average(), change, change.abs().compareTo(STALL_KG) < 0);
+    }
 
     /** One row per user per date (spec has no PATCH endpoint) — a second log for the same date updates it in place. */
     @Transactional
@@ -122,7 +156,7 @@ public class BodyMetricService {
         List<BodyMetric> recent = metrics.findAllByUserIdAndOccurredOnBetweenOrderByOccurredOnAsc(userId, today.minusDays(89), today);
 
         if (recent.isEmpty()) {
-            return new Summary(List.of(), null, null, null, null, null, List.of(), 0);
+            return new Summary(List.of(), null, null, null, null, null, List.of(), 0, trendOf(List.of()));
         }
 
         BodyMetric latest = recent.get(recent.size() - 1);
@@ -150,7 +184,8 @@ public class BodyMetricService {
 
         int weeklyStreak = weeklyStreak(userId, today);
 
-        return new Summary(recent, latest.getWeightKg(), bmi, band, deltaSinceLastLog, deltaSince30Days, movingAverage, weeklyStreak);
+        return new Summary(
+                recent, latest.getWeightKg(), bmi, band, deltaSinceLastLog, deltaSince30Days, movingAverage, weeklyStreak, trendOf(movingAverage));
     }
 
     /** Consecutive ISO weeks, ending at the current one, with at least one log (spec §8.8 [ADD]). No points attached. */

@@ -207,10 +207,37 @@ public final class WorkoutDtos {
              * it finished. No set count can stand in for it — three sets is a full job
              * for one lift and a warm-up for another.
              */
-            java.time.Instant completedAt) {}
+            java.time.Instant completedAt,
+            /** The plan's target for today; null on a freeform session or when none was set. */
+            Integer targetSets,
+            Integer targetReps,
+            String notes,
+            /** Present only when last time hit every target. */
+            ProgressionResponse progression) {}
+
+    /** "Last time: 4 x 8 at 60 kg, every set on target. Try 62.5 kg." */
+    public record ProgressionResponse(
+            LocalDate lastDate, BigDecimal lastWeightKg, int lastSets, int lastReps, BigDecimal suggestedWeightKg) {
+        public static ProgressionResponse of(com.dailyforge.workout.domain.ProgressionCalculator.Suggestion s) {
+            return s == null
+                    ? null
+                    : new ProgressionResponse(s.lastDate(), s.lastWeightKg(), s.lastSets(), s.lastReps(), s.suggestedWeightKg());
+        }
+    }
 
     public record SessionResponse(
-            UUID id, LocalDate date, UUID planId, Integer dayIndex, boolean completed, List<ExerciseBoardEntry> exercises) {}
+            UUID id,
+            LocalDate date,
+            UUID planId,
+            Integer dayIndex,
+            boolean completed,
+            List<ExerciseBoardEntry> exercises,
+            /** This week is a deload: the targets above are already halved. */
+            boolean deload) {}
+
+    public record DeloadRequest(@NotNull LocalDate date, @NotNull Boolean deload) {}
+
+    public record DeloadResponse(LocalDate weekStart, boolean deload) {}
 
     /** A set write returns the affected set plus the points envelope (spec §7). */
     public record SetWriteResponse(SetResponse set, PointsEnvelope points) {
@@ -222,6 +249,23 @@ public final class WorkoutDtos {
     public record DeleteSetResponse(PointsEnvelope points) {
         public static DeleteSetResponse of(PointsResult result) {
             return new DeleteSetResponse(PointsEnvelope.of(result));
+        }
+    }
+
+    // ---------------------------------------------------------------- weekly volume
+
+    public record MuscleSetsResponse(String group, int sets) {}
+
+    /** Sets per primary muscle for one Monday-to-Sunday week, plus the usual target band. */
+    public record WeeklyVolumeResponse(
+            LocalDate weekStart, LocalDate weekEnd, int targetLow, int targetHigh, List<MuscleSetsResponse> muscles) {
+        public static WeeklyVolumeResponse of(com.dailyforge.workout.domain.WeeklyVolumeService.WeeklyVolume v) {
+            return new WeeklyVolumeResponse(
+                    v.weekStart(),
+                    v.weekEnd(),
+                    com.dailyforge.workout.domain.WeeklyVolumeService.TARGET_LOW,
+                    com.dailyforge.workout.domain.WeeklyVolumeService.TARGET_HIGH,
+                    v.muscles().stream().map(m -> new MuscleSetsResponse(m.group(), m.sets())).toList());
         }
     }
 }
