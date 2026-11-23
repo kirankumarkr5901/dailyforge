@@ -81,7 +81,7 @@ public class ForgeService {
     @Transactional
     public Overview overview(UUID userId) {
         LocalDate today = todayFor(userId);
-        closeIfFinished(userId, today);
+        settle(userId, today);
         return buildOverview(userId, today);
     }
 
@@ -91,7 +91,7 @@ public class ForgeService {
             throw ApiException.outOfRange("mode", "Choose Normal or Hard mode.");
         }
         LocalDate today = todayFor(userId);
-        closeIfFinished(userId, today);
+        settle(userId, today);
         if (programs.findFirstByUserIdAndStatus(userId, ForgeProgramStatus.ACTIVE).isPresent()) {
             throw alreadyRunning();
         }
@@ -110,12 +110,7 @@ public class ForgeService {
             throw alreadyRunning();
         }
 
-        long seed = program.getId().getMostSignificantBits() ^ program.getId().getLeastSignificantBits();
-        List<ForgeQuest> planned =
-                PlanGenerator.generate(seed, today, settings, mode, focus, scores, templates.findAll()).stream()
-                        .map(p -> ForgeQuest.planned(program.getId(), userId, p.date(), p.dayNumber(), p.templateCode(), p.xp()))
-                        .toList();
-        quests.saveAll(planned);
+        planQuests(program, today, settings, scores);
 
         return buildOverview(userId, today);
     }
@@ -124,7 +119,7 @@ public class ForgeService {
     @Transactional
     public Overview abandon(UUID userId) {
         LocalDate today = todayFor(userId);
-        closeIfFinished(userId, today);
+        settle(userId, today);
         ForgeProgram program =
                 programs.findFirstByUserIdAndStatus(userId, ForgeProgramStatus.ACTIVE)
                         .orElseThrow(() -> ApiException.notFound("A running program"));
@@ -145,7 +140,7 @@ public class ForgeService {
 
     private QuestChange change(UUID userId, UUID questId, boolean done) {
         LocalDate today = todayFor(userId);
-        closeIfFinished(userId, today);
+        settle(userId, today);
 
         ForgeQuest quest = quests.findByIdAndUserId(questId, userId).orElseThrow(() -> ApiException.notFound("That quest"));
         ForgeProgram program = programs.findById(quest.getProgramId()).orElseThrow(() -> ApiException.notFound("That quest"));
@@ -175,6 +170,80 @@ public class ForgeService {
     private boolean isDayComplete(UUID programId, LocalDate day) {
         List<ForgeQuest> dayQuests = quests.findAllByProgramIdAndQuestDate(programId, day);
         return !dayQuests.isEmpty() && dayQuests.stream().allMatch(ForgeQuest::isDone);
+    }
+
+    /**
+     * Hard mode: the first closed day that was missed or left partial ends the run, and a
+     * new run starts at day 1 today, with the same focus areas and a freshly shuffled
+     * plan. Lazy, like {@link #closeIfFinished}: a day that failed while the app was
+     * closed is settled on the next read. Quests already done keep their XP and points,
+     * because their rows (and the ledger entries they paid) are left as they are.
+     */
+    private void restartIfHardModeFailed(UUID userId, LocalDate today) {
+        ForgeProgram program = programs.findFirstByUserIdAndStatus(userId, ForgeProgramStatus.ACTIVE)
+                .filter(p -> p.getMode() == ForgeMode.HARD)
+                .orElse(null);
+        if (program == null) {
+            return;
+        }
+        LocalDate lastClosed = today.minusDays(1).isBefore(program.getEndDate()) ? today.minusDays(1) : program.getEndDate();
+        Map<LocalDate, List<ForgeQuest>> byDay = quests.findAllByUserIdOrderByQuestDateAsc(userId).stream()
+                .filter(q -> q.getProgramId().equals(program.getId()))
+                .collect(Collectors.groupingBy(ForgeQuest::getQuestDate));
+        LocalDate failedDay = null;
+        for (LocalDate d = program.getStartDate(); !d.isAfter(lastClosed); d = d.plusDays(1)) {
+            List<ForgeQuest> dayQuests = byDay.getOrDefault(d, List.of());
+            if (!dayQuests.isEmpty() && !dayQuests.stream().allMatch(ForgeQuest::isDone)) {
+                failedDay = d;
+                break;
+            }
+        }
+        if (failedDay == null) {
+            return;
+        }
+
+        program.restartAfter(failedDay);
+        programs.saveAndFlush(program);
+        // The old run's days after the failure will never be played. Only quests still
+        // undone are removed, so nothing that earned XP or points is ever deleted.
+        LocalDate ended = failedDay;
+        quests.deleteAll(byDay.entrySet().stream()
+                .filter(e -> e.getKey().isAfter(ended))
+                .flatMap(e -> e.getValue().stream())
+                .filter(q -> !q.isDone())
+                .toList());
+        quests.flush();
+
+        Map<String, List<String>> answers = readAnswers(program.getAnswersJson());
+        ForgeSettings settings = settingsProvider.current();
+        Map<ForgeArea, Integer> scores = ForgeQuestionnaire.score(answers);
+        ForgeProgram next = ForgeProgram.start(
+                userId, today, settings.lengthDays(), ForgeMode.HARD, program.getFocusAreas(), program.getAnswersJson());
+        programs.saveAndFlush(next);
+        planQuests(next, today, settings, scores);
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, List<String>> readAnswers(String json) {
+        return objectMapper.readValue(json, Map.class);
+    }
+
+    /** Every quest of a new run, generated from a seed of its own id so each run is shuffled anew. */
+    private void planQuests(ForgeProgram program, LocalDate startDate, ForgeSettings settings, Map<ForgeArea, Integer> scores) {
+        long seed = program.getId().getMostSignificantBits() ^ program.getId().getLeastSignificantBits();
+        List<ForgeQuest> planned =
+                PlanGenerator.generate(
+                                seed, startDate, settings, program.getMode(), program.getFocusAreas(), scores, templates.findAll())
+                        .stream()
+                        .map(p -> ForgeQuest.planned(program.getId(), program.getUserId(), p.date(), p.dayNumber(), p.templateCode(), p.xp()))
+                        .toList();
+        quests.saveAll(planned);
+    }
+
+    /** Settles everything that happened while nobody was looking: a Hard mode restart, then a finished run. */
+    private void settle(UUID userId, LocalDate today) {
+        restartIfHardModeFailed(userId, today);
+        closeIfFinished(userId, today);
     }
 
     /** Marks a program whose last day has passed as completed. Lazy — no job needed. */

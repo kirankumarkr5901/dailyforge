@@ -1,23 +1,32 @@
 <df-sheet [open]="open()" (openChange)="$event ? null : close()" [heading]="heading()">
   <div class="targets">
+    <df-stepper-input
+      label="Target sets"
+      hint="0 = no target"
+      [min]="0"
+      [max]="20"
+      [ngModel]="sets()"
+      (ngModelChange)="sets.set($event)"
+    />
     <div class="targets__row">
       <df-stepper-input
-        label="Target sets"
-        hint="0 = no target"
-        [min]="0"
-        [max]="20"
-        [ngModel]="sets()"
-        (ngModelChange)="sets.set($event)"
-      />
-      <df-stepper-input
-        label="Target reps"
+        label="Reps from"
         hint="0 = no target"
         [min]="0"
         [max]="100"
         [ngModel]="reps()"
         (ngModelChange)="reps.set($event)"
       />
+      <df-stepper-input
+        label="Reps to"
+        hint="0 = just one number"
+        [min]="0"
+        [max]="100"
+        [ngModel]="repsMax()"
+        (ngModelChange)="repsMax.set($event)"
+      />
     </div>
+    <p class="targets__help">Once every set reaches the top of the range, the card suggests adding weight.</p>
 
     <div class="targets__rest">
       <span class="targets__label">Rest between sets</span>

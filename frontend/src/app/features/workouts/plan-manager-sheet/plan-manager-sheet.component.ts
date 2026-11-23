@@ -116,6 +116,8 @@ export class PlanManagerSheetComponent {
    * literally zero sets or reps would be meaningless anyway. */
   protected readonly targetSetsDraft = signal(0);
   protected readonly targetRepsDraft = signal(0);
+  /** Top of the rep range; 0 = a single number. */
+  protected readonly targetRepsMaxDraft = signal(0);
   /** 0 = use the default rest; the plan manager keeps it simple. */
   protected readonly restDraft = signal(0);
   protected readonly notesDraft = signal('');
@@ -294,6 +296,7 @@ export class PlanManagerSheetComponent {
     this.editingExerciseId.set(pe.id);
     this.targetSetsDraft.set(pe.targetSets ?? 0);
     this.targetRepsDraft.set(pe.targetReps ?? 0);
+    this.targetRepsMaxDraft.set(pe.targetRepsMax ?? 0);
     this.restDraft.set(pe.restSeconds ?? 0);
     this.notesDraft.set(pe.notes ?? '');
   }
@@ -311,6 +314,8 @@ export class PlanManagerSheetComponent {
       this.api.updatePlanExercise(planId, planExerciseId, {
         targetSets: this.targetSetsDraft() || null,
         targetReps: this.targetRepsDraft() || null,
+        targetRepsMax:
+          this.targetRepsDraft() && this.targetRepsMaxDraft() > this.targetRepsDraft() ? this.targetRepsMaxDraft() : null,
         notes: this.notesDraft().trim() || null,
         restSeconds: this.restDraft() || null,
       }),

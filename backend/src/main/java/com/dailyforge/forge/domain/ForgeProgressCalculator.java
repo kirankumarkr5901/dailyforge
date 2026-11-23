@@ -21,8 +21,8 @@ import java.util.UUID;
  *   <li>each completed quest adds its XP, and the same XP to its area's stat;</li>
  *   <li>a day with every quest done adds the day bonus and extends the streak, and
  *       reaching a configured streak length adds that one-off bonus;</li>
- *   <li>a closed day left incomplete resets the streak, and in Hard Mode costs
- *       {@code hardModePenaltyXp} per undone quest — never taking the total below zero;</li>
+ *   <li>a closed day left incomplete resets the streak. It costs no XP in either mode:
+ *       Hard mode's price for it is restarting at day 1 (see ForgeService), not XP;</li>
  *   <li>today, while still incomplete, changes nothing yet: it is not over.</li>
  * </ul>
  */
@@ -110,9 +110,6 @@ public final class ForgeProgressCalculator {
                     total += settings.streakBonusXp().getOrDefault(streak, 0);
                 } else if (d.isBefore(today)) {
                     streak = 0;
-                    if (program.getMode() == ForgeMode.HARD) {
-                        total = Math.max(0, total - (count - done) * settings.hardModePenaltyXp());
-                    }
                 }
             }
 

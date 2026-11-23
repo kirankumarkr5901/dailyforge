@@ -97,6 +97,16 @@ public class ForgeProgram {
     }
 
     /**
+     * Hard mode: {@code failedDay} was missed or left partial, so this run ends with it.
+     * Everything up to and including that day stays in the history.
+     */
+    public void restartAfter(LocalDate failedDay) {
+        status = ForgeProgramStatus.RESTARTED;
+        endedOn = failedDay.plusDays(1);
+        activeUserId = null;
+    }
+
+    /**
      * The last day that counts for this program: its own last day, or the day before it
      * was abandoned. Can fall before {@link #getStartDate()} for a program abandoned on
      * its first day, in which case no day counts at all.

@@ -242,8 +242,9 @@ class ForgePureLogicTest {
             assertThat(days.get(4).status()).isEqualTo(DayStatus.UPCOMING);
         }
 
+        /** Hard mode's price for a failed day is a restart (ForgeService), never XP. */
         @Test
-        void hardModeCostsXpPerUndoneQuestOnClosedDaysOnly() {
+        void aFailedDayCostsNoXpInEitherMode() {
             ForgeProgram normal = program(ForgeMode.NORMAL);
             ForgeProgram hard = program(ForgeMode.HARD);
             // Day 1 full (45 XP), day 2 one of two (10 XP), day 3 is today with nothing done.
@@ -257,11 +258,11 @@ class ForgePureLogicTest {
                             .totalXp();
 
             assertThat(normalXp).isEqualTo(55);
-            assertThat(hardXp).isEqualTo(55 - 10);
+            assertThat(hardXp).isEqualTo(55);
         }
 
         @Test
-        void hardModePenaltiesNeverTakeXpBelowZero() {
+        void nothingDoneMeansZeroXpNotLess() {
             ForgeProgram p = program(ForgeMode.HARD);
             Progress progress =
                     ForgeProgressCalculator.compute(List.of(p), quests(p, 10, d -> 0), START.plusDays(10), SETTINGS);

@@ -84,11 +84,13 @@ export interface ForgeProgram {
 
 export interface ForgeFinishedProgram {
   id: string;
-  status: 'COMPLETED' | 'ABANDONED';
+  status: 'COMPLETED' | 'ABANDONED' | 'RESTARTED';
   startDate: LogicalDate;
   endDate: LogicalDate;
   lengthDays: number;
   daysCompleted: number;
+  /** Hard mode restart: the day that was missed or left partial; null otherwise. */
+  failedDayNumber: number | null;
 }
 
 export interface ForgeOverview {

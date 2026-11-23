@@ -121,7 +121,9 @@ public final class ForgeDtos {
             LocalDate startDate,
             LocalDate endDate,
             int lengthDays,
-            int daysCompleted) {}
+            int daysCompleted,
+            /** Hard mode restart: the day number that was missed or left partial; null otherwise. */
+            Integer failedDayNumber) {}
 
     public record OverviewResponse(
             LocalDate today,
@@ -145,8 +147,12 @@ public final class ForgeDtos {
                                         List<DayResult> days = progress.days().getOrDefault(p.getId(), List.of());
                                         int completed =
                                                 (int) days.stream().filter(d -> d.status() == DayStatus.DONE).count();
+                                        Integer failedDay =
+                                                p.getStatus() == com.dailyforge.forge.domain.ForgeProgramStatus.RESTARTED
+                                                        ? (int) (p.lastCountedDay().toEpochDay() - p.getStartDate().toEpochDay()) + 1
+                                                        : null;
                                         return new FinishedProgramResponse(
-                                                p.getId(), p.getStatus(), p.getStartDate(), p.getEndDate(), days.size(), completed);
+                                                p.getId(), p.getStatus(), p.getStartDate(), p.getEndDate(), days.size(), completed, failedDay);
                                     })
                             .orElse(null);
 

@@ -44,6 +44,8 @@ export class ExerciseTargetsSheetComponent {
 
   protected readonly sets = signal(0);
   protected readonly reps = signal(0);
+  /** Top of the range; 0 = a single number. */
+  protected readonly repsMax = signal(0);
   protected readonly ownRest = signal(false);
   protected readonly restSeconds = signal(90);
   protected readonly notes = signal('');
@@ -56,7 +58,8 @@ export class ExerciseTargetsSheetComponent {
       untracked(() => {
         this.sets.set(ctx.entry.targetSets ?? 0);
         this.reps.set(ctx.entry.targetReps ?? 0);
-        this.ownRest.set(ctx.entry.restSeconds !== null);
+        this.repsMax.set(ctx.entry.targetRepsMax ?? 0);
+        this.ownRest.set(typeof ctx.entry.restSeconds === 'number');
         this.restSeconds.set(ctx.entry.restSeconds ?? this.restTimer.defaultSeconds());
         this.notes.set(ctx.entry.notes ?? '');
       });
@@ -70,12 +73,17 @@ export class ExerciseTargetsSheetComponent {
   protected async save(): Promise<void> {
     const ctx = this.context();
     if (!ctx?.entry.planExerciseId || this.saving()) return;
+    if (this.repsMax() && this.repsMax() < this.reps()) {
+      this.toasts.show('The top of the rep range has to be at least the bottom.');
+      return;
+    }
     this.saving.set(true);
     try {
       await firstValueFrom(
         this.api.updatePlanExercise(ctx.planId, ctx.entry.planExerciseId, {
           targetSets: this.sets() || null,
           targetReps: this.reps() || null,
+          targetRepsMax: this.reps() && this.repsMax() > this.reps() ? this.repsMax() : null,
           notes: this.notes().trim() || null,
           restSeconds: this.ownRest() ? this.restSeconds() : null,
         }),

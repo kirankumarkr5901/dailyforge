@@ -59,6 +59,13 @@
         <span class="forge__count" [class.is-complete]="p.dayComplete">{{ questsDone() }}/{{ p.quests.length }}</span>
       </div>
 
+      @if (p.dayNumber === 1 && forge.lastProgram?.status === 'RESTARTED') {
+        <p class="forge__restart" role="status">
+          Hard mode: day {{ forge.lastProgram!.failedDayNumber }} wasn't fully done, so the run started again at
+          day 1. Your XP and points are kept.
+        </p>
+      }
+
       @if (p.dayComplete) {
         <p class="forge__banner" role="status">
           <lucide-icon [img]="trophyIcon" [size]="18" aria-hidden="true" />
@@ -82,7 +89,7 @@
       <div class="forge__intro">
         @if (forge.lastProgram; as last) {
           <p class="forge__eyebrow">
-            {{ last.status === 'COMPLETED' ? 'Program complete' : 'Last program ended early' }}
+            {{ last.status === 'COMPLETED' ? 'Program complete' : last.status === 'RESTARTED' ? 'Hard mode run reset' : 'Last program ended early' }}
           </p>
           <p class="forge__lede">
             You completed {{ last.daysCompleted }} of {{ last.lengthDays }} days. Ready for another run?

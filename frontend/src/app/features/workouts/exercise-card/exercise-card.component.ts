@@ -82,13 +82,18 @@ export class ExerciseCardComponent {
   });
 
   protected readonly targetLabel = computed<string | null>(() => {
-    const { targetSets, targetReps, restSeconds, sets } = this.entry();
-    if (!targetSets && !targetReps && restSeconds === null) {
+    const { targetSets, targetReps, targetRepsMax, sets } = this.entry();
+    // `!= null` and a number check, not `!== null`: a server without rest times sends no
+    // field at all, and formatting `undefined` is how the card once showed "NaN:NaN".
+    const rest = typeof this.entry().restSeconds === 'number' ? this.entry().restSeconds : null;
+    if (!targetSets && !targetReps && rest === null) {
       return null;
     }
     const parts = [targetSets ? `${sets.length} / ${targetSets} sets` : `${sets.length} sets`];
-    if (targetReps) parts.push(`${targetReps} reps`);
-    if (restSeconds !== null) parts.push(`rest ${this.restLabel(restSeconds)}`);
+    if (targetReps) {
+      parts.push(targetRepsMax && targetRepsMax > targetReps ? `${targetReps}–${targetRepsMax} reps` : `${targetReps} reps`);
+    }
+    if (rest !== null) parts.push(`rest ${this.restLabel(rest)}`);
     return parts.join(' · ');
   });
 

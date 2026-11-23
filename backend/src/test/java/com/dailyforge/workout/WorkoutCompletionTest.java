@@ -225,6 +225,36 @@ class WorkoutCompletionTest {
         assertThat(entry().completedAt()).isNotNull();
     }
 
+    /** 8-12 reps: 8 on every set is in range but not the top, so no nudge yet; 12 everywhere is. */
+    @Test
+    void aRepRangeWaitsForTheTopBeforeSuggestingMoreWeight() {
+        var pe = plans.addExercise(session.getPlanId(), user, exercises.create(user, "Row " + UUID.randomUUID(),
+                ExerciseKind.STRENGTH, Equipment.BARBELL, List.of("back"), false).getId(), 1, 2, 8, null);
+        plans.updateExercise(session.getPlanId(), user, pe.getId(), 2, 8, 12, null, 120);
+        LocalDate yesterday = TODAY.minusDays(1);
+        for (int i = 0; i < 2; i++) {
+            setService.logSet(user, yesterday, pe.getExerciseId(), session.getPlanId(), session.getDayIndex(),
+                    new java.math.BigDecimal("50"), WeightMode.COMBINED, null, 8);
+        }
+
+        var row = board.board(user, session).stream()
+                .filter(be -> be.exercise().getId().equals(pe.getExerciseId())).findFirst().orElseThrow();
+        assertThat(row.targetReps()).isEqualTo(8);
+        assertThat(row.targetRepsMax()).isEqualTo(12);
+        assertThat(row.restSeconds()).isEqualTo(120);
+        assertThat(row.progression()).isNull();
+    }
+
+    @Test
+    void aRangeWithTheSameTopAndBottomIsOneNumberAndABackwardsRangeIsRefused() {
+        var pe = plans.addExercise(session.getPlanId(), user, exercises.create(user, "Curl " + UUID.randomUUID(),
+                ExerciseKind.STRENGTH, Equipment.DUMBBELL, List.of("biceps"), false).getId(), 1, 3, 10, null);
+
+        assertThat(plans.updateExercise(session.getPlanId(), user, pe.getId(), 3, 10, 10, null, null).getTargetRepsMax()).isNull();
+        assertThatThrownBy(() -> plans.updateExercise(session.getPlanId(), user, pe.getId(), 3, 12, 8, null, null))
+                .isInstanceOf(ApiException.class);
+    }
+
     @Test
     void theBoardCarriesThePlanTargets() {
         var e = entry();

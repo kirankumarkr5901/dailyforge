@@ -167,7 +167,7 @@
       </span>
       @if (pe.targetSets || pe.targetReps || pe.restSeconds) {
         <span class="plan-manager__exercise-targets">
-          {{ pe.targetSets ?? '—' }} sets × {{ pe.targetReps ?? '—' }} reps{{ pe.restSeconds ? ' · rest ' + pe.restSeconds + 's' : '' }}
+          {{ pe.targetSets ?? '—' }} sets × {{ pe.targetReps ?? '—' }}{{ pe.targetRepsMax ? '–' + pe.targetRepsMax : '' }} reps{{ pe.restSeconds ? ' · rest ' + pe.restSeconds + 's' : '' }}
         </span>
       }
       @if (pe.notes) {
@@ -217,11 +217,19 @@
         (ngModelChange)="targetSetsDraft.set($event)"
       />
       <df-stepper-input
-        label="Target reps"
+        label="Reps from"
         [min]="0"
         [max]="100"
         [ngModel]="targetRepsDraft()"
         (ngModelChange)="targetRepsDraft.set($event)"
+      />
+      <df-stepper-input
+        label="Reps to"
+        hint="0 = just one number"
+        [min]="0"
+        [max]="100"
+        [ngModel]="targetRepsMaxDraft()"
+        (ngModelChange)="targetRepsMaxDraft.set($event)"
       />
       <df-stepper-input
         label="Rest"

@@ -567,7 +567,8 @@ export class WorkoutsPageComponent {
     // the same as pressing Complete.
     if (!wasEditing) {
       const entry = this.workoutSession()?.exercises.find((e) => e.exerciseId === loggedExerciseId);
-      this.restTimer.start(entry?.completedAt ? undefined : (entry?.restSeconds ?? undefined));
+      const own = typeof entry?.restSeconds === 'number' ? entry.restSeconds : undefined;
+      this.restTimer.start(entry?.completedAt ? undefined : own);
     }
 
     const delta = responses.reduce((sum, r) => sum + r.points.delta, 0);

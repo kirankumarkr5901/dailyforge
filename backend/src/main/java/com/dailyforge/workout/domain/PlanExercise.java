@@ -38,8 +38,13 @@ public class PlanExercise {
     @Column(name = "target_sets")
     private Integer targetSets;
 
+    /** The low end of the rep range, or the only number when there is no range. */
     @Column(name = "target_reps")
     private Integer targetReps;
+
+    /** The top of the rep range; null for a single target number. */
+    @Column(name = "target_reps_max")
+    private Integer targetRepsMax;
 
     @Column(name = "notes", length = 200)
     private String notes;
@@ -91,6 +96,15 @@ public class PlanExercise {
         this.restSeconds = restSeconds;
     }
 
+    public void updateTargetRepsMax(Integer targetRepsMax) {
+        this.targetRepsMax = targetRepsMax;
+    }
+
+    /** The number every set has to reach before going up in weight: the top of the range. */
+    public Integer repsToProgress() {
+        return targetRepsMax != null ? targetRepsMax : targetReps;
+    }
+
     @PrePersist
     void onCreate() {
         Instant now = Instant.now();
@@ -137,5 +151,9 @@ public class PlanExercise {
 
     public Integer getRestSeconds() {
         return restSeconds;
+    }
+
+    public Integer getTargetRepsMax() {
+        return targetRepsMax;
     }
 }
