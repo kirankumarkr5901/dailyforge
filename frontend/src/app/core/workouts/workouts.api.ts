@@ -58,9 +58,10 @@ export class WorkoutsApi {
     return this.http.put<{ weekStart: LogicalDate; deload: boolean }>(`${this.base}/workouts/deload`, { date, deload });
   }
 
-  /** Sets per muscle for the week containing `date`. */
-  weeklyVolume(date: LogicalDate): Observable<WeeklyVolume> {
-    return this.http.get<WeeklyVolume>(`${this.base}/workouts/weekly-volume`, { params: new HttpParams().set('date', date) });
+  /** Sets per muscle for the week containing `date`; omit it for this week. */
+  weeklyVolume(date?: LogicalDate): Observable<WeeklyVolume> {
+    const params = date ? new HttpParams().set('date', date) : undefined;
+    return this.http.get<WeeklyVolume>(`${this.base}/workouts/weekly-volume`, { params });
   }
 
   plans(): Observable<WorkoutPlan[]> {

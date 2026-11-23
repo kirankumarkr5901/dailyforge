@@ -106,6 +106,10 @@
           <h2 class="home-page__section-title">Activity</h2>
           <df-heatmap [today]="home.date" (cellSelected)="openDay($event)" />
         </df-card>
+
+        @if (weeklyVolume(); as volume) {
+          <df-weekly-volume-card class="home-page__volume" [volume]="volume" />
+        }
       </div>
     </div>
 

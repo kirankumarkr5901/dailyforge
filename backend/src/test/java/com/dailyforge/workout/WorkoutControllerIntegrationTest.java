@@ -226,4 +226,44 @@ class WorkoutControllerIntegrationTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.dayIndex").value(1));
     }
+
+    /**
+     * The exact round trip the plan manager and the card's Targets sheet make: save a rep
+     * range and a rest time, then read the plan and the day's board back.
+     */
+    @Test
+    void aRepRangeAndRestTimeSurviveTheRoundTrip() throws Exception {
+        String access = accessTokenFor("ranges@example.com");
+        String exerciseId = createExercise(access, "Push ups");
+        String planId = json.readTree(mockMvc.perform(post("/api/v1/workout-plans")
+                                .header("Authorization", "Bearer " + access)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"name\":\"Push\",\"dayCount\":1}"))
+                        .andReturn().getResponse().getContentAsString())
+                .get("id").asString();
+        String peId = json.readTree(mockMvc.perform(post("/api/v1/workout-plans/" + planId + "/exercises")
+                                .header("Authorization", "Bearer " + access)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"exerciseId\":\"" + exerciseId + "\",\"dayIndex\":1,\"targetSets\":2,\"targetReps\":12}"))
+                        .andReturn().getResponse().getContentAsString())
+                .get("id").asString();
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                        .patch("/api/v1/workout-plans/" + planId + "/exercises/" + peId)
+                        .header("Authorization", "Bearer " + access)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"targetSets\":2,\"targetReps\":12,\"targetRepsMax\":15,\"notes\":\"Isolation\",\"restSeconds\":60}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.targetRepsMax").value(15))
+                .andExpect(jsonPath("$.restSeconds").value(60));
+
+        mockMvc.perform(get("/api/v1/workout-plans").header("Authorization", "Bearer " + access))
+                .andExpect(jsonPath("$[0].exercises[0].targetRepsMax").value(15))
+                .andExpect(jsonPath("$[0].exercises[0].restSeconds").value(60));
+
+        mockMvc.perform(get("/api/v1/workouts/session?planId=" + planId + "&dayIndex=1")
+                        .header("Authorization", "Bearer " + access))
+                .andExpect(jsonPath("$.exercises[0].targetRepsMax").value(15))
+                .andExpect(jsonPath("$.exercises[0].restSeconds").value(60));
+    }
 }
