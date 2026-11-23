@@ -149,7 +149,11 @@ public class WorkoutPlanService {
         return planExercises.save(pe);
     }
 
-    /** Targets plus rest time, replaced together — the form that edits them always sends all four. */
+    /**
+     * Targets, rep range and rest time, replaced together — the forms that edit them
+     * always send all of them. A range whose top equals its bottom is stored as a single
+     * number.
+     */
     @Transactional
     public PlanExercise updateExercise(
             UUID planId,
@@ -157,13 +161,19 @@ public class WorkoutPlanService {
             UUID planExerciseId,
             Integer targetSets,
             Integer targetReps,
+            Integer targetRepsMax,
             String notes,
             Integer restSeconds) {
         if (restSeconds != null && (restSeconds < 0 || restSeconds > 900)) {
             throw ApiException.outOfRange("restSeconds", "Rest must be between 0 and 900 seconds.");
         }
+        if (targetRepsMax != null && targetReps != null && targetRepsMax < targetReps) {
+            throw ApiException.outOfRange("targetRepsMax", "The top of the rep range can't be below the bottom.");
+        }
+        Integer max = targetRepsMax != null && targetRepsMax.equals(targetReps) ? null : targetRepsMax;
         PlanExercise pe = updateExercise(planId, userId, planExerciseId, targetSets, targetReps, notes);
         pe.updateRestSeconds(restSeconds);
+        pe.updateTargetRepsMax(targetReps == null ? null : max);
         return planExercises.save(pe);
     }
 

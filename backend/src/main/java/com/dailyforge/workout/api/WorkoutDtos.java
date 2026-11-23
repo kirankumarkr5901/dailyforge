@@ -83,7 +83,12 @@ public final class WorkoutDtos {
     public record MoveExerciseRequest(@NotNull Integer toDayIndex) {}
 
     public record UpdatePlanExerciseRequest(
-            Integer targetSets, Integer targetReps, @Size(max = 200) String notes, Integer restSeconds) {}
+            Integer targetSets,
+            Integer targetReps,
+            /** Top of the rep range; null for a single number. */
+            Integer targetRepsMax,
+            @Size(max = 200) String notes,
+            Integer restSeconds) {}
 
     public record ReorderDayRequest(@NotNull List<UUID> orderedPlanExerciseIds) {}
 
@@ -97,6 +102,7 @@ public final class WorkoutDtos {
             int sortOrder,
             Integer targetSets,
             Integer targetReps,
+            Integer targetRepsMax,
             String notes,
             Integer restSeconds) {
 
@@ -111,6 +117,7 @@ public final class WorkoutDtos {
                     pe.getSortOrder(),
                     pe.getTargetSets(),
                     pe.getTargetReps(),
+                    pe.getTargetRepsMax(),
                     pe.getNotes(),
                     pe.getRestSeconds());
         }
@@ -214,6 +221,8 @@ public final class WorkoutDtos {
             /** The plan's target for today; null on a freeform session or when none was set. */
             Integer targetSets,
             Integer targetReps,
+            /** Top of the rep range; null for a single number. */
+            Integer targetRepsMax,
             String notes,
             /** Present only when last time hit every target. */
             ProgressionResponse progression,

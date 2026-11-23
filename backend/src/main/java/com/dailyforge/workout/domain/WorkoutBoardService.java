@@ -66,6 +66,7 @@ public class WorkoutBoardService {
             /** From the plan day; null on a freeform session or when no target was set. */
             Integer targetSets,
             Integer targetReps,
+            Integer targetRepsMax,
             String notes,
             /** Present only when last time hit every target: time to go up in weight. */
             ProgressionCalculator.Suggestion progression,
@@ -108,6 +109,9 @@ public class WorkoutBoardService {
             Integer plannedSets = pe == null ? null : pe.getTargetSets();
             Integer targetSets = deloadWeek ? DeloadService.deloadSets(plannedSets) : plannedSets;
             Integer targetReps = pe == null ? null : pe.getTargetReps();
+            Integer targetRepsMax = pe == null ? null : pe.getTargetRepsMax();
+            // "Reps, then weight": the hint waits for every set to reach the TOP of the range.
+            Integer repsToProgress = pe == null ? null : pe.repsToProgress();
             board.add(
                     new BoardExercise(
                             exercise,
@@ -117,12 +121,13 @@ public class WorkoutBoardService {
                             completedAt.get(exerciseId),
                             targetSets,
                             targetReps,
+                            targetRepsMax,
                             pe == null ? null : pe.getNotes(),
                             // A deload week goes lighter on purpose: no nudge to add weight.
                             deloadWeek
                                     ? null
                                     : setService
-                                            .progression(userId, exercise, targetSets, targetReps, session.getOccurredOn())
+                                            .progression(userId, exercise, targetSets, repsToProgress, session.getOccurredOn())
                                             .orElse(null),
                             pe == null ? null : pe.getId(),
                             pe == null ? null : pe.getRestSeconds()));

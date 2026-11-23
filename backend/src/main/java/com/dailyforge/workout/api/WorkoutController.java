@@ -121,6 +121,7 @@ public class WorkoutController {
                                                 be.completedAt(),
                                                 be.targetSets(),
                                                 be.targetReps(),
+                                                be.targetRepsMax(),
                                                 be.notes(),
                                                 WorkoutDtos.ProgressionResponse.of(be.progression()),
                                                 be.planExerciseId(),

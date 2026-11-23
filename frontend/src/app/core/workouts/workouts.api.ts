@@ -119,7 +119,13 @@ export class WorkoutsApi {
   updatePlanExercise(
     planId: string,
     planExerciseId: string,
-    patch: { targetSets?: number | null; targetReps?: number | null; notes?: string | null; restSeconds?: number | null },
+    patch: {
+      targetSets?: number | null;
+      targetReps?: number | null;
+      targetRepsMax?: number | null;
+      notes?: string | null;
+      restSeconds?: number | null;
+    },
   ): Observable<PlanExercise> {
     return this.http.patch<PlanExercise>(`${this.base}/workout-plans/${planId}/exercises/${planExerciseId}`, patch);
   }

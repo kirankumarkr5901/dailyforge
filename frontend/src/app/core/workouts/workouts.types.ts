@@ -47,6 +47,8 @@ export interface PlanExercise {
   sortOrder: number;
   targetSets: number | null;
   targetReps: number | null;
+  /** Top of the rep range; null for a single number. */
+  targetRepsMax: number | null;
   notes: string | null;
   /** Rest between sets for this exercise; null means the default rest. */
   restSeconds: number | null;
@@ -104,8 +106,10 @@ export interface ExerciseBoardEntry {
   /** The plan's target for today; null on a freeform session or when none was set. */
   targetSets: number | null;
   targetReps: number | null;
+  /** Top of the rep range; null for a single number. */
+  targetRepsMax: number | null;
   notes: string | null;
-  /** Present only when last time every working set hit the target reps. */
+  /** Present only when last time every working set hit the top of the rep range. */
   progression: Progression | null;
   /** The plan row this card comes from, for editing its targets; null on a freeform session. */
   planExerciseId: string | null;
