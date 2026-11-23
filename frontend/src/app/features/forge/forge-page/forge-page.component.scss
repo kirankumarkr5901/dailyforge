@@ -331,3 +331,13 @@
   }
 }
 
+
+/* Hard mode restart notice: plain fact, not a scolding. */
+.forge__restart {
+  margin: 0 0 var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--forge-gold);
+  border-radius: 6px;
+  color: var(--forge-muted);
+  font-size: var(--text-sm);
+}

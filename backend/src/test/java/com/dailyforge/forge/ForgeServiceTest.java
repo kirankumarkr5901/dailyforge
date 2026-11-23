@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.dailyforge.common.error.ApiException;
 import com.dailyforge.forge.domain.ForgeArea;
 import com.dailyforge.forge.domain.ForgeMode;
+import com.dailyforge.forge.domain.ForgeProgram;
 import com.dailyforge.forge.domain.ForgeProgramStatus;
 import com.dailyforge.forge.domain.ForgeQuest;
 import com.dailyforge.forge.domain.ForgeQuestionnaire;
@@ -156,28 +157,83 @@ class ForgeServiceTest {
                 .hasMessageContaining("not found");
     }
 
-    @Test
-    void daysMissedWhileAwayAreSettledOnTheNextReadAndHardModeChargesXpNotPoints() {
-        forge.start(user, answers(), ForgeMode.HARD);
-        List<ForgeQuest> dayOne = questsOn(DAY_ONE);
-        for (ForgeQuest q : dayOne) {
+    private void completeDay(LocalDate date) {
+        for (ForgeQuest q : questsOn(date)) {
             forge.markDone(user, q.getId());
         }
-        int afterDayOne = forge.overview(user).progress().totalXp();
-        int pointsAfterDayOne = forgePoints();
+    }
 
-        // Three days away: days 2 and 3 close with nothing done, day 4 is today.
+    /**
+     * Hard mode: a missed day ends the run, and a new one starts at day 1 on the next
+     * read. Everything earned, XP and points, is kept; only the streak goes.
+     */
+    @Test
+    void hardModeRestartsAtDayOneAfterAMissedDayAndKeepsWhatWasEarned() {
+        UUID firstRun = forge.start(user, answers(), ForgeMode.HARD).activeProgram().orElseThrow().getId();
+        completeDay(DAY_ONE);
+        setToday(DAY_ONE.plusDays(1));
+        completeDay(DAY_ONE.plusDays(1));
+        int xpEarned = forge.overview(user).progress().totalXp();
+        int pointsEarned = forgePoints();
+
+        // Day 3 is missed entirely; the app is next opened on day 5.
+        setToday(DAY_ONE.plusDays(4));
+        ForgeService.Overview back = forge.overview(user);
+
+        ForgeProgram restarted = programs.findById(firstRun).orElseThrow();
+        assertThat(restarted.getStatus()).isEqualTo(ForgeProgramStatus.RESTARTED);
+        assertThat(restarted.lastCountedDay()).isEqualTo(DAY_ONE.plusDays(2));
+
+        ForgeProgram newRun = back.activeProgram().orElseThrow();
+        assertThat(newRun.getId()).isNotEqualTo(firstRun);
+        assertThat(newRun.getMode()).isEqualTo(ForgeMode.HARD);
+        assertThat(newRun.getStartDate()).isEqualTo(DAY_ONE.plusDays(4));
+        assertThat(newRun.getFocusAreas()).isEqualTo(restarted.getFocusAreas());
+        assertThat(back.todaysQuests()).isNotEmpty().allMatch(q -> q.getDayNumber() == 1);
+
+        assertThat(back.progress().totalXp()).isEqualTo(xpEarned);
+        assertThat(back.progress().currentStreak()).isZero();
+        assertThat(back.progress().bestStreak()).isEqualTo(2);
+        assertThat(forgePoints()).isEqualTo(pointsEarned);
+
+        // Reading again settles nothing new: no second restart.
+        ForgeService.Overview again = forge.overview(user);
+        assertThat(again.activeProgram().orElseThrow().getId()).isEqualTo(newRun.getId());
+        assertThat(again.progress().totalXp()).isEqualTo(xpEarned);
+    }
+
+    /** Partial counts as failed too: two of three quests is not the day. */
+    @Test
+    void hardModeRestartsAfterAPartialDay() {
+        UUID firstRun = forge.start(user, answers(), ForgeMode.HARD).activeProgram().orElseThrow().getId();
+        List<ForgeQuest> dayOne = questsOn(DAY_ONE);
+        forge.markDone(user, dayOne.get(0).getId());
+
+        setToday(DAY_ONE.plusDays(1));
+        ForgeService.Overview back = forge.overview(user);
+
+        assertThat(programs.findById(firstRun).orElseThrow().getStatus()).isEqualTo(ForgeProgramStatus.RESTARTED);
+        assertThat(back.activeProgram().orElseThrow().getStartDate()).isEqualTo(DAY_ONE.plusDays(1));
+        assertThat(back.progress().totalXp()).isEqualTo(dayOne.get(0).getXp());
+    }
+
+    @Test
+    void normalModeNeverRestarts() {
+        UUID run = forge.start(user, answers(), ForgeMode.NORMAL).activeProgram().orElseThrow().getId();
+
         setToday(DAY_ONE.plusDays(3));
         ForgeService.Overview back = forge.overview(user);
 
-        int missedQuests = questsOn(DAY_ONE.plusDays(1)).size() + questsOn(DAY_ONE.plusDays(2)).size();
-        assertThat(back.progress().totalXp()).isEqualTo(Math.max(0, afterDayOne - missedQuests * 10));
+        assertThat(back.activeProgram().orElseThrow().getId()).isEqualTo(run);
         assertThat(back.progress().currentStreak()).isZero();
-        assertThat(back.progress().bestStreak()).isEqualTo(1);
-        assertThat(forgePoints()).isEqualTo(pointsAfterDayOne);
+    }
 
-        // Reading again settles nothing new.
-        assertThat(forge.overview(user).progress().totalXp()).isEqualTo(back.progress().totalXp());
+    /** A Hard mode day that is still today is not over, so it cannot fail yet. */
+    @Test
+    void hardModeDoesNotRestartDuringAnUnfinishedToday() {
+        UUID run = forge.start(user, answers(), ForgeMode.HARD).activeProgram().orElseThrow().getId();
+
+        assertThat(forge.overview(user).activeProgram().orElseThrow().getId()).isEqualTo(run);
     }
 
     @Test
