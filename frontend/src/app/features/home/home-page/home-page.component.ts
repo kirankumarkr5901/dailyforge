@@ -18,6 +18,9 @@ import { DfEmptyStateComponent } from '../../../shared/ui/df-empty-state/df-empt
 import { DfSkeletonComponent } from '../../../shared/ui/df-skeleton/df-skeleton.component';
 import { DayDetailSheetComponent } from '../../../shared/day-detail-sheet/day-detail-sheet.component';
 import { HeatmapComponent } from '../heatmap/heatmap.component';
+import { WorkoutsApi } from '../../../core/workouts/workouts.api';
+import { WeeklyVolume } from '../../../core/workouts/workouts.types';
+import { WeeklyVolumeCardComponent } from '../../workouts/weekly-volume-card/weekly-volume-card.component';
 
 type Period = 'today' | 'thisWeek' | 'thisMonth';
 
@@ -60,6 +63,7 @@ interface DayGroup {
     DfSkeletonComponent,
     DayDetailSheetComponent,
     HeatmapComponent,
+    WeeklyVolumeCardComponent,
   ],
   templateUrl: './home-page.component.html',
   styleUrl: './home-page.component.scss',
@@ -67,6 +71,9 @@ interface DayGroup {
 })
 export class HomePageComponent {
   private readonly api = inject(HomeApi);
+  private readonly workouts = inject(WorkoutsApi);
+  /** Sets per muscle for the current Monday-to-Sunday week. */
+  protected readonly weeklyVolume = signal<WeeklyVolume | null>(null);
 
   private readonly sync = inject(SyncStore);
   protected readonly session = inject(SessionStore);
@@ -147,6 +154,7 @@ export class HomePageComponent {
     this.error.set(null);
     try {
       this.summary.set(await firstValueFrom(this.api.summary()));
+      void this.loadWeeklyVolume();
       // The header pill and this page's own score card must never disagree — both read
       // the shared store now, refreshed here so a stale header pill self-corrects the
       // moment the visitor lands on Home.
@@ -155,6 +163,15 @@ export class HomePageComponent {
       this.error.set('Could not load your home page. Check your connection and try again.');
     } finally {
       this.loading.set(false);
+    }
+  }
+
+  /** A side panel: if it fails to load, the rest of Home still works without it. */
+  private async loadWeeklyVolume(): Promise<void> {
+    try {
+      this.weeklyVolume.set(await firstValueFrom(this.workouts.weeklyVolume()));
+    } catch {
+      this.weeklyVolume.set(null);
     }
   }
 
