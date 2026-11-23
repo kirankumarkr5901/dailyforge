@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, linkedSignal, signal } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
@@ -66,6 +66,10 @@ export class SettingsComponent {
   protected readonly settingsIcon = SettingsIcon;
   protected readonly saving = signal(false);
 
+  /** Height for the BMI on Body. Follows the saved value until you change it here. */
+  protected readonly savedHeight = computed(() => this.session.user()?.settings.heightCm ?? null);
+  protected readonly heightDraft = linkedSignal(() => this.savedHeight() ?? 170);
+
   protected readonly themeOptions: readonly DfSelectOption[] = [
     { value: 'SYSTEM', label: 'System' },
     { value: 'LIGHT', label: 'Light' },
@@ -131,6 +135,10 @@ export class SettingsComponent {
 
   protected setEditing(enabled: boolean): void {
     void this.persist({ editingEnabled: enabled });
+  }
+
+  protected saveHeight(): void {
+    void this.persist({ heightCm: this.heightDraft() });
   }
 
   protected setRestTimerDefault(seconds: number): void {

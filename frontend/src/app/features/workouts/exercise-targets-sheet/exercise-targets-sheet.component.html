@@ -1,0 +1,66 @@
+<df-sheet [open]="open()" (openChange)="$event ? null : close()" [heading]="heading()">
+  <div class="targets">
+    <div class="targets__row">
+      <df-stepper-input
+        label="Target sets"
+        hint="0 = no target"
+        [min]="0"
+        [max]="20"
+        [ngModel]="sets()"
+        (ngModelChange)="sets.set($event)"
+      />
+      <df-stepper-input
+        label="Target reps"
+        hint="0 = no target"
+        [min]="0"
+        [max]="100"
+        [ngModel]="reps()"
+        (ngModelChange)="reps.set($event)"
+      />
+    </div>
+
+    <div class="targets__rest">
+      <span class="targets__label">Rest between sets</span>
+      <div class="targets__choice" role="radiogroup" aria-label="Rest between sets">
+        <button
+          type="button"
+          class="targets__choice-btn"
+          role="radio"
+          [attr.aria-checked]="!ownRest()"
+          [class.targets__choice-btn--selected]="!ownRest()"
+          (click)="ownRest.set(false)"
+        >
+          Default ({{ restTimer.defaultSeconds() }}s)
+        </button>
+        <button
+          type="button"
+          class="targets__choice-btn"
+          role="radio"
+          [attr.aria-checked]="ownRest()"
+          [class.targets__choice-btn--selected]="ownRest()"
+          (click)="ownRest.set(true)"
+        >
+          Own time
+        </button>
+      </div>
+      @if (ownRest()) {
+        <df-stepper-input
+          label="Rest"
+          suffix="sec"
+          [min]="0"
+          [max]="900"
+          [step]="15"
+          [ngModel]="restSeconds()"
+          (ngModelChange)="restSeconds.set($event)"
+        />
+      }
+    </div>
+
+    <df-input label="Notes" placeholder="e.g. Bench at 30°, slow on the way down" [ngModel]="notes()" (ngModelChange)="notes.set($event)" />
+
+    <div class="targets__actions">
+      <button dfButton type="button" variant="primary" [loading]="saving()" [disabled]="saving()" (click)="save()">Save</button>
+      <button dfButton type="button" variant="ghost" (click)="close()">Cancel</button>
+    </div>
+  </div>
+</df-sheet>

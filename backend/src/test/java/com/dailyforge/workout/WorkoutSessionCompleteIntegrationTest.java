@@ -35,6 +35,7 @@ class WorkoutSessionCompleteIntegrationTest {
     @Autowired private WorkoutPlanService plans;
     @Autowired private ExerciseService exerciseService;
     @Autowired private WorkoutSetService setService;
+    @Autowired private com.dailyforge.workout.domain.WorkoutCompletionService completions;
     @Autowired private UserRepository users;
     @Autowired private UserSettingsRepository settings;
     @Autowired private WorkoutClockTestConfig.MutableClock clock;
@@ -45,8 +46,81 @@ class WorkoutSessionCompleteIntegrationTest {
         clock.set(date.atStartOfDay(java.time.ZoneOffset.UTC).toInstant().plusSeconds(3600 * 12));
     }
 
+    private static boolean celebrates(com.dailyforge.points.domain.PointsResult result) {
+        return result.celebrations().stream().anyMatch(c -> c.type().name().equals("WORKOUT_COMPLETE"));
+    }
+
+    /**
+     * The session completes when every planned exercise is marked complete, once.
+     * Logging sets never completes it, so the last exercise's later sets do not
+     * celebrate again and again.
+     */
     @Test
-    void theCelebrationFiresOnlyOnceEveryPlannedExerciseHasBeenLogged() {
+    void theSessionCompletesOnceWhenEveryExerciseIsMarkedComplete() {
+        setToday(TODAY);
+        UUID user = TestUsers.create(users, settings);
+        WorkoutPlan plan = plans.create(user, "Push", 1);
+        Exercise bench = exerciseService.create(user, "Bench", ExerciseKind.STRENGTH, Equipment.BARBELL, List.of(), false);
+        Exercise fly = exerciseService.create(user, "Fly", ExerciseKind.STRENGTH, Equipment.DUMBBELL, List.of(), false);
+        plans.addExercise(plan.getId(), user, bench.getId(), 1, null, null, null);
+        plans.addExercise(plan.getId(), user, fly.getId(), 1, null, null, null);
+
+        var benchSet = setService.logSet(user, TODAY, bench.getId(), plan.getId(), 1, new BigDecimal("40"), WeightMode.COMBINED, null, 5);
+        var flySet = setService.logSet(user, TODAY, fly.getId(), plan.getId(), 1, new BigDecimal("10"), WeightMode.SINGLE, null, 12);
+        var flySet2 = setService.logSet(user, TODAY, fly.getId(), plan.getId(), 1, new BigDecimal("10"), WeightMode.SINGLE, null, 12);
+        assertThat(celebrates(benchSet.points())).isFalse();
+        assertThat(celebrates(flySet.points())).isFalse();
+        assertThat(celebrates(flySet2.points())).isFalse();
+
+        UUID sessionId = setService.getOrCreateSession(user, TODAY, plan.getId(), 1).getId();
+        assertThat(celebrates(completions.markComplete(sessionId, bench.getId(), user))).isFalse();
+        assertThat(celebrates(completions.markComplete(sessionId, fly.getId(), user))).isTrue();
+
+        // Already complete: more sets, or reopening and re-marking, do not celebrate again.
+        var later = setService.logSet(user, TODAY, fly.getId(), plan.getId(), 1, new BigDecimal("10"), WeightMode.SINGLE, null, 12);
+        assertThat(celebrates(later.points())).isFalse();
+        completions.clearComplete(sessionId, fly.getId(), user);
+        assertThat(celebrates(completions.markComplete(sessionId, fly.getId(), user))).isFalse();
+    }
+
+    /** Auto-complete on the target set can be what finishes the day. */
+    @Test
+    void reachingTheLastExercisesTargetSetCompletesTheSession() {
+        setToday(TODAY);
+        UUID user = TestUsers.create(users, settings);
+        WorkoutPlan plan = plans.create(user, "Push", 1);
+        Exercise bench = exerciseService.create(user, "Bench", ExerciseKind.STRENGTH, Equipment.BARBELL, List.of(), false);
+        plans.addExercise(plan.getId(), user, bench.getId(), 1, 2, 8, null);
+
+        var first = setService.logSet(user, TODAY, bench.getId(), plan.getId(), 1, new BigDecimal("40"), WeightMode.COMBINED, null, 8);
+        var second = setService.logSet(user, TODAY, bench.getId(), plan.getId(), 1, new BigDecimal("40"), WeightMode.COMBINED, null, 8);
+
+        assertThat(celebrates(first.points())).isFalse();
+        assertThat(celebrates(second.points())).isTrue();
+    }
+
+    @Test
+    void recentPrIsTheBestSetOfTheLastEarlierDay() {
+        setToday(TODAY);
+        UUID user = TestUsers.create(users, settings);
+        Exercise press = exerciseService.create(user, "Chest press", ExerciseKind.STRENGTH, Equipment.MACHINE, List.of(), false);
+        // An older, heavier day, then the last day before today.
+        setService.logSet(user, TODAY.minusDays(6), press.getId(), null, null, new BigDecimal("80"), WeightMode.COMBINED, null, 8);
+        setService.logSet(user, TODAY.minusDays(3), press.getId(), null, null, new BigDecimal("60"), WeightMode.COMBINED, null, 10);
+        setService.logSet(user, TODAY.minusDays(3), press.getId(), null, null, new BigDecimal("65"), WeightMode.COMBINED, null, 6);
+        // Today's own sets are not "previous".
+        setService.logSet(user, TODAY, press.getId(), null, null, new BigDecimal("90"), WeightMode.COMBINED, null, 5);
+
+        var recent = setService.lastSessionBest(user, press.getId(), TODAY);
+
+        assertThat(recent.totalWeightKg()).isEqualByComparingTo("65");
+        assertThat(recent.reps()).isEqualTo(6);
+        assertThat(recent.achievedOn()).isEqualTo(TODAY.minusDays(3));
+        assertThat(setService.lastSessionBest(user, press.getId(), TODAY.minusDays(6))).isNull();
+    }
+
+    @Test
+    void loggingEverySetWithoutMarkingDoesNotCompleteTheSession() {
         setToday(TODAY);
         UUID user = TestUsers.create(users, settings);
         WorkoutPlan plan = plans.create(user, "Push", 1);
@@ -65,7 +139,7 @@ class WorkoutSessionCompleteIntegrationTest {
                 setService.logSet(user, TODAY, fly.getId(), plan.getId(), 1, new BigDecimal("10"), WeightMode.SINGLE, null, 12);
         boolean completedAfterSecond =
                 afterSecond.points().celebrations().stream().anyMatch(c -> c.type().name().equals("WORKOUT_COMPLETE"));
-        assertThat(completedAfterSecond).isTrue();
+        assertThat(completedAfterSecond).isFalse();
     }
 
     @Test

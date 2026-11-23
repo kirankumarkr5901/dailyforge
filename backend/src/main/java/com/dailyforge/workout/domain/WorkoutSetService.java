@@ -115,10 +115,9 @@ public class WorkoutSetService {
         WorkoutSet set =
                 WorkoutSet.log(session.getId(), exerciseId, exercise.getEquipment(), setNumber, enteredWeight, weightMode, addedWeight, reps);
         sets.save(set);
-        completeOnTarget(session, exerciseId, setNumber, userId);
 
         PointsResult reconciled = points.reconcile(userId, new ReconcileScope.ExercisePr(userId, exerciseId));
-        PointsResult completion = checkSessionComplete(session);
+        PointsResult completion = completeOnTarget(session, exerciseId, setNumber, userId);
         return new SetWrite(set, PointsResult.combine(List.of(reconciled, completion)));
     }
 
@@ -156,9 +155,9 @@ public class WorkoutSetService {
      * lands exactly on the target does it: once you reopen an exercise to do an extra
      * set, logging that set must not close it again behind your back.
      */
-    private void completeOnTarget(WorkoutSession session, UUID exerciseId, int setNumber, UUID userId) {
+    private PointsResult completeOnTarget(WorkoutSession session, UUID exerciseId, int setNumber, UUID userId) {
         if (session.getPlanId() == null || session.getDayIndex() == null) {
-            return;
+            return zeroResult(userId);
         }
         boolean deloadWeek = deload.isDeload(userId, session.getOccurredOn());
         boolean reachedTarget =
@@ -166,9 +165,8 @@ public class WorkoutSetService {
                         .filter(pe -> pe.getExerciseId().equals(exerciseId) && pe.getTargetSets() != null)
                         .map(pe -> deloadWeek ? DeloadService.deloadSets(pe.getTargetSets()) : pe.getTargetSets())
                         .anyMatch(target -> target == setNumber);
-        if (reachedTarget) {
-            completions.markComplete(session.getId(), exerciseId, userId);
-        }
+        // Finishing this exercise can finish the session, so its result carries that celebration.
+        return reachedTarget ? completions.markComplete(session.getId(), exerciseId, userId) : zeroResult(userId);
     }
 
     /** The add-weight hint for an exercise on {@code date}, judged on the last day it was done before that. */
@@ -183,12 +181,18 @@ public class WorkoutSetService {
                         exercise.getEquipment(), targetSets, targetReps, last, sets.findOnDate(userId, exercise.getId(), last)));
     }
 
-    /** Recent (last 90 days) and lifetime best set for an exercise — display only (spec §5.5). */
+    /**
+     * "Recent PR": the best set from the last day this exercise was done before
+     * {@code date}. Doing chest press on Monday and again on Thursday, Thursday's card
+     * shows Monday's best, so today's sets have something concrete to beat.
+     */
     @Transactional(readOnly = true)
-    public PrView recentPr(UUID userId, UUID exerciseId, LocalDate today) {
-        return sets.findBestRecent(userId, exerciseId, today.minusDays(90)).stream()
-                .findFirst()
-                .map(s -> toView(s))
+    public PrView lastSessionBest(UUID userId, UUID exerciseId, LocalDate date) {
+        return sets.findLastDateBefore(userId, exerciseId, date)
+                .flatMap(last -> sets.findOnDate(userId, exerciseId, last).stream()
+                        .max(java.util.Comparator.comparing(WorkoutSet::getTotalWeightKg)
+                                .thenComparingInt(WorkoutSet::getReps))
+                        .map(best -> new PrView(best.getTotalWeightKg(), best.getReps(), last)))
                 .orElse(null);
     }
 
@@ -200,47 +204,6 @@ public class WorkoutSetService {
     private PrView toView(WorkoutSet set) {
         LocalDate occurredOn = requireSession(set.getSessionId()).getOccurredOn();
         return new PrView(set.getTotalWeightKg(), set.getReps(), occurredOn);
-    }
-
-    /**
-     * Fires the zero-point, celebration-only completion award (spec §5.4) the moment
-     * every exercise scheduled for this session's plan day has at least one live set.
-     * Only meaningful for a session opened against a real plan day — a freeform session
-     * has no fixed exercise list to be "complete" against.
-     */
-    private PointsResult checkSessionComplete(WorkoutSession session) {
-        if (session.getPlanId() == null || session.getDayIndex() == null) {
-            return zeroResult(session.getUserId());
-        }
-        var config = ruleConfigs.getSystemDefault("WORKOUT_SESSION_COMPLETE");
-        if (!config.enabled()) {
-            return zeroResult(session.getUserId());
-        }
-
-        Set<UUID> required =
-                planExercises.findAllByPlanIdAndDayIndexOrderBySortOrderAsc(session.getPlanId(), session.getDayIndex()).stream()
-                        .map(PlanExercise::getExerciseId)
-                        .collect(Collectors.toSet());
-        if (required.isEmpty()) {
-            return zeroResult(session.getUserId());
-        }
-
-        List<WorkoutSet> logged = sets.findAllBySessionIdAndDeletedAtIsNullOrderBySetNumberAsc(session.getId());
-        Set<UUID> loggedExercises = logged.stream().map(WorkoutSet::getExerciseId).collect(Collectors.toSet());
-        if (!loggedExercises.containsAll(required)) {
-            return zeroResult(session.getUserId());
-        }
-
-        int amount = config.getInt("points");
-        return points.award(
-                AwardCommand.withoutSource(
-                        session.getUserId(),
-                        session.getOccurredOn(),
-                        PointsCategory.WORKOUT,
-                        "WORKOUT_SESSION_COMPLETE",
-                        amount,
-                        "Session complete",
-                        "workout-session-complete:" + session.getId()));
     }
 
     private PointsResult zeroResult(UUID userId) {

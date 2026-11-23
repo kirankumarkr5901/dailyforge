@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ifMatch } from '../sync/if-match';
 import { LogicalDate } from '../time/logical-date';
+import { PointsEnvelope } from '../points/points.types';
 import {
   CreateExercisePayload,
   DeleteSetResponse,
@@ -118,7 +119,7 @@ export class WorkoutsApi {
   updatePlanExercise(
     planId: string,
     planExerciseId: string,
-    patch: { targetSets?: number | null; targetReps?: number | null; notes?: string | null },
+    patch: { targetSets?: number | null; targetReps?: number | null; notes?: string | null; restSeconds?: number | null },
   ): Observable<PlanExercise> {
     return this.http.patch<PlanExercise>(`${this.base}/workout-plans/${planId}/exercises/${planExerciseId}`, patch);
   }
@@ -143,8 +144,9 @@ export class WorkoutsApi {
   }
 
   /** "I am finished with this exercise for this session." Carries no points. */
-  completeExercise(sessionId: string, exerciseId: string): Observable<void> {
-    return this.http.post<void>(`${this.base}/workouts/sessions/${sessionId}/exercises/${exerciseId}/complete`, {});
+  /** Can finish the whole session; the envelope then carries that celebration. */
+  completeExercise(sessionId: string, exerciseId: string): Observable<{ points: PointsEnvelope }> {
+    return this.http.post<{ points: PointsEnvelope }>(`${this.base}/workouts/sessions/${sessionId}/exercises/${exerciseId}/complete`, {});
   }
 
   /** Takes the mark back. */

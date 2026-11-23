@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input, output, inject } from '@angular/core';
-import { CircleCheck, History, LucideAngularModule, Plus, RotateCcw, SquarePen, Trash2, TrendingUp } from 'lucide-angular';
+import { CircleCheck, Crosshair, History, LucideAngularModule, Plus, RotateCcw, SquarePen, Trash2, TrendingUp } from 'lucide-angular';
 
 import { ExerciseBoardEntry, WorkoutSet } from '../../../core/workouts/workouts.types';
 import { DfButtonComponent } from '../../../shared/ui/df-button/df-button.component';
@@ -37,6 +37,8 @@ export class ExerciseCardComponent {
   readonly completeRequested = output<void>();
   /** Taking that back. */
   readonly reopenRequested = output<void>();
+  /** Edit this exercise's target sets, reps and rest. Only offered on a planned day with editing on. */
+  readonly targetsRequested = output<void>();
 
   protected readonly plusIcon = Plus;
   protected readonly editIcon = SquarePen;
@@ -45,6 +47,7 @@ export class ExerciseCardComponent {
   protected readonly historyIcon = History;
   protected readonly reopenIcon = RotateCcw;
   protected readonly upIcon = TrendingUp;
+  protected readonly targetsIcon = Crosshair;
 
   protected readonly equipmentTone = equipmentTone;
   protected readonly equipmentLabel = equipmentLabel;
@@ -79,13 +82,19 @@ export class ExerciseCardComponent {
   });
 
   protected readonly targetLabel = computed<string | null>(() => {
-    const { targetSets, targetReps, sets } = this.entry();
-    if (!targetSets && !targetReps) {
+    const { targetSets, targetReps, restSeconds, sets } = this.entry();
+    if (!targetSets && !targetReps && restSeconds === null) {
       return null;
     }
-    const setsPart = targetSets ? `${sets.length} / ${targetSets} sets` : `${sets.length} sets`;
-    return targetReps ? `${setsPart} · ${targetReps} reps` : setsPart;
+    const parts = [targetSets ? `${sets.length} / ${targetSets} sets` : `${sets.length} sets`];
+    if (targetReps) parts.push(`${targetReps} reps`);
+    if (restSeconds !== null) parts.push(`rest ${this.restLabel(restSeconds)}`);
+    return parts.join(' · ');
   });
+
+  private restLabel(seconds: number): string {
+    return seconds < 60 ? `${seconds}s` : `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+  }
 
   /** Shown until work on the exercise starts; once you are lifting, it has done its job. */
   protected readonly hint = computed<string | null>(() => {

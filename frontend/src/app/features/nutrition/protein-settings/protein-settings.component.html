@@ -18,7 +18,24 @@
       </div>
 
       <div>
-        <h3 class="protein-settings__title">One-tap foods</h3>
+        <button
+          type="button"
+          class="protein-settings__toggle"
+          [attr.aria-expanded]="foodsOpen()"
+          aria-controls="protein-settings-foods"
+          (click)="foodsOpen.set(!foodsOpen())"
+        >
+          <span>One-tap foods ({{ foods().length }})</span>
+          <lucide-icon
+            class="protein-settings__chevron"
+            [class.protein-settings__chevron--open]="foodsOpen()"
+            [img]="chevronIcon"
+            [size]="18"
+            aria-hidden="true"
+          />
+        </button>
+        @if (foodsOpen()) {
+        <div id="protein-settings-foods">
         @if (foods().length === 0) {
           <p class="protein-settings__muted">No foods yet.</p>
         }
@@ -89,6 +106,8 @@
           </div>
         } @else {
           <df-editing-note what="add or change foods" />
+        }
+        </div>
         }
       </div>
     </div>

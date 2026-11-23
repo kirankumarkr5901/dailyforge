@@ -40,11 +40,20 @@
     <df-card class="nutrition__foods-card">
       <h2 class="nutrition__section-title">Tap what you ate</h2>
       @if (d.foods.length > 0) {
+        <df-input
+          class="nutrition__search"
+          label="Search foods"
+          placeholder="e.g. paneer"
+          [ngModel]="search()"
+          (ngModelChange)="search.set($event)"
+        />
         <div class="nutrition__foods">
-          @for (food of d.foods; track food.id) {
+          @for (food of visibleFoods(); track food.id) {
             <button type="button" class="nutrition__food" [disabled]="busy()" (click)="eat(food)">
               {{ food.name }} <span class="nutrition__food-grams">+{{ food.grams }} g</span>
             </button>
+          } @empty {
+            <p class="nutrition__muted">No food matches "{{ search() }}". Add it below as something else.</p>
           }
         </div>
       } @else {

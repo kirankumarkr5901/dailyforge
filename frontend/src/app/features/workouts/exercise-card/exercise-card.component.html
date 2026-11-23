@@ -12,6 +12,17 @@
       }
       <!-- Only an exercise you own can be edited; the shared catalogue is not yours to
            rename, and the server refuses it anyway. -->
+      @if (entry().planExerciseId && session.editingEnabled()) {
+        <button
+          dfIconButton
+          type="button"
+          label="Targets: sets, reps and rest"
+          variant="ghost"
+          [icon]="targetsIcon"
+          [size]="16"
+          (click)="targetsRequested.emit()"
+        ></button>
+      }
       @if (entry().ownedByMe && session.editingEnabled()) {
         <button
           dfIconButton
