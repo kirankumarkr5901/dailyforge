@@ -22,6 +22,11 @@ java {
 }
 
 repositories {
+	// Google's official mirror of Maven Central first. Render builds from shared
+	// machines, and Maven Central answered those with "429 Too Many Requests" for every
+	// jar, failing the deploy. Anything the mirror lacks (a 404) falls through to
+	// Maven Central itself.
+	maven("https://maven-central.storage-download.googleapis.com/maven2/")
 	mavenCentral()
 }
 
@@ -102,4 +107,15 @@ tasks.withType<Jar> {
 			"Bundle-License" to licence,
 		)
 	}
+}
+
+// Downloads every jar the app compiles and runs with, without compiling anything. The
+// Dockerfile runs this in its own layer before copying the sources, so a code-only change
+// reuses the cached jars instead of downloading ~70 of them again. ("dependencies" only
+// fetches the POMs, which is why that cache layer never helped.)
+tasks.register("resolveDependencies") {
+	description = "Downloads every compile, runtime and annotation-processor jar."
+	val jars = files(configurations.compileClasspath, configurations.runtimeClasspath, configurations.annotationProcessor)
+	inputs.files(jars)
+	doLast { println("Resolved ${jars.files.size} files") }
 }

@@ -4,12 +4,14 @@
 FROM eclipse-temurin:21-jdk AS build
 WORKDIR /workspace
 
-# Copy the wrapper and build scripts first so dependency resolution is cached across
-# source-only changes.
+# Copy the wrapper and build scripts first and download every jar in a layer of its own,
+# so a source-only change reuses the cached jars instead of downloading them again.
+# No "|| true": a failed download must fail here, not be cached as a success and leave
+# every jar to be fetched again in the bootJar step below.
 COPY gradlew ./
 COPY gradle ./gradle
 COPY settings.gradle.kts build.gradle.kts ./
-RUN chmod +x gradlew && ./gradlew dependencies --no-daemon || true
+RUN chmod +x gradlew && ./gradlew resolveDependencies --no-daemon
 
 COPY src ./src
 RUN ./gradlew bootJar --no-daemon -x test
