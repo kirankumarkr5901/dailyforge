@@ -1,7 +1,7 @@
 <df-card>
   @if (loaded()) {
     <div class="stack">
-      <div class="protein-settings__target">
+      <div class="protein-settings__targets">
         <df-stepper-input
           label="Daily protein target"
           suffix="g"
@@ -12,8 +12,27 @@
           [ngModel]="targetDraft()"
           (ngModelChange)="targetDraft.set($event)"
         />
-        @if (targetDraft() !== savedTarget()) {
-          <button dfButton type="button" variant="primary" (click)="saveTarget()">Save target</button>
+        <df-stepper-input
+          label="Daily calorie budget"
+          suffix="kcal"
+          hint="Stay under it. A day that ends within it earns points."
+          [min]="800"
+          [max]="6000"
+          [step]="50"
+          [ngModel]="budgetDraft()"
+          (ngModelChange)="budgetDraft.set($event)"
+        />
+        <df-stepper-input
+          label="Daily fat target"
+          suffix="g"
+          [min]="10"
+          [max]="300"
+          [step]="5"
+          [ngModel]="fatDraft()"
+          (ngModelChange)="fatDraft.set($event)"
+        />
+        @if (targetsChanged()) {
+          <button dfButton type="button" variant="primary" (click)="saveTargets()">Save targets</button>
         }
       </div>
 
@@ -45,14 +64,9 @@
               @if (editingId() === food.id) {
                 <div class="protein-settings__edit">
                   <df-input label="Name" [ngModel]="editName()" (ngModelChange)="editName.set($event)" />
-                  <df-stepper-input
-                    label="Protein"
-                    suffix="g"
-                    [min]="1"
-                    [max]="200"
-                    [ngModel]="editGrams()"
-                    (ngModelChange)="editGrams.set($event)"
-                  />
+                  <df-stepper-input label="Protein" suffix="g" [min]="0" [max]="200" [ngModel]="editGrams()" (ngModelChange)="editGrams.set($event)" />
+                  <df-stepper-input label="Calories" suffix="kcal" [min]="0" [max]="3000" [step]="10" [ngModel]="editKcal()" (ngModelChange)="editKcal.set($event)" />
+                  <df-stepper-input label="Fat" suffix="g" [min]="0" [max]="300" [ngModel]="editFat()" (ngModelChange)="editFat.set($event)" />
                   <div class="protein-settings__edit-actions">
                     <button dfButton type="button" variant="primary" (click)="saveEdit()">Save</button>
                     <button dfButton type="button" variant="ghost" (click)="editingId.set(null)">Cancel</button>
@@ -61,7 +75,7 @@
               } @else {
                 <span>{{ food.name }}</span>
                 <span class="protein-settings__food-side">
-                  <span class="protein-settings__grams">{{ food.grams }} g</span>
+                  <span class="protein-settings__grams">{{ foodLabel(food) }}</span>
                   @if (session.editingEnabled()) {
                     <button
                       dfIconButton
@@ -91,14 +105,9 @@
         @if (session.editingEnabled()) {
           <div class="protein-settings__add">
             <df-input label="New food" [ngModel]="newName()" (ngModelChange)="newName.set($event)" />
-            <df-stepper-input
-              label="Protein"
-              suffix="g"
-              [min]="1"
-              [max]="200"
-              [ngModel]="newGrams()"
-              (ngModelChange)="newGrams.set($event)"
-            />
+            <df-stepper-input label="Protein" suffix="g" [min]="0" [max]="200" [ngModel]="newGrams()" (ngModelChange)="newGrams.set($event)" />
+            <df-stepper-input label="Calories" suffix="kcal" [min]="0" [max]="3000" [step]="10" [ngModel]="newKcal()" (ngModelChange)="newKcal.set($event)" />
+            <df-stepper-input label="Fat" suffix="g" [min]="0" [max]="300" [ngModel]="newFat()" (ngModelChange)="newFat.set($event)" />
             <button dfButton type="button" variant="secondary" (click)="addFood()">
               <lucide-icon [img]="plusIcon" [size]="16" aria-hidden="true" />
               Add

@@ -41,6 +41,8 @@ export class RunFormSheetComponent {
   readonly date = input<LogicalDate | null>(null);
   /** Run to edit in place, or null when logging a brand new one. */
   readonly editingRun = input<Run | null>(null);
+  /** The type to start a new run on, e.g. this week's planned quality run. */
+  readonly initialType = input<RunType | null>(null);
 
   readonly closed = output<void>();
   readonly saved = output<RunWriteResponse>();
@@ -89,7 +91,8 @@ export class RunFormSheetComponent {
         this.distanceKm.set(5);
         this.minutes.set(25);
         this.seconds.set(0);
-        this.type.set('TEMPO');
+        const initial = this.initialType();
+        this.type.set(initial && initial !== 'LONG' ? initial : 'TEMPO');
         this.feltEffort.set(null);
         this.note.set('');
       }

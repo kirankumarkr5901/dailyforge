@@ -28,6 +28,10 @@
     <p class="runs-page__error" role="alert">{{ message }}</p>
   }
 
+  @if (todayDate(); as today) {
+    <df-run-week-plan class="runs-page__plan" [today]="today" [runs]="runs()" (logRequested)="logPlanned($event)" />
+  }
+
   @if (records(); as recordsValue) {
     <df-card class="runs-page__score" elevation="raised">
       <span class="runs-page__score-label">Running score</span>
@@ -117,6 +121,7 @@
   [open]="formOpen()"
   [date]="editingRun()?.date ?? todayDate()"
   [editingRun]="editingRun()"
+  [initialType]="initialType()"
   (closed)="closeForm()"
   (saved)="onRunSaved($event)"
 />

@@ -3,6 +3,11 @@
 
   @if (session.isAuthenticated()) {
     <div class="workouts-page__header-actions">
+      <!-- The 8-minute warm-up from the Mobility screen, one tap from the board. -->
+      <button dfButton type="button" variant="ghost" [disabled]="warmupLoading()" (click)="playWarmup()">
+        <lucide-icon [img]="warmupIcon" [size]="16" aria-hidden="true" />
+        Warm-up
+      </button>
       <!-- Start a rest between sets you did not log through the app — a warm-up, a
            superset's second half, or simply catching your breath. The timer used to
            exist only as a consequence of logging a set, which meant no way to ask for
@@ -96,6 +101,16 @@
       <span class="workouts-page__progress-track" aria-hidden="true">
         <span class="workouts-page__progress-fill" [style.width.%]="dayProgress().percent"></span>
       </span>
+      @if (timeEstimate(); as t) {
+        <p class="workouts-page__estimate">
+          ≈ {{ t.totalMinutes }} min of lifting
+          @if (t.leftMinutes > 0) {
+            · about {{ t.leftMinutes }} min left{{ t.doneBy ? ', done by ' + t.doneBy : '' }}
+          } @else {
+            · all sets in
+          }
+        </p>
+      }
     </div>
   }
 
@@ -244,3 +259,5 @@
 <df-rest-timer />
 
 <df-celebration [trigger]="celebrationTrigger()" label="Session complete!" />
+
+<df-mobility-player [flow]="warmupFlow()" (closed)="warmupFlow.set(null)" (completed)="onWarmupDone($event)" />

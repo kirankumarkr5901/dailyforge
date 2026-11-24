@@ -1,0 +1,39 @@
+@if (flow(); as f) {
+  <div class="player-backdrop" (click)="close()"></div>
+  <div class="player" role="dialog" aria-modal="true" aria-labelledby="player-move">
+    <p class="player__flow">{{ f.name }}</p>
+
+    @if (finished()) {
+      <h2 class="player__move" id="player-move">Flow done</h2>
+      @if (saveFailed()) {
+        <p class="player__cue">Finished, but it didn't save. Check your connection.</p>
+        <div class="player__controls">
+          <button dfButton type="button" variant="primary" (click)="retrySave()">Try again</button>
+          <button dfButton type="button" variant="ghost" (click)="close()">Close</button>
+        </div>
+      } @else {
+        <p class="player__cue">Nice work. It's counted for today.</p>
+        <p class="player__count" aria-hidden="true">✓</p>
+        <div class="player__controls">
+          <button dfButton type="button" variant="primary" (click)="close()">Close</button>
+        </div>
+      }
+    } @else if (move(); as m) {
+      <h2 class="player__move" id="player-move">{{ m.name }}</h2>
+      <p class="player__cue">{{ m.cue }}</p>
+      <p class="player__count" aria-live="off">{{ secondsLeft() }}</p>
+      <p class="player__step">Move {{ index() + 1 }} of {{ f.moves.length }}{{ paused() ? ' · paused' : '' }}</p>
+      <div class="player__bar" aria-hidden="true"><span [style.width.%]="progress()"></span></div>
+      <p class="player__next">{{ next() ? 'Next: ' + next()!.name : 'Last move' }}</p>
+
+      <div class="player__controls">
+        <button dfButton type="button" variant="ghost" [disabled]="index() === 0" (click)="back()">Back</button>
+        <button #pauseButton dfButton type="button" variant="primary" (click)="togglePause()">
+          {{ paused() ? 'Resume' : 'Pause' }}
+        </button>
+        <button dfButton type="button" variant="ghost" (click)="skip()">Skip</button>
+        <button dfButton type="button" variant="ghost" (click)="close()">Close</button>
+      </div>
+    }
+  </div>
+}

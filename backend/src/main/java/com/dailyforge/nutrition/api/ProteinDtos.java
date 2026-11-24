@@ -15,25 +15,38 @@ public final class ProteinDtos {
 
     private ProteinDtos() {}
 
-    public record FoodResponse(UUID id, String name, int grams) {
+    /** {@code grams} is protein, kept under its original name so older clients still read it. */
+    public record FoodResponse(UUID id, String name, int grams, int kcal, int fatG) {
         public static FoodResponse of(ProteinFood food) {
-            return new FoodResponse(food.getId(), food.getName(), food.getGrams());
+            return new FoodResponse(food.getId(), food.getName(), food.getGrams(), food.getKcal(), food.getFatG());
         }
     }
 
-    public record LogResponse(UUID id, String foodName, int grams) {
+    public record LogResponse(UUID id, String foodName, int grams, int kcal, int fatG) {
         public static LogResponse of(ProteinLog log) {
-            return new LogResponse(log.getId(), log.getFoodName(), log.getGrams());
+            return new LogResponse(log.getId(), log.getFoodName(), log.getGrams(), log.getKcal(), log.getFatG());
         }
     }
 
     public record DayResponse(
-            LocalDate date, int targetG, int totalG, List<LogResponse> entries, List<FoodResponse> foods) {
+            LocalDate date,
+            int targetG,
+            int totalG,
+            int calorieBudget,
+            int totalKcal,
+            int fatTargetG,
+            int totalFatG,
+            List<LogResponse> entries,
+            List<FoodResponse> foods) {
         public static DayResponse of(ProteinService.Day day) {
             return new DayResponse(
                     day.date(),
                     day.targetG(),
                     day.totalG(),
+                    day.calorieBudget(),
+                    day.totalKcal(),
+                    day.fatTargetG(),
+                    day.totalFatG(),
                     day.logs().stream().map(LogResponse::of).toList(),
                     day.foods().stream().map(FoodResponse::of).toList());
         }
@@ -46,11 +59,14 @@ public final class ProteinDtos {
         }
     }
 
-    public record LogRequest(@NotNull LocalDate date, @NotBlank @Size(max = 60) String foodName, @NotNull Integer grams) {}
+    /** {@code grams} is protein. Calories and fat default to 0 when left out. */
+    public record LogRequest(
+            @NotNull LocalDate date, @NotBlank @Size(max = 60) String foodName, Integer grams, Integer kcal, Integer fatG) {}
 
-    public record TargetRequest(@NotNull Integer targetG) {}
+    /** Any of the three; null leaves that target as it is. */
+    public record TargetRequest(Integer targetG, Integer calorieBudget, Integer fatTargetG) {}
 
-    public record CreateFoodRequest(@NotBlank @Size(max = 60) String name, @NotNull Integer grams) {}
+    public record CreateFoodRequest(@NotBlank @Size(max = 60) String name, Integer grams, Integer kcal, Integer fatG) {}
 
-    public record UpdateFoodRequest(@Size(max = 60) String name, Integer grams) {}
+    public record UpdateFoodRequest(@Size(max = 60) String name, Integer grams, Integer kcal, Integer fatG) {}
 }

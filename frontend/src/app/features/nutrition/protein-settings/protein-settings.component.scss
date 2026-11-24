@@ -8,11 +8,10 @@
   gap: var(--space-4);
 }
 
-.protein-settings__target {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
+.protein-settings__targets {
+  display: grid;
   gap: var(--space-3);
+  justify-items: start;
 }
 
 .protein-settings__toggle {
@@ -103,17 +102,6 @@
 
 .protein-settings__add {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  align-items: end;
   gap: var(--space-3);
-}
-
-@media (max-width: 520px) {
-  .protein-settings__add {
-    grid-template-columns: 1fr auto;
-  }
-
-  .protein-settings__add df-input {
-    grid-column: 1 / -1;
-  }
+  justify-items: start;
 }

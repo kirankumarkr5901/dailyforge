@@ -51,7 +51,11 @@ public class ProteinController {
 
     @PostMapping("/logs")
     public DayWriteResponse log(@Valid @RequestBody LogRequest request) {
-        return DayWriteResponse.of(protein.log(currentUser.require(), request.date(), request.foodName(), request.grams()));
+        return DayWriteResponse.of(protein.log(
+                currentUser.require(),
+                request.date(),
+                request.foodName(),
+                new ProteinService.Amounts(orZero(request.grams()), orZero(request.kcal()), orZero(request.fatG()))));
     }
 
     @DeleteMapping("/logs/{id}")
@@ -61,20 +65,25 @@ public class ProteinController {
 
     @PutMapping("/target")
     public DayWriteResponse setTarget(@Valid @RequestBody TargetRequest request) {
-        return DayWriteResponse.of(protein.setTarget(currentUser.require(), request.targetG()));
+        return DayWriteResponse.of(
+                protein.setTargets(currentUser.require(), request.targetG(), request.calorieBudget(), request.fatTargetG()));
     }
 
     @PostMapping("/foods")
     @ResponseStatus(HttpStatus.CREATED)
     @StructuralChange
     public FoodResponse addFood(@Valid @RequestBody CreateFoodRequest request) {
-        return FoodResponse.of(protein.addFood(currentUser.require(), request.name(), request.grams()));
+        return FoodResponse.of(protein.addFood(
+                currentUser.require(),
+                request.name(),
+                new ProteinService.Amounts(orZero(request.grams()), orZero(request.kcal()), orZero(request.fatG()))));
     }
 
     @PatchMapping("/foods/{id}")
     @StructuralChange
     public FoodResponse updateFood(@PathVariable UUID id, @Valid @RequestBody UpdateFoodRequest request) {
-        return FoodResponse.of(protein.updateFood(currentUser.require(), id, request.name(), request.grams()));
+        return FoodResponse.of(
+                protein.updateFood(currentUser.require(), id, request.name(), request.grams(), request.kcal(), request.fatG()));
     }
 
     @DeleteMapping("/foods/{id}")
@@ -82,5 +91,9 @@ public class ProteinController {
     @StructuralChange
     public void deleteFood(@PathVariable UUID id) {
         protein.deleteFood(currentUser.require(), id);
+    }
+
+    private static int orZero(Integer value) {
+        return value == null ? 0 : value;
     }
 }

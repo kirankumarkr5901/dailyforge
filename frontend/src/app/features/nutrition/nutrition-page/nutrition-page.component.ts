@@ -21,9 +21,10 @@ import { DfStepperInputComponent } from '../../../shared/ui/df-stepper-input/df-
 import { ToastService } from '../../../shared/ui/df-toast/toast.service';
 
 /**
- * The protein meter: tap what you eat, watch today's total climb toward the target.
- * Reaching the target pays a few points once a day; an undo that drops below it takes
- * them back. The target and the food list live in Settings.
+ * The nutrition meter: tap what you eat, and see protein climb toward its target,
+ * calories against the day's budget, and fat against its target. Reaching the protein
+ * target pays points once a day; a day that ends within the calorie budget pays once it
+ * is over. The targets and the food list live in Settings.
  */
 @Component({
   selector: 'df-nutrition-page',
@@ -69,7 +70,34 @@ export class NutritionPageComponent {
   });
 
   protected readonly otherName = signal('');
-  protected readonly otherGrams = signal(10);
+  protected readonly otherGrams = signal(0);
+  protected readonly otherKcal = signal(0);
+  protected readonly otherFat = signal(0);
+
+  /** Calories against the budget: what is left, or how far over. */
+  protected readonly calories = computed(() => {
+    const d = this.day();
+    if (!d) return null;
+    const left = d.calorieBudget - d.totalKcal;
+    return {
+      percent: d.calorieBudget > 0 ? Math.min(100, (d.totalKcal / d.calorieBudget) * 100) : 0,
+      over: left < 0,
+      label: left >= 0 ? `${left.toLocaleString()} kcal left` : `${(-left).toLocaleString()} kcal over`,
+    };
+  });
+
+  protected readonly fatPercent = computed(() => {
+    const d = this.day();
+    return d && d.fatTargetG > 0 ? Math.min(100, (d.totalFatG / d.fatTargetG) * 100) : 0;
+  });
+
+  protected foodLabel(f: { grams: number; kcal: number; fatG: number }): string {
+    const parts: string[] = [];
+    if (f.grams) parts.push(`${f.grams} g protein`);
+    if (f.kcal) parts.push(`${f.kcal} kcal`);
+    if (f.fatG) parts.push(`${f.fatG} g fat`);
+    return parts.join(' · ');
+  }
 
   protected readonly percent = computed(() => {
     const d = this.day();
@@ -121,13 +149,23 @@ export class NutritionPageComponent {
   }
 
   protected eat(food: ProteinFood): Promise<boolean> {
-    return this.write(() => this.api.log(this.day()!.date, food.name, food.grams));
+    return this.write(() =>
+      this.api.log(this.day()!.date, food.name, { grams: food.grams, kcal: food.kcal, fatG: food.fatG }),
+    );
   }
 
   protected async eatOther(): Promise<void> {
     const name = this.otherName().trim() || 'Other';
-    if (await this.write(() => this.api.log(this.day()!.date, name, this.otherGrams()))) {
+    const amounts = { grams: this.otherGrams(), kcal: this.otherKcal(), fatG: this.otherFat() };
+    if (!amounts.grams && !amounts.kcal && !amounts.fatG) {
+      this.toasts.show('Enter at least one of protein, calories or fat.');
+      return;
+    }
+    if (await this.write(() => this.api.log(this.day()!.date, name, amounts))) {
       this.otherName.set('');
+      this.otherGrams.set(0);
+      this.otherKcal.set(0);
+      this.otherFat.set(0);
     }
   }
 
