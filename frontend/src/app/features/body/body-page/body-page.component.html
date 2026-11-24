@@ -102,6 +102,29 @@
         }
       </df-card>
 
+      @if (measurementRows(body.entries); as rows) {
+        @if (rows.length > 0) {
+          <df-card class="body-page__chart-card">
+            <h2 class="body-page__section-title">Measurements</h2>
+            <ul class="body-page__tape">
+              @for (row of rows; track row.key) {
+                <li class="body-page__tape-row">
+                  <span>{{ row.label }}</span>
+                  <span class="body-page__tape-value">
+                    {{ row.value }} cm
+                    @if (row.change !== null) {
+                      <span class="body-page__tape-change">
+                        {{ row.change > 0 ? '+' : '' }}{{ row.change }} since {{ formatLong(row.since!) }}
+                      </span>
+                    }
+                  </span>
+                </li>
+              }
+            </ul>
+          </df-card>
+        }
+      }
+
       @if (body.entries.length > 1) {
         <df-card class="body-page__chart-card">
           <h2 class="body-page__section-title">Trend</h2>

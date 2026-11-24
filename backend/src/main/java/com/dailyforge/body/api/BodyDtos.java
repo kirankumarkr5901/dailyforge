@@ -21,12 +21,39 @@ public final class BodyDtos {
             @NotNull @DecimalMin("1") BigDecimal weightKg,
             BigDecimal heightCm,
             @DecimalMin("0") @DecimalMax("100") BigDecimal bodyFatPct,
-            String note) {}
+            String note,
+            @DecimalMin("20") @DecimalMax("250") BigDecimal waistCm,
+            @DecimalMin("20") @DecimalMax("250") BigDecimal chestCm,
+            @DecimalMin("10") @DecimalMax("100") BigDecimal armCm,
+            @DecimalMin("20") @DecimalMax("250") BigDecimal hipsCm,
+            @DecimalMin("10") @DecimalMax("150") BigDecimal thighCm) {}
 
-    public record MetricResponse(UUID id, LocalDate date, BigDecimal weightKg, BigDecimal heightCm, BigDecimal bodyFatPct, String note) {
+    public record MetricResponse(
+            UUID id,
+            LocalDate date,
+            BigDecimal weightKg,
+            BigDecimal heightCm,
+            BigDecimal bodyFatPct,
+            String note,
+            BigDecimal waistCm,
+            BigDecimal chestCm,
+            BigDecimal armCm,
+            BigDecimal hipsCm,
+            BigDecimal thighCm) {
         public static MetricResponse of(BodyMetric metric) {
+            var m = metric.getMeasurements();
             return new MetricResponse(
-                    metric.getId(), metric.getOccurredOn(), metric.getWeightKg(), metric.getHeightCm(), metric.getBodyFatPct(), metric.getNote());
+                    metric.getId(),
+                    metric.getOccurredOn(),
+                    metric.getWeightKg(),
+                    metric.getHeightCm(),
+                    metric.getBodyFatPct(),
+                    metric.getNote(),
+                    m.waistCm(),
+                    m.chestCm(),
+                    m.armCm(),
+                    m.hipsCm(),
+                    m.thighCm());
         }
     }
 

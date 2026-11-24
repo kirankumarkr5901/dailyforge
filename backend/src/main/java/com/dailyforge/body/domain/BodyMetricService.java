@@ -92,6 +92,21 @@ public class BodyMetricService {
         return metrics.save(metric);
     }
 
+    /** As {@link #upsert}, plus tape measurements (null ones keep what the day had). */
+    @Transactional
+    public BodyMetric upsert(
+            UUID userId,
+            LocalDate date,
+            BigDecimal weightKg,
+            BigDecimal heightCm,
+            BigDecimal bodyFatPct,
+            String note,
+            BodyMetric.Measurements measurements) {
+        BodyMetric metric = upsert(userId, date, weightKg, heightCm, bodyFatPct, note);
+        metric.applyMeasurements(measurements);
+        return metrics.save(metric);
+    }
+
     @Transactional
     public void delete(UUID id, UUID userId) {
         metrics.delete(requireOwned(id, userId));

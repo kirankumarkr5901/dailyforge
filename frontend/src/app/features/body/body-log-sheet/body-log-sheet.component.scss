@@ -9,3 +9,25 @@
   color: var(--penalty-ink);
   font-size: var(--text-sm);
 }
+
+.body-log__toggle {
+  align-self: flex-start;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--heat-2);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.body-log__toggle:focus-visible {
+  outline: 2px solid var(--heat-2);
+  outline-offset: 2px;
+}
+
+.body-log__tape {
+  display: grid;
+  gap: var(--space-3);
+}

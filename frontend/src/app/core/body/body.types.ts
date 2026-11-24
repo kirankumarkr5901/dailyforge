@@ -11,7 +11,23 @@ export interface BodyMetric {
   heightCm: number | null;
   bodyFatPct: number | null;
   note: string | null;
+  /** Tape measurements in cm; null when not taken that day. */
+  waistCm: number | null;
+  chestCm: number | null;
+  armCm: number | null;
+  hipsCm: number | null;
+  thighCm: number | null;
 }
+
+export type MeasurementKey = 'waistCm' | 'chestCm' | 'armCm' | 'hipsCm' | 'thighCm';
+
+export const MEASUREMENTS: readonly { key: MeasurementKey; label: string; min: number; max: number }[] = [
+  { key: 'waistCm', label: 'Waist', min: 20, max: 250 },
+  { key: 'chestCm', label: 'Chest', min: 20, max: 250 },
+  { key: 'armCm', label: 'Arm', min: 10, max: 100 },
+  { key: 'hipsCm', label: 'Hips', min: 20, max: 250 },
+  { key: 'thighCm', label: 'Thigh', min: 10, max: 150 },
+];
 
 export interface LogWeightPayload {
   date: LogicalDate;
@@ -19,6 +35,11 @@ export interface LogWeightPayload {
   heightCm?: number;
   bodyFatPct?: number;
   note?: string;
+  waistCm?: number;
+  chestCm?: number;
+  armCm?: number;
+  hipsCm?: number;
+  thighCm?: number;
 }
 
 export interface MovingAveragePoint {
