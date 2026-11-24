@@ -101,6 +101,16 @@
       <span class="workouts-page__progress-track" aria-hidden="true">
         <span class="workouts-page__progress-fill" [style.width.%]="dayProgress().percent"></span>
       </span>
+      @if (timeEstimate(); as t) {
+        <p class="workouts-page__estimate">
+          ≈ {{ t.totalMinutes }} min of lifting
+          @if (t.leftMinutes > 0) {
+            · about {{ t.leftMinutes }} min left{{ t.doneBy ? ', done by ' + t.doneBy : '' }}
+          } @else {
+            · all sets in
+          }
+        </p>
+      }
     </div>
   }
 

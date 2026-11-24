@@ -176,6 +176,33 @@ export class WorkoutsPageComponent {
     return { done, total: exercises.length, percent, percentLabel: `${Math.round(percent)}%` };
   });
 
+  /**
+   * How long the day's lifting takes, the Cut Block way: each set is about 40 seconds of
+   * work plus that exercise's rest (its own rest time, or the default). An exercise with
+   * no target sets counts as 3. "Left" counts only the sets not yet logged on exercises
+   * not yet finished, and "done by" appears only while looking at today.
+   */
+  protected readonly timeEstimate = computed(() => {
+    const exercises = this.workoutSession()?.exercises ?? [];
+    if (exercises.length === 0) {
+      return null;
+    }
+    const defaultRest = this.restTimer.defaultSeconds();
+    const perSet = (e: ExerciseBoardEntry) => 40 + (typeof e.restSeconds === 'number' ? e.restSeconds : defaultRest);
+    const planned = (e: ExerciseBoardEntry) => e.targetSets ?? 3;
+    const total = exercises.reduce((sum, e) => sum + planned(e) * perSet(e), 0);
+    const left = exercises
+      .filter((e) => !e.completedAt)
+      .reduce((sum, e) => sum + Math.max(0, planned(e) - e.sets.length) * perSet(e), 0);
+    const minutes = (s: number) => Math.max(1, Math.round(s / 60));
+    let doneBy: string | null = null;
+    if (left > 0 && this.viewedDate() !== null && this.viewedDate() === this.todayDate()) {
+      const end = new Date(Date.now() + left * 1000);
+      doneBy = end.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    }
+    return { totalMinutes: minutes(total), leftMinutes: left > 0 ? minutes(left) : 0, doneBy };
+  });
+
   /** Unfinished cards first, done ones sink to the bottom (spec §8.3). */
   /**
    * The order the board is worked through: what you are in the middle of, then what is

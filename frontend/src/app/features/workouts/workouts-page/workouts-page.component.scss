@@ -203,3 +203,11 @@
   color: var(--ink);
   font-size: var(--text-sm);
 }
+
+/* The time estimate under the day's progress bar. */
+.workouts-page__estimate {
+  margin: var(--space-2) 0 0;
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
