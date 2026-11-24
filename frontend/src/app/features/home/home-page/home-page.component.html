@@ -20,6 +20,8 @@
   @if (summary(); as home) {
     <div class="home-page__grid">
       <div class="home-page__col-main">
+        <df-today-checklist class="home-page__today" [date]="home.date" />
+
         @if (home.quote; as quote) {
           <df-card class="home-page__quote">
             <lucide-icon class="home-page__quote-icon" [img]="quoteIcon" [size]="44" aria-hidden="true" />

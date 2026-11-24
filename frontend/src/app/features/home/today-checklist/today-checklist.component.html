@@ -1,0 +1,52 @@
+<df-card class="today">
+  <div class="today__head">
+    <h2 class="today__title">Today</h2>
+    @if (items(); as list) {
+      <span class="today__count">{{ doneCount() }} of {{ list.length }} done</span>
+    }
+  </div>
+
+  @if (items(); as list) {
+    @if (list.length === 0) {
+      <p class="today__empty">Nothing due today.</p>
+    } @else {
+      <ul class="today__list">
+        @for (item of list; track item.key) {
+          <li>
+            @if (item.habitId) {
+              <button
+                type="button"
+                class="today__row"
+                [class.today__row--done]="item.done"
+                [attr.aria-pressed]="item.done"
+                [disabled]="busy() === item.key"
+                (click)="toggle(item)"
+              >
+                <lucide-icon class="today__mark" [img]="item.done ? doneIcon : openIcon" [size]="22" aria-hidden="true" />
+                <span class="today__text">
+                  <span class="today__label">{{ item.label }}</span>
+                  @if (item.detail) {
+                    <span class="today__detail">{{ item.detail }}</span>
+                  }
+                </span>
+              </button>
+            } @else {
+              <a class="today__row" [class.today__row--done]="item.done" [routerLink]="item.link">
+                <lucide-icon class="today__mark" [img]="item.done ? doneIcon : openIcon" [size]="22" aria-hidden="true" />
+                <span class="today__text">
+                  <span class="today__label">{{ item.label }}</span>
+                  @if (item.detail) {
+                    <span class="today__detail">{{ item.detail }}</span>
+                  }
+                </span>
+                <lucide-icon class="today__go" [img]="linkIcon" [size]="18" aria-hidden="true" />
+              </a>
+            }
+          </li>
+        }
+      </ul>
+    }
+  } @else {
+    <p class="today__empty">Loading…</p>
+  }
+</df-card>
