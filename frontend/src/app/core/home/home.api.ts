@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { LogicalDate } from '../time/logical-date';
-import { DailySummary, DayDetail, HomeSummary, Quote } from './home.types';
+import { DailySummary, DayDetail, HomeSummary, Quote, WeekReview } from './home.types';
 
 @Injectable({ providedIn: 'root' })
 export class HomeApi {
@@ -17,6 +17,11 @@ export class HomeApi {
       params = params.set('date', date);
     }
     return this.http.get<HomeSummary>(`${this.base}/home/summary`, { params });
+  }
+
+  /** The Monday-to-Sunday week containing `date`, in a few numbers. */
+  week(date: LogicalDate): Observable<WeekReview> {
+    return this.http.get<WeekReview>(`${this.base}/insights/week`, { params: new HttpParams().set('date', date) });
   }
 
   heatmap(from: LogicalDate, to: LogicalDate): Observable<DailySummary[]> {

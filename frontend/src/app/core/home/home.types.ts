@@ -43,3 +43,20 @@ export interface DayDetail {
   total: number;
   groups: CategoryGroup[];
 }
+
+/** Mirrors WeekReviewService.WeekReview: one Monday-to-Sunday week, days after today not counted. */
+export interface WeekReview {
+  weekStart: LogicalDate;
+  weekEnd: LogicalDate;
+  trainingDays: number;
+  sets: number;
+  runs: number;
+  runKm: number;
+  habitTicks: number;
+  nutritionDaysLogged: number;
+  daysWithinCalories: number;
+  daysProteinHit: number;
+  /** Null when the week had no weigh-in, or there was none before it. */
+  weightChangeKg: number | null;
+  points: number;
+}

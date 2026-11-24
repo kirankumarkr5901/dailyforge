@@ -289,3 +289,8 @@
   display: block;
   margin-bottom: var(--space-4);
 }
+
+.home-page__review:not(:empty) {
+  display: block;
+  margin-bottom: var(--space-4);
+}

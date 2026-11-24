@@ -85,6 +85,13 @@ public interface WorkoutSetRepository extends JpaRepository<WorkoutSet, UUID> {
     List<WorkoutSet> findOnDate(
             @Param("userId") UUID userId, @Param("exerciseId") UUID exerciseId, @Param("date") LocalDate date);
 
+    /** The days in a range on which this user logged at least one live set. */
+    @Query(
+            "select distinct sess.occurredOn from WorkoutSet s, WorkoutSession sess "
+                    + "where sess.id = s.sessionId and sess.userId = :userId and s.deletedAt is null "
+                    + "and sess.occurredOn between :from and :to")
+    List<LocalDate> findTrainingDays(@Param("userId") UUID userId, @Param("from") LocalDate from, @Param("to") LocalDate to);
+
     /** Every live set this user logged between two days, inclusive, across all exercises. */
     @Query(
             "select s from WorkoutSet s, WorkoutSession sess "
