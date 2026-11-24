@@ -1,0 +1,111 @@
+<div class="skills__header">
+  <h1 class="skills__title">Skills</h1>
+  <p class="skills__lede">10 minutes right after your warm-up, while you're fresh. Move up a level once every drill in your current one feels clean.</p>
+</div>
+
+@if (!session.isResolved() || (session.isAuthenticated() && loading() && !board())) {
+  <df-card>
+    <df-skeleton height="10rem" />
+  </df-card>
+} @else if (!session.isAuthenticated()) {
+  <df-empty-state [icon]="skillIcon" title="You are browsing as a guest" body="Sign in to track your skill work.">
+    <button dfButton type="button" variant="primary" (click)="signIn()">Sign in</button>
+  </df-empty-state>
+} @else {
+  @if (error(); as message) {
+    <p class="skills__error" role="alert">{{ message }}</p>
+  }
+
+  @if (board(); as b) {
+    <div class="skills__list">
+      @for (skill of b.skills; track skill.code) {
+        <df-card class="skill" [class.skill--done]="skill.doneOnDate">
+          <div class="skill__head">
+            <div>
+              <p class="skill__when">{{ skill.when }}</p>
+              <h2 class="skill__name">{{ skill.name }}</h2>
+            </div>
+            @if (skill.doneOnDate) {
+              <lucide-icon class="skill__done-icon" [img]="doneIcon" [size]="22" aria-hidden="true" />
+            }
+          </div>
+
+          <div class="skill__levels" role="radiogroup" [attr.aria-label]="skill.name + ' level'">
+            @for (level of skill.levels; track level.number) {
+              <button
+                type="button"
+                class="skill__level"
+                role="radio"
+                [attr.aria-checked]="level.number === skill.level"
+                [class.skill__level--current]="level.number === skill.level"
+                [disabled]="busy() === skill.code"
+                (click)="setLevel(skill, level.number)"
+              >
+                L{{ level.number }}
+              </button>
+            }
+          </div>
+
+          @if (currentLevel(skill); as level) {
+            <h3 class="skill__level-title">L{{ level.number }} · {{ level.title }}</h3>
+            <ul class="skill__drills">
+              @for (drill of level.drills; track drill) {
+                <li>{{ drill }}</li>
+              }
+            </ul>
+            <p class="skill__goal">{{ level.goal }}</p>
+          }
+
+          @if (skill.safety) {
+            <p class="skill__safety">
+              <lucide-icon [img]="safetyIcon" [size]="16" aria-hidden="true" />
+              <span>{{ skill.safety }}</span>
+            </p>
+          }
+
+          <div class="skill__actions">
+            <button
+              dfButton
+              type="button"
+              [variant]="skill.doneOnDate ? 'ghost' : 'primary'"
+              [disabled]="busy() === skill.code"
+              (click)="toggleDone(skill)"
+            >
+              {{ skill.doneOnDate ? 'Not done after all' : 'Mark done today' }}
+            </button>
+            <span class="skill__count">{{ skill.daysDone }} {{ skill.daysDone === 1 ? 'day' : 'days' }} done</span>
+          </div>
+
+          <button
+            type="button"
+            class="skill__toggle"
+            [attr.aria-expanded]="showAll().has(skill.code)"
+            (click)="toggleAll(skill.code)"
+          >
+            {{ showAll().has(skill.code) ? 'Hide' : 'Show' }} all levels
+          </button>
+          @if (showAll().has(skill.code)) {
+            <div class="skill__all">
+              @for (level of skill.levels; track level.number) {
+                <div class="skill__all-level">
+                  <h4 class="skill__all-title">
+                    L{{ level.number }} · {{ level.title }}
+                    @if (level.number === skill.level) {
+                      <span class="skill__here">you are here</span>
+                    }
+                  </h4>
+                  <ul class="skill__drills">
+                    @for (drill of level.drills; track drill) {
+                      <li>{{ drill }}</li>
+                    }
+                  </ul>
+                  <p class="skill__goal">{{ level.goal }}</p>
+                </div>
+              }
+            </div>
+          }
+        </df-card>
+      }
+    </div>
+  }
+}
