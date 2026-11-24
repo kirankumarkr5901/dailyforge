@@ -1,0 +1,133 @@
+<section class="challenges" aria-labelledby="challenges-title">
+  <div class="challenges__head">
+    <h2 class="challenges__title" id="challenges-title">Challenges</h2>
+    @if (session.editingEnabled()) {
+      <button dfButton type="button" variant="ghost" (click)="openForm()">
+        <lucide-icon [img]="plusIcon" [size]="16" aria-hidden="true" />
+        Start
+      </button>
+    }
+  </div>
+
+  @if (current().length === 0) {
+    <p class="challenges__empty">
+      No challenge running. Something like "Plank, 30 days straight": tick it daily, and a missed day starts it again at
+      day 1.
+    </p>
+  }
+
+  @for (c of current(); track c.id) {
+    <df-card class="challenge" [class.challenge--reached]="c.status === 'REACHED'">
+      <div class="challenge__top">
+        <div class="challenge__name-row">
+          <lucide-icon class="challenge__icon" [img]="trophyIcon" [size]="18" aria-hidden="true" />
+          <h3 class="challenge__name">{{ c.title }}</h3>
+        </div>
+        <span class="challenge__day">
+          @if (c.status === 'REACHED') {
+            {{ c.lengthDays }} / {{ c.lengthDays }}
+          } @else {
+            Day {{ c.dayNumber }} of {{ c.lengthDays }}
+          }
+        </span>
+      </div>
+
+      <div
+        class="challenge__bar"
+        role="progressbar"
+        [attr.aria-valuenow]="c.doneInARow"
+        aria-valuemin="0"
+        [attr.aria-valuemax]="c.lengthDays"
+        [attr.aria-label]="c.doneInARow + ' of ' + c.lengthDays + ' days in a row'"
+      >
+        <span [style.width.%]="percent(c)"></span>
+      </div>
+      <p class="challenge__meta">
+        {{ c.doneInARow }} {{ c.doneInARow === 1 ? 'day' : 'days' }} in a row
+        @if (c.restarts > 0) {
+          · restarted {{ c.restarts }} {{ c.restarts === 1 ? 'time' : 'times' }}
+        }
+        · {{ c.bonusPoints }} pts bonus
+      </p>
+
+      <div class="challenge__actions">
+        @if (c.status === 'REACHED') {
+          <button dfButton type="button" variant="primary" [fullWidth]="true" [disabled]="busy() === c.id" (click)="claim(c)">
+            Claim {{ c.bonusPoints }} pts
+          </button>
+        } @else {
+          <button
+            dfButton
+            type="button"
+            [variant]="c.doneToday ? 'ghost' : 'primary'"
+            [fullWidth]="true"
+            [disabled]="busy() === c.id"
+            (click)="toggleToday(c)"
+          >
+            @if (c.doneToday) {
+              <lucide-icon [img]="doneIcon" [size]="16" aria-hidden="true" />
+              Done today · undo
+            } @else {
+              Done today
+            }
+          </button>
+        }
+        @if (session.editingEnabled()) {
+          <button dfButton type="button" variant="ghost" [disabled]="busy() === c.id" (click)="abandon(c)">End</button>
+        }
+      </div>
+    </df-card>
+  }
+
+  @if (finished().length > 0) {
+    <button type="button" class="challenges__toggle" [attr.aria-expanded]="showFinished()" (click)="showFinished.set(!showFinished())">
+      {{ showFinished() ? 'Hide' : 'Show' }} finished ({{ finished().length }})
+    </button>
+    @if (showFinished()) {
+      <ul class="challenges__finished">
+        @for (c of finished(); track c.id) {
+          <li>
+            <span>{{ c.title }} · {{ c.lengthDays }} days</span>
+            <span class="challenges__finished-state">{{ c.status === 'COMPLETED' ? 'Completed' : 'Ended' }}</span>
+          </li>
+        }
+      </ul>
+    }
+  }
+</section>
+
+<df-sheet [open]="formOpen()" (openChange)="formOpen.set($event)" heading="Start a challenge">
+  <div class="challenge-form">
+    <df-input label="Name" placeholder="e.g. Plank" [ngModel]="title()" (ngModelChange)="title.set($event)" />
+    <df-stepper-input
+      label="Days in a row"
+      suffix="days"
+      hint="Miss a day and it starts again at day 1."
+      [min]="2"
+      [max]="365"
+      [ngModel]="lengthDays()"
+      (ngModelChange)="lengthDays.set($event)"
+    />
+    <df-stepper-input
+      label="Points per day"
+      suffix="pts"
+      hint="Paid by the daily tick, like any habit."
+      [min]="1"
+      [max]="100"
+      [ngModel]="habitPoints()"
+      (ngModelChange)="habitPoints.set($event)"
+    />
+    <df-stepper-input
+      label="Bonus for finishing"
+      suffix="pts"
+      [min]="0"
+      [max]="10000"
+      [step]="10"
+      [ngModel]="bonusPoints()"
+      (ngModelChange)="bonusPoints.set($event)"
+    />
+    <button dfButton type="button" variant="primary" [fullWidth]="true" [loading]="creating()" (click)="create()">
+      Start challenge
+    </button>
+  </div>
+</df-sheet>

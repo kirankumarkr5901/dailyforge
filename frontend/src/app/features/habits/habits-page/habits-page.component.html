@@ -63,6 +63,9 @@
   }
 
   @if (view() === 'habits') {
+  @if (todayDate(); as today) {
+    <df-challenges-section [today]="today" [refreshKey]="board()" (habitsChanged)="loadAll()" />
+  }
   @if (viewedDate() && todayDate()) {
     <df-date-stepper
       class="habits-page__stepper"
