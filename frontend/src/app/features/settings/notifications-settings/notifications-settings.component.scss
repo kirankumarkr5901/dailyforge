@@ -1,0 +1,53 @@
+/* Phone first: one column, full-width primary action. */
+.notify {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.notify__muted {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+}
+
+.notify__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.notify__time {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+}
+
+.notify__label {
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.notify__hint {
+  color: var(--ink-muted);
+  font-size: var(--text-xs);
+}
+
+.notify__input {
+  min-height: 48px;
+  max-width: 12rem;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: var(--surface-sunken);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-lg);
+  color-scheme: inherit;
+}
+
+.notify__input:focus-visible {
+  outline: 2px solid var(--heat-2);
+  outline-offset: 2px;
+}

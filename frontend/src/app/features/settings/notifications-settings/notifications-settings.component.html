@@ -1,0 +1,62 @@
+<df-card>
+  <div class="notify">
+    @if (loadFailed()) {
+      <p class="notify__muted">Could not load notification settings. Check your connection.</p>
+    } @else if (config(); as c) {
+      @if (!c.enabled) {
+        <p class="notify__muted">Notifications aren't switched on for this app yet (the server has no push keys).</p>
+      } @else if (!supported) {
+        <p class="notify__muted">
+          This browser can't receive notifications. On iPhone, add DailyForge to your Home Screen (Share → Add to Home
+          Screen) and open it from there.
+        </p>
+      } @else {
+        <div class="notify__status">
+          <span>
+            <strong>{{ push.subscribedHere() ? 'On' : 'Off' }}</strong> on this device
+            @if (c.devices > 0) {
+              <span class="notify__muted"> · {{ c.devices }} {{ c.devices === 1 ? 'device' : 'devices' }} in total</span>
+            }
+          </span>
+        </div>
+        <p class="notify__muted">Rest-over alerts and your daily reminder, even with the app closed.</p>
+
+        @if (push.subscribedHere()) {
+          <div class="notify__buttons">
+            <button dfButton type="button" variant="secondary" [disabled]="busy()" (click)="test()">Send a test</button>
+            <button dfButton type="button" variant="ghost" [disabled]="busy()" (click)="disable()">Turn off here</button>
+          </div>
+        } @else {
+          <button dfButton type="button" variant="primary" [fullWidth]="true" [disabled]="busy()" (click)="enable()">
+            Turn on notifications
+          </button>
+        }
+
+        <label class="notify__time">
+          <span class="notify__label">Daily reminder</span>
+          <span class="notify__hint">Only sent if something is still open: habits, a challenge, protein.</span>
+          <input
+            class="notify__input"
+            type="time"
+            [ngModel]="timeDraft()"
+            (ngModelChange)="timeDraft.set($event ?? '')"
+          />
+        </label>
+        <div class="notify__buttons">
+          @if (timeDraft() !== savedTime()) {
+            <button dfButton type="button" variant="primary" [disabled]="busy()" (click)="saveTime()">
+              {{ timeDraft() ? 'Save time' : 'Turn reminder off' }}
+            </button>
+          }
+          @if (savedTime() && timeDraft() === savedTime()) {
+            <button dfButton type="button" variant="ghost" [disabled]="busy()" (click)="timeDraft.set(''); saveTime()">
+              Turn reminder off
+            </button>
+          }
+        </div>
+      }
+    } @else {
+      <p class="notify__muted">Loading…</p>
+    }
+  </div>
+</df-card>

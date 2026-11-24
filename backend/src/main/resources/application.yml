@@ -48,6 +48,13 @@ dailyforge:
   cors:
     allowed-origins: http://localhost:4200
 
+  # Web Push (phone notifications). Blank keys switch notifications off. Generate a P-256
+  # VAPID key pair once and set both as environment variables; see docs/notifications.md.
+  push:
+    vapid-public-key: ${VAPID_PUBLIC_KEY:}
+    vapid-private-key: ${VAPID_PRIVATE_KEY:}
+    subject: ${VAPID_SUBJECT:}
+
   auth:
     # Development-only key. Deployed environments MUST override it from the environment
     # (DAILYFORGE_AUTH_JWT_SECRET); the app refuses to start on anything shorter than

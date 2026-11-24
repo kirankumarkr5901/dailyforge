@@ -23,6 +23,7 @@ import { ToastService } from '../../shared/ui/df-toast/toast.service';
 import { RestTimerService } from '../workouts/rest-timer/rest-timer.service';
 import { ChevronDown, LucideAngularModule, Settings as SettingsIcon } from 'lucide-angular';
 import { ProteinSettingsComponent } from '../nutrition/protein-settings/protein-settings.component';
+import { NotificationsSettingsComponent } from './notifications-settings/notifications-settings.component';
 
 /**
  * Settings.
@@ -45,6 +46,7 @@ import { ProteinSettingsComponent } from '../nutrition/protein-settings/protein-
     DfEmptyStateComponent,
     DfSwitchComponent,
     ProteinSettingsComponent,
+    NotificationsSettingsComponent,
   ],
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.scss',
