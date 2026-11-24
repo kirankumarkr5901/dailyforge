@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } 
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
-import { LucideAngularModule, Plus, Settings2, Target, TimerReset } from 'lucide-angular';
+import { LucideAngularModule, Plus, Settings2, Target, TimerReset, StretchHorizontal } from 'lucide-angular';
 
 import { AuthSheetService } from '../../../core/auth/auth-sheet.service';
 import { PendingActionService } from '../../../core/auth/pending-action.service';
@@ -14,6 +14,8 @@ import { Celebration, PointsCategory } from '../../../core/points/points.types';
 import { monthsAgoStart } from '../../../core/time/calendar-grid';
 import { LogicalDate } from '../../../core/time/logical-date';
 import { WorkoutsApi } from '../../../core/workouts/workouts.api';
+import { MobilityApi, MobilityCompletion, MobilityFlow } from '../../../core/mobility/mobility.api';
+import { MobilityPlayerComponent } from '../../mobility/mobility-player/mobility-player.component';
 import {
   Equipment,
   ExerciseBoardEntry,
@@ -90,6 +92,7 @@ const RANK: Record<ExerciseStatus, number> = { 'in-progress': 0, todo: 1, done: 
     LogSetSheetComponent,
     PlanManagerSheetComponent,
     ExerciseTargetsSheetComponent,
+    MobilityPlayerComponent,
     DfSwitchComponent,
     RestTimerComponent,
   ],
@@ -120,6 +123,10 @@ export class WorkoutsPageComponent {
   protected readonly error = signal<string | null>(null);
   protected readonly plans = signal<WorkoutPlan[]>([]);
   protected readonly targetsContext = signal<TargetsContext | null>(null);
+  private readonly mobility = inject(MobilityApi);
+  protected readonly warmupFlow = signal<MobilityFlow | null>(null);
+  protected readonly warmupLoading = signal(false);
+  protected readonly warmupIcon = StretchHorizontal;
   protected readonly todayDate = signal<LogicalDate | null>(null);
   protected readonly viewedDate = signal<LogicalDate | null>(null);
   protected readonly selectedPlanId = signal<string | null>(null);
@@ -432,6 +439,26 @@ export class WorkoutsPageComponent {
   protected async completeExercise(entry: ExerciseBoardEntry): Promise<void> {
     this.restTimer.start();
     await this.setCompletion(entry, new Date().toISOString());
+  }
+
+  /** Plays the Daily Warm-up flow over the board. */
+  protected async playWarmup(): Promise<void> {
+    this.warmupLoading.set(true);
+    try {
+      const board = await firstValueFrom(this.mobility.board());
+      this.warmupFlow.set(board.flows.find((f) => f.code === 'WARMUP') ?? null);
+    } catch {
+      this.toasts.show('Could not load the warm-up. Check your connection.', { tone: 'penalty' });
+    } finally {
+      this.warmupLoading.set(false);
+    }
+  }
+
+  protected onWarmupDone(result: MobilityCompletion): void {
+    this.points.applyEnvelope(result.points);
+    if (result.points.delta > 0) {
+      this.toasts.show(`Warm-up done! +${result.points.delta} pts`, { tone: 'earned', heatStep: 1 });
+    }
   }
 
   protected openTargets(entry: ExerciseBoardEntry): void {

@@ -1,0 +1,49 @@
+<div class="mobility__header">
+  <h1 class="mobility__title">Mobility</h1>
+  <p class="mobility__lede">Four guided flows. Press play and follow the countdown; each move says what to feel, and a beep marks every switch.</p>
+</div>
+
+@if (!session.isResolved() || (session.isAuthenticated() && loading() && !board())) {
+  <df-card>
+    <df-skeleton height="10rem" />
+  </df-card>
+} @else if (!session.isAuthenticated()) {
+  <df-empty-state [icon]="flowIcon" title="You are browsing as a guest" body="Sign in to play the mobility flows.">
+    <button dfButton type="button" variant="primary" (click)="signIn()">Sign in</button>
+  </df-empty-state>
+} @else {
+  @if (error(); as message) {
+    <p class="mobility__error" role="alert">{{ message }}</p>
+  }
+
+  @if (board(); as b) {
+    <div class="mobility__grid">
+      @for (flow of b.flows; track flow.code) {
+        <df-card class="flow" [class.flow--done]="flow.doneToday">
+          <p class="flow__when">{{ flow.when }}</p>
+          <div class="flow__head">
+            <h2 class="flow__name">{{ flow.name }}</h2>
+            @if (flow.doneToday) {
+              <lucide-icon class="flow__done-icon" [img]="doneIcon" [size]="20" aria-label="Done today" />
+            }
+          </div>
+          <ul class="flow__moves">
+            @for (move of flow.moves; track move.name) {
+              <li>{{ move.name }} · {{ move.seconds }}s</li>
+            }
+          </ul>
+          <div class="flow__foot">
+            <span class="flow__duration">{{ minutes(flow.totalSeconds) }} min</span>
+            <button dfButton type="button" variant="primary" (click)="playing.set(flow)">
+              <lucide-icon [img]="playIcon" [size]="16" aria-hidden="true" />
+              Play
+            </button>
+          </div>
+          <p class="flow__count">Done {{ flow.timesDone }} {{ flow.timesDone === 1 ? 'time' : 'times' }}</p>
+        </df-card>
+      }
+    </div>
+  }
+}
+
+<df-mobility-player [flow]="playing()" (closed)="playing.set(null)" (completed)="onCompleted($event)" />

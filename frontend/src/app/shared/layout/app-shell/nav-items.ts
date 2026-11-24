@@ -1,4 +1,4 @@
-import { Award, Beef, PersonStanding, Briefcase, Dumbbell, Flame, Footprints, Gift, House, PartyPopper, Scale, Settings, Target } from 'lucide-angular';
+import { Award, Beef, PersonStanding, StretchHorizontal, Briefcase, Dumbbell, Flame, Footprints, Gift, House, PartyPopper, Scale, Settings, Target } from 'lucide-angular';
 import { LucideIconData } from 'lucide-angular';
 import { StringKey } from '../../../core/i18n/strings';
 
@@ -29,6 +29,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { path: '/jobs', labelKey: 'nav.jobs', icon: Briefcase, primary: false, ready: true },
   { path: '/body', labelKey: 'nav.body', icon: Scale, primary: false, ready: true },
   { path: '/skills', labelKey: 'nav.skills', icon: PersonStanding, primary: false, ready: true },
+  { path: '/mobility', labelKey: 'nav.mobility', icon: StretchHorizontal, primary: false, ready: true },
   { path: '/nutrition', labelKey: 'nav.nutrition', icon: Beef, primary: false, ready: true },
   { path: '/rewards', labelKey: 'nav.rewards', icon: Gift, primary: false, ready: true },
   { path: '/milestones', labelKey: 'nav.milestones', icon: PartyPopper, primary: false, ready: true },

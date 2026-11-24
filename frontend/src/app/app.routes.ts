@@ -92,6 +92,12 @@ export const routes: Routes = [
           import('./features/body/body-page/body-page.component').then((m) => m.BodyPageComponent),
       },
       {
+        path: 'mobility',
+        title: 'Mobility — DailyForge',
+        loadComponent: () =>
+          import('./features/mobility/mobility-page/mobility-page.component').then((m) => m.MobilityPageComponent),
+      },
+      {
         path: 'skills',
         title: 'Skills — DailyForge',
         loadComponent: () =>

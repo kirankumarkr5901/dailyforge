@@ -62,6 +62,7 @@ export const STRINGS = {
   'nav.body': 'Body',
   'nav.nutrition': 'Nutrition',
   'nav.skills': 'Skills',
+  'nav.mobility': 'Mobility',
   'nav.rewards': 'Rewards',
   'nav.milestones': 'Milestones',
   'nav.forge': 'Forge 66',
