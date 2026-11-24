@@ -4,12 +4,51 @@
 }
 
 .page__section {
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--space-3);
 }
 
 .page__heading {
+  margin: 0 0 var(--space-2);
   font-size: var(--text-lg);
-  margin-bottom: var(--space-3);
+}
+
+/* Each heading is the section's toggle: the whole row is the tap target. */
+.page__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 var(--space-1);
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.page__toggle:focus-visible {
+  outline: 2px solid var(--heat-2);
+  outline-offset: 2px;
+}
+
+.page__chevron {
+  flex: none;
+  color: var(--ink-muted);
+  transition: transform var(--duration-base) var(--ease-out);
+}
+
+.page__chevron--open {
+  transform: rotate(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page__chevron {
+    transition: none;
+  }
 }
 
 .stack {
