@@ -20,7 +20,6 @@
   @if (summary(); as home) {
     <div class="home-page__grid">
       <div class="home-page__col-main">
-        <df-today-checklist class="home-page__today" [date]="home.date" />
         <df-week-review class="home-page__review" [today]="home.date" />
 
         @if (home.quote; as quote) {
@@ -113,6 +112,8 @@
         @if (weeklyVolume(); as volume) {
           <df-weekly-volume-card class="home-page__volume" [volume]="volume" />
         }
+
+        <df-today-checklist class="home-page__today" [date]="home.date" />
       </div>
     </div>
 
