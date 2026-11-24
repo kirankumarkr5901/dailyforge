@@ -6,6 +6,7 @@ import { Equipment, ExerciseHistoryEntry } from '../../../core/workouts/workouts
 import { WorkoutsApi } from '../../../core/workouts/workouts.api';
 import { DfSheetComponent } from '../../../shared/ui/df-sheet/df-sheet.component';
 import { DfSkeletonComponent } from '../../../shared/ui/df-skeleton/df-skeleton.component';
+import { ProgressChartComponent } from './progress-chart/progress-chart.component';
 
 /**
  * Every past set for one exercise, newest first — the "history" the M4 README once
@@ -14,7 +15,7 @@ import { DfSkeletonComponent } from '../../../shared/ui/df-skeleton/df-skeleton.
  */
 @Component({
   selector: 'df-exercise-history-sheet',
-  imports: [DfSheetComponent, DfSkeletonComponent],
+  imports: [DfSheetComponent, DfSkeletonComponent, ProgressChartComponent],
   templateUrl: './exercise-history-sheet.component.html',
   styleUrl: './exercise-history-sheet.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

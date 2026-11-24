@@ -1,0 +1,48 @@
+@if (points().length >= 2) {
+  <figure class="chart">
+    <figcaption class="chart__title">
+      {{ byReps() ? 'Best reps per session' : 'Heaviest set per session' }}
+    </figcaption>
+    <p class="chart__readout" aria-live="polite">
+      @if (selected() !== null) {
+        {{ label(points()[selected()!]) }}
+      } @else {
+        Tap a point to read it.
+      }
+    </p>
+    <svg class="chart__svg" [attr.viewBox]="'0 0 ' + W + ' ' + H" role="img" [attr.aria-label]="summary()">
+      @for (g of gridlines(); track g.y) {
+        <line class="chart__grid" [attr.x1]="PAD.left" [attr.x2]="W - PAD.right" [attr.y1]="g.y" [attr.y2]="g.y" />
+        <text class="chart__axis" [attr.x]="PAD.left - 6" [attr.y]="g.y + 3" text-anchor="end">{{ g.label }}</text>
+      }
+      <text class="chart__axis" [attr.x]="PAD.left" [attr.y]="H - 6" text-anchor="start">{{ firstLabel() }}</text>
+      <text class="chart__axis" [attr.x]="W - PAD.right" [attr.y]="H - 6" text-anchor="end">{{ lastLabel() }}</text>
+
+      <path class="chart__line" [attr.d]="path()" />
+      @for (p of points(); track p.date; let i = $index) {
+        <circle
+          class="chart__dot"
+          [class.chart__dot--on]="selected() === i"
+          [attr.cx]="p.x"
+          [attr.cy]="p.y"
+          [attr.r]="selected() === i ? 6 : 4"
+        />
+        <!-- The visible dot is small; the tap target is not. -->
+        <circle
+          class="chart__hit"
+          [attr.cx]="p.x"
+          [attr.cy]="p.y"
+          r="14"
+          tabindex="0"
+          role="button"
+          [attr.aria-label]="label(p)"
+          (click)="toggle(i)"
+          (keydown.enter)="toggle(i)"
+          (keydown.space)="toggle(i); $event.preventDefault()"
+        />
+      }
+    </svg>
+  </figure>
+} @else if (points().length === 1) {
+  <p class="chart__hint">Log this exercise on another day to see your trend.</p>
+}
