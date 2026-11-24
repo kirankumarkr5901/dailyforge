@@ -1,159 +1,279 @@
 <h1 class="page__title">{{ 'settings.title' | t }}</h1>
 
-<section class="page__section">
-  <h2 class="page__heading">{{ 'settings.appearance' | t }}</h2>
-  <df-card>
-    <div class="stack">
-      <df-select
-        [label]="'settings.theme' | t"
-        [options]="themeOptions"
-        [ngModel]="theme.choice()"
-        (ngModelChange)="setTheme($event)"
-      />
-
-      <df-select
-        [label]="'settings.motion' | t"
-        [options]="motionOptions"
-        hint="Reduced removes every celebration animation. The points still change."
-        [ngModel]="motion.choice()"
-        (ngModelChange)="setMotion($event)"
-      />
-    </div>
-  </df-card>
-</section>
-
-<section class="page__section">
-  <h2 class="page__heading">Workouts</h2>
-  <df-card>
-    <div class="stack">
-      <df-stepper-input
-        label="Rest timer"
-        suffix="sec"
-        hint="How long the timer runs after you log a set."
-        [min]="10"
-        [max]="600"
-        [step]="15"
-        [ngModel]="restTimer.defaultSeconds()"
-        (ngModelChange)="setRestTimerDefault($event)"
-      />
-    </div>
-  </df-card>
-</section>
-
-<section class="page__section">
-  <h2 class="page__heading">This app</h2>
-  <df-card>
-    <div class="stack">
-      <!-- Only the install prompt is conditional. The version stays visible once
-           installed — that is precisely when you need to know which build you are on,
-           since an installed app updates itself and gives no other clue that it did. -->
-      @if (!install.isStandalone()) {
-        @if (install.canInstall()) {
-          <p class="page__hint">
-            Install DailyForge to your home screen. It opens without browser chrome and updates itself
-            whenever a new version ships — there is nothing to reinstall.
-          </p>
-          <button dfButton type="button" variant="primary" (click)="installApp()">Install app</button>
-        } @else {
-          <p class="page__hint">
-            To install: open your browser menu and choose “Add to home screen”. It opens without
-            browser chrome and updates itself whenever a new version ships.
-          </p>
-        }
-      }
-      <div class="settings__about">
-        <p class="settings__credit">Built by Kirankumar K R</p>
-        <p class="page__hint page__hint--version">
-          DailyForge · MIT licensed · Version {{ appVersion }}
-        </p>
-      </div>
-    </div>
-  </df-card>
-</section>
-
-<section class="page__section">
-  <h2 class="page__heading">Help</h2>
-  <df-card>
-    <div class="stack">
-      <p class="page__hint">See the 5-step welcome tour again, any time.</p>
-      <button dfButton type="button" variant="secondary" (click)="replayTour()">Replay tour</button>
-    </div>
-  </df-card>
-</section>
-
-@if (session.isAuthenticated()) {
-  <section class="page__section">
-    <h2 class="page__heading">Body</h2>
-    <df-card>
-      <div class="settings__height">
-        <df-stepper-input
-          label="Height"
-          suffix="cm"
-          [hint]="savedHeight() === null ? 'Used to work out your BMI on Body. Not set yet.' : 'Used to work out your BMI on Body.'"
-          [min]="100"
-          [max]="250"
-          [ngModel]="heightDraft()"
-          (ngModelChange)="heightDraft.set($event)"
-        />
-        @if (heightDraft() !== savedHeight()) {
-          <button dfButton type="button" variant="primary" [disabled]="saving()" (click)="saveHeight()">Save height</button>
-        }
-      </div>
-    </df-card>
-  </section>
-
-  <section class="page__section">
-    <h2 class="page__heading">Nutrition</h2>
-    <df-protein-settings />
-  </section>
-
-  <section class="page__section">
-    <h2 class="page__heading">Editing</h2>
-    <df-card>
-      <df-switch
-        label="Enable edit"
-        hint="Off: you can log everything, but habits, workout plans, activities, rewards, goals, protein foods and Forge 66 stay as they are — no adding, editing, deleting or reordering. Turn on to change them."
-        [ngModel]="session.editingEnabled()"
-        (ngModelChange)="setEditing($event)"
-      />
-    </df-card>
-  </section>
-
-  <section class="page__section">
-    <h2 class="page__heading">{{ 'settings.account' | t }}</h2>
+<section class="page__section" id="appearance">
+  <h2 class="page__heading">
+    <button
+      type="button"
+      class="page__toggle"
+      [attr.aria-expanded]="isOpen('appearance')"
+      aria-controls="settings-appearance"
+      (click)="toggle('appearance')"
+    >
+      <span>{{ 'settings.appearance' | t }}</span>
+      <lucide-icon class="page__chevron" [class.page__chevron--open]="isOpen('appearance')" [img]="chevronIcon" [size]="20" aria-hidden="true" />
+    </button>
+  </h2>
+  @if (isOpen('appearance')) {
+    <div id="settings-appearance">
     <df-card>
       <div class="stack">
         <df-select
-          [label]="'settings.timeZone' | t"
-          [options]="timeZoneOptions()"
-          [hint]="'settings.timeZoneHint' | t"
-          [ngModel]="currentTimeZone()"
-          (ngModelChange)="setTimeZone($event)"
+          [label]="'settings.theme' | t"
+          [options]="themeOptions"
+          [ngModel]="theme.choice()"
+          (ngModelChange)="setTheme($event)"
         />
 
         <df-select
-          [label]="'settings.units' | t"
-          [options]="unitOptions"
-          [ngModel]="currentUnits()"
-          (ngModelChange)="setUnits($event)"
+          [label]="'settings.motion' | t"
+          [options]="motionOptions"
+          hint="Reduced removes every celebration animation. The points still change."
+          [ngModel]="motion.choice()"
+          (ngModelChange)="setMotion($event)"
         />
-
-        <dl class="account">
-          <dt>Signed in as</dt>
-          <dd>{{ session.user()?.email }}</dd>
-          <dt>Sign-in methods</dt>
-          <dd>
-            {{ session.user()?.hasPassword ? 'Password' : '' }}
-            {{ session.user()?.hasPassword && session.user()?.googleLinked ? ' · ' : '' }}
-            {{ session.user()?.googleLinked ? 'Google' : '' }}
-          </dd>
-        </dl>
-
-        <button dfButton type="button" variant="secondary" (click)="signOut()">
-          {{ 'auth.signOut' | t }}
-        </button>
       </div>
     </df-card>
+    </div>
+  }
+</section>
+
+<section class="page__section" id="workouts">
+  <h2 class="page__heading">
+    <button
+      type="button"
+      class="page__toggle"
+      [attr.aria-expanded]="isOpen('workouts')"
+      aria-controls="settings-workouts"
+      (click)="toggle('workouts')"
+    >
+      <span>Workouts</span>
+      <lucide-icon class="page__chevron" [class.page__chevron--open]="isOpen('workouts')" [img]="chevronIcon" [size]="20" aria-hidden="true" />
+    </button>
+  </h2>
+  @if (isOpen('workouts')) {
+    <div id="settings-workouts">
+    <df-card>
+      <div class="stack">
+        <df-stepper-input
+          label="Rest timer"
+          suffix="sec"
+          hint="How long the timer runs after you log a set."
+          [min]="10"
+          [max]="600"
+          [step]="15"
+          [ngModel]="restTimer.defaultSeconds()"
+          (ngModelChange)="setRestTimerDefault($event)"
+        />
+      </div>
+    </df-card>
+    </div>
+  }
+</section>
+
+<section class="page__section" id="app">
+  <h2 class="page__heading">
+    <button
+      type="button"
+      class="page__toggle"
+      [attr.aria-expanded]="isOpen('app')"
+      aria-controls="settings-app"
+      (click)="toggle('app')"
+    >
+      <span>This app</span>
+      <lucide-icon class="page__chevron" [class.page__chevron--open]="isOpen('app')" [img]="chevronIcon" [size]="20" aria-hidden="true" />
+    </button>
+  </h2>
+  @if (isOpen('app')) {
+    <div id="settings-app">
+    <df-card>
+      <div class="stack">
+        <!-- Only the install prompt is conditional. The version stays visible once
+             installed — that is precisely when you need to know which build you are on,
+             since an installed app updates itself and gives no other clue that it did. -->
+        @if (!install.isStandalone()) {
+          @if (install.canInstall()) {
+            <p class="page__hint">
+              Install DailyForge to your home screen. It opens without browser chrome and updates itself
+              whenever a new version ships — there is nothing to reinstall.
+            </p>
+            <button dfButton type="button" variant="primary" (click)="installApp()">Install app</button>
+          } @else {
+            <p class="page__hint">
+              To install: open your browser menu and choose “Add to home screen”. It opens without
+              browser chrome and updates itself whenever a new version ships.
+            </p>
+          }
+        }
+        <div class="settings__about">
+          <p class="settings__credit">Built by Kirankumar K R</p>
+          <p class="page__hint page__hint--version">
+            DailyForge · MIT licensed · Version {{ appVersion }}
+          </p>
+        </div>
+      </div>
+    </df-card>
+    </div>
+  }
+</section>
+
+<section class="page__section" id="help">
+  <h2 class="page__heading">
+    <button
+      type="button"
+      class="page__toggle"
+      [attr.aria-expanded]="isOpen('help')"
+      aria-controls="settings-help"
+      (click)="toggle('help')"
+    >
+      <span>Help</span>
+      <lucide-icon class="page__chevron" [class.page__chevron--open]="isOpen('help')" [img]="chevronIcon" [size]="20" aria-hidden="true" />
+    </button>
+  </h2>
+  @if (isOpen('help')) {
+    <div id="settings-help">
+    <df-card>
+      <div class="stack">
+        <p class="page__hint">See the 5-step welcome tour again, any time.</p>
+        <button dfButton type="button" variant="secondary" (click)="replayTour()">Replay tour</button>
+      </div>
+    </df-card>
+    </div>
+  }
+</section>
+
+@if (session.isAuthenticated()) {
+  <section class="page__section" id="body">
+    <h2 class="page__heading">
+      <button
+        type="button"
+        class="page__toggle"
+        [attr.aria-expanded]="isOpen('body')"
+        aria-controls="settings-body"
+        (click)="toggle('body')"
+      >
+        <span>Body</span>
+        <lucide-icon class="page__chevron" [class.page__chevron--open]="isOpen('body')" [img]="chevronIcon" [size]="20" aria-hidden="true" />
+      </button>
+    </h2>
+    @if (isOpen('body')) {
+      <div id="settings-body">
+      <df-card>
+        <div class="settings__height">
+          <df-stepper-input
+            label="Height"
+            suffix="cm"
+            [hint]="savedHeight() === null ? 'Used to work out your BMI on Body. Not set yet.' : 'Used to work out your BMI on Body.'"
+            [min]="100"
+            [max]="250"
+            [ngModel]="heightDraft()"
+            (ngModelChange)="heightDraft.set($event)"
+          />
+          @if (heightDraft() !== savedHeight()) {
+            <button dfButton type="button" variant="primary" [disabled]="saving()" (click)="saveHeight()">Save height</button>
+          }
+        </div>
+      </df-card>
+      </div>
+    }
+  </section>
+
+  <section class="page__section" id="nutrition">
+    <h2 class="page__heading">
+      <button
+        type="button"
+        class="page__toggle"
+        [attr.aria-expanded]="isOpen('nutrition')"
+        aria-controls="settings-nutrition"
+        (click)="toggle('nutrition')"
+      >
+        <span>Nutrition</span>
+        <lucide-icon class="page__chevron" [class.page__chevron--open]="isOpen('nutrition')" [img]="chevronIcon" [size]="20" aria-hidden="true" />
+      </button>
+    </h2>
+    @if (isOpen('nutrition')) {
+      <div id="settings-nutrition">
+      <df-protein-settings />
+      </div>
+    }
+  </section>
+
+  <section class="page__section" id="editing">
+    <h2 class="page__heading">
+      <button
+        type="button"
+        class="page__toggle"
+        [attr.aria-expanded]="isOpen('editing')"
+        aria-controls="settings-editing"
+        (click)="toggle('editing')"
+      >
+        <span>Editing</span>
+        <lucide-icon class="page__chevron" [class.page__chevron--open]="isOpen('editing')" [img]="chevronIcon" [size]="20" aria-hidden="true" />
+      </button>
+    </h2>
+    @if (isOpen('editing')) {
+      <div id="settings-editing">
+      <df-card>
+        <df-switch
+          label="Enable edit"
+          hint="Off: you can log everything, but habits, workout plans, activities, rewards, goals, protein foods and Forge 66 stay as they are — no adding, editing, deleting or reordering. Turn on to change them."
+          [ngModel]="session.editingEnabled()"
+          (ngModelChange)="setEditing($event)"
+        />
+      </df-card>
+      </div>
+    }
+  </section>
+
+  <section class="page__section" id="account">
+    <h2 class="page__heading">
+      <button
+        type="button"
+        class="page__toggle"
+        [attr.aria-expanded]="isOpen('account')"
+        aria-controls="settings-account"
+        (click)="toggle('account')"
+      >
+        <span>{{ 'settings.account' | t }}</span>
+        <lucide-icon class="page__chevron" [class.page__chevron--open]="isOpen('account')" [img]="chevronIcon" [size]="20" aria-hidden="true" />
+      </button>
+    </h2>
+    @if (isOpen('account')) {
+      <div id="settings-account">
+      <df-card>
+        <div class="stack">
+          <df-select
+            [label]="'settings.timeZone' | t"
+            [options]="timeZoneOptions()"
+            [hint]="'settings.timeZoneHint' | t"
+            [ngModel]="currentTimeZone()"
+            (ngModelChange)="setTimeZone($event)"
+          />
+
+          <df-select
+            [label]="'settings.units' | t"
+            [options]="unitOptions"
+            [ngModel]="currentUnits()"
+            (ngModelChange)="setUnits($event)"
+          />
+
+          <dl class="account">
+            <dt>Signed in as</dt>
+            <dd>{{ session.user()?.email }}</dd>
+            <dt>Sign-in methods</dt>
+            <dd>
+              {{ session.user()?.hasPassword ? 'Password' : '' }}
+              {{ session.user()?.hasPassword && session.user()?.googleLinked ? ' · ' : '' }}
+              {{ session.user()?.googleLinked ? 'Google' : '' }}
+            </dd>
+          </dl>
+
+          <button dfButton type="button" variant="secondary" (click)="signOut()">
+            {{ 'auth.signOut' | t }}
+          </button>
+        </div>
+      </df-card>
+      </div>
+    }
   </section>
 } @else {
   <section class="page__section">

@@ -1,6 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, inject, linkedSignal, signal } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
 
 import { AuthApi } from '../../core/auth/auth.api';
@@ -19,7 +21,7 @@ import { DfStepperInputComponent } from '../../shared/ui/df-stepper-input/df-ste
 import { DfSwitchComponent } from '../../shared/ui/df-switch/df-switch.component';
 import { ToastService } from '../../shared/ui/df-toast/toast.service';
 import { RestTimerService } from '../workouts/rest-timer/rest-timer.service';
-import { LucideAngularModule, Settings as SettingsIcon } from 'lucide-angular';
+import { ChevronDown, LucideAngularModule, Settings as SettingsIcon } from 'lucide-angular';
 import { ProteinSettingsComponent } from '../nutrition/protein-settings/protein-settings.component';
 
 /**
@@ -65,6 +67,35 @@ export class SettingsComponent {
 
   protected readonly settingsIcon = SettingsIcon;
   protected readonly saving = signal(false);
+
+  /**
+   * Every section starts collapsed (owner request: the page is long on a phone). A link
+   * with a fragment, like /settings#editing from "Turn it on in Settings", opens that
+   * section so the switch it points at is right there.
+   */
+  protected readonly openSections = signal<ReadonlySet<string>>(new Set());
+  protected readonly chevronIcon = ChevronDown;
+
+  protected isOpen(key: string): boolean {
+    return this.openSections().has(key);
+  }
+
+  protected toggle(key: string): void {
+    this.openSections.update((set) => {
+      const next = new Set(set);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }
+
+  private readonly openFromFragment = inject(ActivatedRoute)
+    .fragment.pipe(takeUntilDestroyed())
+    .subscribe((fragment) => {
+      if (fragment) {
+        this.openSections.update((set) => new Set(set).add(fragment));
+      }
+    });
 
   /** Height for the BMI on Body. Follows the saved value until you change it here. */
   protected readonly savedHeight = computed(() => this.session.user()?.settings.heightCm ?? null);
