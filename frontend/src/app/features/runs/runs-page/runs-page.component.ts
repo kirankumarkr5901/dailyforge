@@ -10,7 +10,7 @@ import { SessionStore } from '../../../core/auth/session.store';
 import { SyncStore } from '../../../core/sync/sync.store';
 import { PointsStore } from '../../../core/points/points.store';
 import { Celebration } from '../../../core/points/points.types';
-import { Bracket, Run, RunRecords, RunWriteResponse } from '../../../core/runs/runs.types';
+import { Bracket, Run, RunRecords, RunWriteResponse, RunType } from '../../../core/runs/runs.types';
 import { RunsApi } from '../../../core/runs/runs.api';
 import { LogicalDate, formatLong } from '../../../core/time/logical-date';
 import { DfButtonComponent } from '../../../shared/ui/df-button/df-button.component';
@@ -22,6 +22,7 @@ import { DfScorePillComponent } from '../../../shared/ui/df-score-pill/df-score-
 import { DfSkeletonComponent } from '../../../shared/ui/df-skeleton/df-skeleton.component';
 import { ToastService } from '../../../shared/ui/df-toast/toast.service';
 import { RunFormSheetComponent } from '../run-form-sheet/run-form-sheet.component';
+import { RunWeekPlanComponent } from '../run-week-plan/run-week-plan.component';
 
 const BRACKET_LABELS: Record<Bracket, string> = {
   D5K: '5 K',
@@ -41,6 +42,7 @@ const BRACKET_LABELS: Record<Bracket, string> = {
 @Component({
   selector: 'df-runs-page',
   imports: [
+    RunWeekPlanComponent,
     LucideAngularModule,
     DfButtonComponent,
     DfCardComponent,
@@ -82,6 +84,7 @@ export class RunsPageComponent {
 
   protected readonly formOpen = signal(false);
   protected readonly editingRun = signal<Run | null>(null);
+  protected readonly initialType = signal<RunType | null>(null);
 
   constructor() {
     let wasAuthenticated = false;
@@ -139,7 +142,14 @@ export class RunsPageComponent {
     }
   }
 
+  /** "Log this run" on the week plan: a new run, starting on the planned type. */
+  protected logPlanned(type: RunType): void {
+    this.openLogSheet();
+    this.initialType.set(type);
+  }
+
   protected openLogSheet(): void {
+    this.initialType.set(null);
     if (!this.session.isAuthenticated()) {
       this.pendingAction.capture({ description: 'Sign in to log a run.', run: () => this.formOpen.set(true) });
       this.authSheet.open('write');
