@@ -19,6 +19,8 @@ import java.util.UUID;
 public class NutritionSettings {
 
     public static final int DEFAULT_TARGET_G = 140;
+    public static final int DEFAULT_CALORIE_BUDGET = 2250;
+    public static final int DEFAULT_FAT_TARGET_G = 70;
 
     @Id
     @Column(name = "user_id", nullable = false)
@@ -26,6 +28,13 @@ public class NutritionSettings {
 
     @Column(name = "protein_target_g", nullable = false)
     private int proteinTargetG = DEFAULT_TARGET_G;
+
+    /** Calories to stay under each day. */
+    @Column(name = "calorie_budget", nullable = false)
+    private int calorieBudget = DEFAULT_CALORIE_BUDGET;
+
+    @Column(name = "fat_target_g", nullable = false)
+    private int fatTargetG = DEFAULT_FAT_TARGET_G;
 
     @Column(name = "foods_seeded", nullable = false)
     private boolean foodsSeeded;
@@ -68,6 +77,22 @@ public class NutritionSettings {
 
     public void setProteinTargetG(int proteinTargetG) {
         this.proteinTargetG = proteinTargetG;
+    }
+
+    public int getCalorieBudget() {
+        return calorieBudget;
+    }
+
+    public void setCalorieBudget(int calorieBudget) {
+        this.calorieBudget = calorieBudget;
+    }
+
+    public int getFatTargetG() {
+        return fatTargetG;
+    }
+
+    public void setFatTargetG(int fatTargetG) {
+        this.fatTargetG = fatTargetG;
     }
 
     public boolean isFoodsSeeded() {

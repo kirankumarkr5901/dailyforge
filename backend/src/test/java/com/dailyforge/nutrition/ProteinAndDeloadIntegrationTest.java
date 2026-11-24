@@ -154,6 +154,57 @@ class ProteinAndDeloadIntegrationTest {
                 .andExpect(status().is4xxClientError());
     }
 
+    private JsonNode eatOn(String date, String name, int protein, int kcal, int fat) throws Exception {
+        return call(post("/api/v1/protein/logs")
+                .content("{\"date\":\"" + date + "\",\"foodName\":\"" + name + "\",\"grams\":" + protein
+                        + ",\"kcal\":" + kcal + ",\"fatG\":" + fat + "}"));
+    }
+
+    @Test
+    void caloriesAndFatAddUpAlongsideProtein() throws Exception {
+        JsonNode day = call(get("/api/v1/protein/day"));
+        assertThat(day.get("calorieBudget").asInt()).isEqualTo(2250);
+        assertThat(day.get("fatTargetG").asInt()).isEqualTo(70);
+        assertThat(day.get("foods").get(0).get("kcal").asInt()).isEqualTo(140);
+
+        eatOn(TODAY, "Rice bowl", 0, 350, 1);
+        JsonNode after = eatOn(TODAY, "2 eggs", 12, 140, 10).get("day");
+
+        assertThat(after.get("totalKcal").asInt()).isEqualTo(490);
+        assertThat(after.get("totalFatG").asInt()).isEqualTo(11);
+        assertThat(after.get("totalG").asInt()).isEqualTo(12);
+    }
+
+    @Test
+    void anEntryWithNothingInItIsRefused() throws Exception {
+        mockMvc.perform(auth(post("/api/v1/protein/logs"))
+                        .content("{\"date\":\"" + TODAY + "\",\"foodName\":\"x\",\"grams\":0,\"kcal\":0,\"fatG\":0}"))
+                .andExpect(status().is4xxClientError());
+    }
+
+    /** Today is never "within budget" yet; a closed day is judged on what was logged. */
+    @Test
+    void aClosedDayWithinTheBudgetPaysTenAndTodayNeverDoes() throws Exception {
+        assertThat(eatOn(TODAY, "Lunch", 30, 600, 20).get("points").get("delta").asInt()).isZero();
+
+        String yesterday = LocalDate.parse(TODAY).minusDays(1).toString();
+        assertThat(eatOn(yesterday, "Lunch", 30, 600, 20).get("points").get("delta").asInt()).isEqualTo(10);
+
+        // Going over the budget for that day takes the 10 back.
+        assertThat(eatOn(yesterday, "Feast", 0, 2000, 80).get("points").get("delta").asInt()).isEqualTo(-10);
+    }
+
+    @Test
+    void theBudgetAndFatTargetCanBeChanged() throws Exception {
+        JsonNode result = call(put("/api/v1/protein/target").content("{\"calorieBudget\":2000,\"fatTargetG\":60}"));
+
+        assertThat(result.get("day").get("calorieBudget").asInt()).isEqualTo(2000);
+        assertThat(result.get("day").get("fatTargetG").asInt()).isEqualTo(60);
+        assertThat(result.get("day").get("targetG").asInt()).isEqualTo(140);
+        mockMvc.perform(auth(put("/api/v1/protein/target")).content("{\"calorieBudget\":100}"))
+                .andExpect(status().is4xxClientError());
+    }
+
     @Test
     void deloadIsSwitchedOnWithEditingOffAndShowsOnTheSession() throws Exception {
         JsonNode on = call(put("/api/v1/workouts/deload").content("{\"date\":\"" + TODAY + "\",\"deload\":true}"));

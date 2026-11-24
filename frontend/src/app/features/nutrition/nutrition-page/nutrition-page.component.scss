@@ -118,21 +118,27 @@
   font-weight: 500;
 }
 
+/* Name on its own row, then protein / calories / fat, then Add. */
 .nutrition__other {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: end;
   gap: var(--space-3);
   margin-top: var(--space-4);
 }
 
+.nutrition__other df-input {
+  grid-column: 1 / -1;
+}
+
+.nutrition__other > button {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
 @media (max-width: 520px) {
   .nutrition__other {
-    grid-template-columns: 1fr auto;
-  }
-
-  .nutrition__other df-input {
-    grid-column: 1 / -1;
+    grid-template-columns: 1fr;
   }
 }
 
@@ -176,4 +182,32 @@
 .nutrition__search {
   display: block;
   margin-bottom: var(--space-3);
+}
+
+.nutrition__row + .nutrition__row {
+  margin-top: var(--space-4);
+}
+
+.nutrition__row-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.nutrition__row-name {
+  font-weight: 600;
+}
+
+.nutrition__row .nutrition__total-value {
+  font-size: var(--text-xl, 1.5rem);
+}
+
+/* Over the calorie budget: the penalty tone, and the words say so too. */
+.nutrition__meter--over .nutrition__meter-fill {
+  background: var(--penalty-ink);
+}
+
+.nutrition__message--over {
+  color: var(--penalty-ink);
 }

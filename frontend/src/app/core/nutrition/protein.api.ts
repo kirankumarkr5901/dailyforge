@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { LogicalDate } from '../time/logical-date';
-import { ProteinDay, ProteinDayWrite, ProteinFood } from './protein.types';
+import { NutritionAmounts, ProteinDay, ProteinDayWrite, ProteinFood } from './protein.types';
 
 @Injectable({ providedIn: 'root' })
 export class ProteinApi {
@@ -16,24 +16,25 @@ export class ProteinApi {
     return this.http.get<ProteinDay>(`${this.base}/protein/day`, { params });
   }
 
-  log(date: LogicalDate, foodName: string, grams: number): Observable<ProteinDayWrite> {
-    return this.http.post<ProteinDayWrite>(`${this.base}/protein/logs`, { date, foodName, grams });
+  log(date: LogicalDate, foodName: string, amounts: NutritionAmounts): Observable<ProteinDayWrite> {
+    return this.http.post<ProteinDayWrite>(`${this.base}/protein/logs`, { date, foodName, ...amounts });
   }
 
   deleteLog(id: string): Observable<ProteinDayWrite> {
     return this.http.delete<ProteinDayWrite>(`${this.base}/protein/logs/${id}`);
   }
 
-  setTarget(targetG: number): Observable<ProteinDayWrite> {
-    return this.http.put<ProteinDayWrite>(`${this.base}/protein/target`, { targetG });
+  /** Any of the three; a target left out stays as it is. */
+  setTargets(targets: { targetG?: number; calorieBudget?: number; fatTargetG?: number }): Observable<ProteinDayWrite> {
+    return this.http.put<ProteinDayWrite>(`${this.base}/protein/target`, targets);
   }
 
   /** Food list changes are structural: they need "Enable edit". */
-  addFood(name: string, grams: number): Observable<ProteinFood> {
-    return this.http.post<ProteinFood>(`${this.base}/protein/foods`, { name, grams });
+  addFood(name: string, amounts: NutritionAmounts): Observable<ProteinFood> {
+    return this.http.post<ProteinFood>(`${this.base}/protein/foods`, { name, ...amounts });
   }
 
-  updateFood(id: string, patch: { name?: string; grams?: number }): Observable<ProteinFood> {
+  updateFood(id: string, patch: { name?: string; grams?: number; kcal?: number; fatG?: number }): Observable<ProteinFood> {
     return this.http.patch<ProteinFood>(`${this.base}/protein/foods/${id}`, patch);
   }
 

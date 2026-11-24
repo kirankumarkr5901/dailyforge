@@ -50,16 +50,36 @@ export class ProteinSettingsComponent {
   protected readonly loaded = signal(false);
   protected readonly savedTarget = signal(140);
   protected readonly targetDraft = signal(140);
+  protected readonly savedBudget = signal(2250);
+  protected readonly budgetDraft = signal(2250);
+  protected readonly savedFat = signal(70);
+  protected readonly fatDraft = signal(70);
   protected readonly foods = signal<ProteinFood[]>([]);
   /** The list is long; it stays folded until asked for. */
   protected readonly foodsOpen = signal(false);
 
   protected readonly newName = signal('');
-  protected readonly newGrams = signal(10);
+  protected readonly newGrams = signal(0);
+  protected readonly newKcal = signal(0);
+  protected readonly newFat = signal(0);
 
   protected readonly editingId = signal<string | null>(null);
   protected readonly editName = signal('');
-  protected readonly editGrams = signal(10);
+  protected readonly editGrams = signal(0);
+  protected readonly editKcal = signal(0);
+  protected readonly editFat = signal(0);
+
+  protected targetsChanged(): boolean {
+    return (
+      this.targetDraft() !== this.savedTarget() ||
+      this.budgetDraft() !== this.savedBudget() ||
+      this.fatDraft() !== this.savedFat()
+    );
+  }
+
+  protected foodLabel(f: ProteinFood): string {
+    return `${f.grams} g protein · ${f.kcal} kcal · ${f.fatG} g fat`;
+  }
 
   constructor() {
     void this.load();
@@ -68,8 +88,7 @@ export class ProteinSettingsComponent {
   private async load(): Promise<void> {
     try {
       const day = await firstValueFrom(this.api.day());
-      this.savedTarget.set(day.targetG);
-      this.targetDraft.set(day.targetG);
+      this.applyTargets(day.targetG, day.calorieBudget, day.fatTargetG);
       this.foods.set(day.foods);
       this.loaded.set(true);
     } catch {
@@ -77,12 +96,23 @@ export class ProteinSettingsComponent {
     }
   }
 
-  protected async saveTarget(): Promise<void> {
+  private applyTargets(protein: number, budget: number, fat: number): void {
+    this.savedTarget.set(protein);
+    this.targetDraft.set(protein);
+    this.savedBudget.set(budget);
+    this.budgetDraft.set(budget);
+    this.savedFat.set(fat);
+    this.fatDraft.set(fat);
+  }
+
+  protected async saveTargets(): Promise<void> {
     try {
-      const result = await firstValueFrom(this.api.setTarget(this.targetDraft()));
-      this.savedTarget.set(result.day.targetG);
+      const result = await firstValueFrom(
+        this.api.setTargets({ targetG: this.targetDraft(), calorieBudget: this.budgetDraft(), fatTargetG: this.fatDraft() }),
+      );
+      this.applyTargets(result.day.targetG, result.day.calorieBudget, result.day.fatTargetG);
       this.points.applyEnvelope(result.points);
-      this.toasts.show(`Protein target set to ${result.day.targetG} g.`);
+      this.toasts.show('Targets saved.');
     } catch {
       this.toasts.show('That did not save. Check your connection and try again.', { tone: 'penalty' });
     }
@@ -95,9 +125,18 @@ export class ProteinSettingsComponent {
       return;
     }
     try {
-      const food = await firstValueFrom(this.api.addFood(name, this.newGrams()));
+      if (!this.newGrams() && !this.newKcal() && !this.newFat()) {
+        this.toasts.show('Enter at least one of protein, calories or fat.');
+        return;
+      }
+      const food = await firstValueFrom(
+        this.api.addFood(name, { grams: this.newGrams(), kcal: this.newKcal(), fatG: this.newFat() }),
+      );
       this.foods.update((list) => [...list, food]);
       this.newName.set('');
+      this.newGrams.set(0);
+      this.newKcal.set(0);
+      this.newFat.set(0);
     } catch {
       this.toasts.show('Could not add that food. Try again.', { tone: 'penalty' });
     }
@@ -107,13 +146,22 @@ export class ProteinSettingsComponent {
     this.editingId.set(food.id);
     this.editName.set(food.name);
     this.editGrams.set(food.grams);
+    this.editKcal.set(food.kcal);
+    this.editFat.set(food.fatG);
   }
 
   protected async saveEdit(): Promise<void> {
     const id = this.editingId();
     if (!id) return;
     try {
-      const food = await firstValueFrom(this.api.updateFood(id, { name: this.editName().trim(), grams: this.editGrams() }));
+      const food = await firstValueFrom(
+        this.api.updateFood(id, {
+          name: this.editName().trim(),
+          grams: this.editGrams(),
+          kcal: this.editKcal(),
+          fatG: this.editFat(),
+        }),
+      );
       this.foods.update((list) => list.map((f) => (f.id === id ? food : f)));
       this.editingId.set(null);
     } catch {

@@ -30,8 +30,15 @@ public class ProteinLog {
     @Column(name = "food_name", nullable = false, length = 60)
     private String foodName;
 
+    /** Protein, in grams. */
     @Column(name = "grams", nullable = false)
     private int grams;
+
+    @Column(name = "kcal", nullable = false)
+    private int kcal;
+
+    @Column(name = "fat_g", nullable = false)
+    private int fatG;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
@@ -40,13 +47,15 @@ public class ProteinLog {
         // for JPA
     }
 
-    public static ProteinLog create(UUID userId, LocalDate occurredOn, String foodName, int grams) {
+    public static ProteinLog create(UUID userId, LocalDate occurredOn, String foodName, int grams, int kcal, int fatG) {
         ProteinLog log = new ProteinLog();
         log.id = UUID.randomUUID();
         log.userId = userId;
         log.occurredOn = occurredOn;
         log.foodName = foodName;
         log.grams = grams;
+        log.kcal = kcal;
+        log.fatG = fatG;
         return log;
     }
 
@@ -73,6 +82,14 @@ public class ProteinLog {
 
     public int getGrams() {
         return grams;
+    }
+
+    public int getKcal() {
+        return kcal;
+    }
+
+    public int getFatG() {
+        return fatG;
     }
 
     public Instant getCreatedAt() {

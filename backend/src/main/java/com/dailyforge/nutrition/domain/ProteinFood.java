@@ -9,7 +9,7 @@ import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.UUID;
 
-/** One of a user's one-tap foods: a name and how much protein a serving adds. */
+/** One of a user's one-tap foods: a name, and the protein, calories and fat a serving adds. */
 @Entity
 @Table(name = "protein_food")
 public class ProteinFood {
@@ -24,8 +24,15 @@ public class ProteinFood {
     @Column(name = "name", nullable = false, length = 60)
     private String name;
 
+    /** Protein, in grams. */
     @Column(name = "grams", nullable = false)
     private int grams;
+
+    @Column(name = "kcal", nullable = false)
+    private int kcal;
+
+    @Column(name = "fat_g", nullable = false)
+    private int fatG;
 
     @Column(name = "sort_order", nullable = false)
     private int sortOrder;
@@ -40,19 +47,23 @@ public class ProteinFood {
         // for JPA
     }
 
-    public static ProteinFood create(UUID userId, String name, int grams, int sortOrder) {
+    public static ProteinFood create(UUID userId, String name, int grams, int kcal, int fatG, int sortOrder) {
         ProteinFood food = new ProteinFood();
         food.id = UUID.randomUUID();
         food.userId = userId;
         food.name = name;
         food.grams = grams;
+        food.kcal = kcal;
+        food.fatG = fatG;
         food.sortOrder = sortOrder;
         return food;
     }
 
-    public void update(String name, int grams) {
+    public void update(String name, int grams, int kcal, int fatG) {
         this.name = name;
         this.grams = grams;
+        this.kcal = kcal;
+        this.fatG = fatG;
     }
 
     @PrePersist
@@ -81,6 +92,14 @@ public class ProteinFood {
 
     public int getGrams() {
         return grams;
+    }
+
+    public int getKcal() {
+        return kcal;
+    }
+
+    public int getFatG() {
+        return fatG;
     }
 
     public int getSortOrder() {

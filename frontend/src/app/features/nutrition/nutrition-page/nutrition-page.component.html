@@ -18,23 +18,75 @@
 
   @if (day(); as d) {
     <df-card class="nutrition__meter-card">
-      <h2 class="nutrition__section-title">Protein today</h2>
-      <div class="nutrition__total">
-        <span class="nutrition__total-value">{{ d.totalG }}</span>
-        <span class="nutrition__total-target">/ {{ d.targetG }} g</span>
+      <h2 class="nutrition__section-title">Today</h2>
+
+      <div class="nutrition__row">
+        <div class="nutrition__row-head">
+          <span class="nutrition__row-name">Protein</span>
+          <span class="nutrition__total">
+            <span class="nutrition__total-value">{{ d.totalG }}</span>
+            <span class="nutrition__total-target">/ {{ d.targetG }} g</span>
+          </span>
+        </div>
+        <div
+          class="nutrition__meter"
+          [class.nutrition__meter--reached]="reached()"
+          role="progressbar"
+          [attr.aria-valuenow]="d.totalG"
+          [attr.aria-valuemin]="0"
+          [attr.aria-valuemax]="d.targetG"
+          [attr.aria-label]="d.totalG + ' of ' + d.targetG + ' grams of protein'"
+        >
+          <span class="nutrition__meter-fill" [style.width.%]="percent()"></span>
+        </div>
+        <p class="nutrition__message" aria-live="polite">{{ message() }}</p>
       </div>
-      <div
-        class="nutrition__meter"
-        [class.nutrition__meter--reached]="reached()"
-        role="progressbar"
-        [attr.aria-valuenow]="d.totalG"
-        [attr.aria-valuemin]="0"
-        [attr.aria-valuemax]="d.targetG"
-        [attr.aria-label]="d.totalG + ' of ' + d.targetG + ' grams of protein'"
-      >
-        <span class="nutrition__meter-fill" [style.width.%]="percent()"></span>
+
+      @if (calories(); as c) {
+        <div class="nutrition__row">
+          <div class="nutrition__row-head">
+            <span class="nutrition__row-name">Calories</span>
+            <span class="nutrition__total">
+              <span class="nutrition__total-value">{{ d.totalKcal.toLocaleString() }}</span>
+              <span class="nutrition__total-target">/ {{ d.calorieBudget.toLocaleString() }} kcal</span>
+            </span>
+          </div>
+          <div
+            class="nutrition__meter"
+            [class.nutrition__meter--over]="c.over"
+            role="progressbar"
+            [attr.aria-valuenow]="d.totalKcal"
+            [attr.aria-valuemin]="0"
+            [attr.aria-valuemax]="d.calorieBudget"
+            [attr.aria-label]="d.totalKcal + ' of a ' + d.calorieBudget + ' calorie budget'"
+          >
+            <span class="nutrition__meter-fill" [style.width.%]="c.percent"></span>
+          </div>
+          <p class="nutrition__message" [class.nutrition__message--over]="c.over">
+            {{ c.label }}. A day that ends within budget earns points.
+          </p>
+        </div>
+      }
+
+      <div class="nutrition__row">
+        <div class="nutrition__row-head">
+          <span class="nutrition__row-name">Fat</span>
+          <span class="nutrition__total">
+            <span class="nutrition__total-value">{{ d.totalFatG }}</span>
+            <span class="nutrition__total-target">/ {{ d.fatTargetG }} g</span>
+          </span>
+        </div>
+        <div
+          class="nutrition__meter"
+          role="progressbar"
+          [attr.aria-valuenow]="d.totalFatG"
+          [attr.aria-valuemin]="0"
+          [attr.aria-valuemax]="d.fatTargetG"
+          [attr.aria-label]="d.totalFatG + ' of ' + d.fatTargetG + ' grams of fat'"
+        >
+          <span class="nutrition__meter-fill" [style.width.%]="fatPercent()"></span>
+        </div>
       </div>
-      <p class="nutrition__message" aria-live="polite">{{ message() }}</p>
     </df-card>
 
     <df-card class="nutrition__foods-card">
@@ -50,7 +102,8 @@
         <div class="nutrition__foods">
           @for (food of visibleFoods(); track food.id) {
             <button type="button" class="nutrition__food" [disabled]="busy()" (click)="eat(food)">
-              {{ food.name }} <span class="nutrition__food-grams">+{{ food.grams }} g</span>
+              {{ food.name }}
+              <span class="nutrition__food-grams">{{ food.grams }} g · {{ food.kcal }} kcal</span>
             </button>
           } @empty {
             <p class="nutrition__muted">No food matches "{{ search() }}". Add it below as something else.</p>
@@ -62,20 +115,16 @@
 
       <div class="nutrition__other">
         <df-input label="Something else" [ngModel]="otherName()" (ngModelChange)="otherName.set($event)" />
-        <df-stepper-input
-          label="Protein (g)"
-          [min]="1"
-          [max]="200"
-          [ngModel]="otherGrams()"
-          (ngModelChange)="otherGrams.set($event)"
-        />
+        <df-stepper-input label="Protein (g)" [min]="0" [max]="200" [ngModel]="otherGrams()" (ngModelChange)="otherGrams.set($event)" />
+        <df-stepper-input label="Calories" [min]="0" [max]="3000" [step]="10" [ngModel]="otherKcal()" (ngModelChange)="otherKcal.set($event)" />
+        <df-stepper-input label="Fat (g)" [min]="0" [max]="300" [ngModel]="otherFat()" (ngModelChange)="otherFat.set($event)" />
         <button dfButton type="button" variant="secondary" [disabled]="busy()" (click)="eatOther()">
           <lucide-icon [img]="plusIcon" [size]="16" aria-hidden="true" />
           Add
         </button>
       </div>
       <p class="nutrition__muted">
-        Change the daily target and your food list in <a routerLink="/settings">Settings</a>.
+        Change your targets and your food list in <a routerLink="/settings">Settings</a>.
       </p>
     </df-card>
 
@@ -87,7 +136,7 @@
             <li class="nutrition__entry">
               <span>{{ entry.foodName }}</span>
               <span class="nutrition__entry-side">
-                <span class="nutrition__entry-grams">{{ entry.grams }} g</span>
+                <span class="nutrition__entry-grams">{{ foodLabel(entry) }}</span>
                 <button
                   dfIconButton
                   type="button"
