@@ -35,6 +35,8 @@ public class DailySummaryService {
         this.dayService = dayService;
     }
 
+    private static final java.util.Set<String> NOT_A_WORKOUT = java.util.Set.of("SKILL_BLOCK", "MOBILITY_FLOW");
+
     @Transactional(readOnly = true)
     public List<DailySummary> heatmap(UUID userId, LocalDate from, LocalDate to) {
         ZoneId zone = dayService.zoneOf(identity.requireSettings(userId).getTimeZone());
@@ -64,7 +66,10 @@ public class DailySummaryService {
                 }
 
                 List<PointsEntry> dayEntries = byDate.getOrDefault(d, List.of());
-                boolean hasWorkout = dayEntries.stream().anyMatch(e -> e.getCategory() == PointsCategory.WORKOUT);
+                // Skill blocks and mobility flows pay under Workout too, but a day with only
+                // those is not a workout day on the calendar.
+                boolean hasWorkout = dayEntries.stream()
+                        .anyMatch(e -> e.getCategory() == PointsCategory.WORKOUT && !NOT_A_WORKOUT.contains(e.getRuleCode()));
                 boolean hasRun = dayEntries.stream().anyMatch(e -> e.getCategory() == PointsCategory.RUN);
                 boolean hasHabit =
                         dayEntries.stream().anyMatch(e -> e.getCategory() == PointsCategory.HABIT && e.getAmount() > 0);

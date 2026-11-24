@@ -1,0 +1,42 @@
+@if (review(); as r) {
+  <df-card class="review">
+    <div class="review__head">
+      <h2 class="review__title">{{ title() }}</h2>
+      <span class="review__range">{{ range(r) }}</span>
+    </div>
+    <dl class="review__grid">
+      <div class="review__tile">
+        <dt>Training days</dt>
+        <dd>{{ r.trainingDays }}</dd>
+      </div>
+      <div class="review__tile">
+        <dt>Sets</dt>
+        <dd>{{ r.sets }}</dd>
+      </div>
+      <div class="review__tile">
+        <dt>Runs</dt>
+        <dd>{{ r.runs }} <small>· {{ r.runKm }} km</small></dd>
+      </div>
+      <div class="review__tile">
+        <dt>Habit ticks</dt>
+        <dd>{{ r.habitTicks }}</dd>
+      </div>
+      <div class="review__tile">
+        <dt>Within calories</dt>
+        <dd>{{ r.daysWithinCalories }} <small>/ {{ r.nutritionDaysLogged }} days logged</small></dd>
+      </div>
+      <div class="review__tile">
+        <dt>Protein hit</dt>
+        <dd>{{ r.daysProteinHit }} <small>{{ r.daysProteinHit === 1 ? 'day' : 'days' }}</small></dd>
+      </div>
+      <div class="review__tile">
+        <dt>Weight</dt>
+        <dd>{{ weight(r) }}</dd>
+      </div>
+      <div class="review__tile">
+        <dt>Points</dt>
+        <dd>{{ r.points }}</dd>
+      </div>
+    </dl>
+  </df-card>
+}

@@ -7,6 +7,7 @@
     } @else if (entries().length === 0) {
       <p class="exercise-history__empty">Nothing logged for this exercise yet.</p>
     } @else {
+      <df-progress-chart [entries]="entries()" [equipment]="equipment()" />
       <ul class="exercise-history__list">
         @for (entry of entries(); track entry.set.id) {
           <li class="exercise-history__row">

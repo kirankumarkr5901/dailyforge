@@ -31,6 +31,7 @@ import { ActivityTypeFormSheetComponent } from '../../activities/activity-type-f
 import { CommitmentBonusSheetComponent } from '../commitment-bonus-sheet/commitment-bonus-sheet.component';
 import { HabitFormSheetComponent } from '../habit-form-sheet/habit-form-sheet.component';
 import { HabitRowComponent, HabitToggled } from '../habit-row/habit-row.component';
+import { ChallengesSectionComponent } from '../challenges-section/challenges-section.component';
 
 /**
  * The habit planner and tracker (spec §4.3, §8): one screen, a date stepper, and every
@@ -43,6 +44,7 @@ import { HabitRowComponent, HabitToggled } from '../habit-row/habit-row.componen
 @Component({
   selector: 'df-habits-page',
   imports: [
+    ChallengesSectionComponent,
     DfEditingNoteComponent,
     CdkDrag,
     CdkDragPlaceholder,
@@ -309,7 +311,7 @@ export class HabitsPageComponent {
     });
   }
 
-  private async loadAll(): Promise<void> {
+  protected async loadAll(): Promise<void> {
     this.loading.set(true);
     this.error.set(null);
     try {

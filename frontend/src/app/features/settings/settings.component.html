@@ -142,6 +142,26 @@
 </section>
 
 @if (session.isAuthenticated()) {
+  <section class="page__section" id="notifications">
+    <h2 class="page__heading">
+      <button
+        type="button"
+        class="page__toggle"
+        [attr.aria-expanded]="isOpen('notifications')"
+        aria-controls="settings-notifications"
+        (click)="toggle('notifications')"
+      >
+        <span>Notifications</span>
+        <lucide-icon class="page__chevron" [class.page__chevron--open]="isOpen('notifications')" [img]="chevronIcon" [size]="20" aria-hidden="true" />
+      </button>
+    </h2>
+    @if (isOpen('notifications')) {
+      <div id="settings-notifications">
+        <df-notifications-settings />
+      </div>
+    }
+  </section>
+
   <section class="page__section" id="body">
     <h2 class="page__heading">
       <button

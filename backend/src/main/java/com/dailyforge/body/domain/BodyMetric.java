@@ -38,6 +38,27 @@ public class BodyMetric {
     @Column(name = "note", length = 280)
     private String note;
 
+    // Tape measurements, centimetres, all optional (V37).
+    @Column(name = "waist_cm", precision = 5, scale = 1)
+    private BigDecimal waistCm;
+
+    @Column(name = "chest_cm", precision = 5, scale = 1)
+    private BigDecimal chestCm;
+
+    @Column(name = "arm_cm", precision = 5, scale = 1)
+    private BigDecimal armCm;
+
+    @Column(name = "hips_cm", precision = 5, scale = 1)
+    private BigDecimal hipsCm;
+
+    @Column(name = "thigh_cm", precision = 5, scale = 1)
+    private BigDecimal thighCm;
+
+    /** The five measurements together; any of them may be null. */
+    public record Measurements(BigDecimal waistCm, BigDecimal chestCm, BigDecimal armCm, BigDecimal hipsCm, BigDecimal thighCm) {
+        public static final Measurements NONE = new Measurements(null, null, null, null, null);
+    }
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
@@ -63,6 +84,22 @@ public class BodyMetric {
         this.heightCm = heightCm;
         this.bodyFatPct = bodyFatPct;
         this.note = note;
+    }
+
+    /**
+     * Sets the measurements given; a null one keeps what the day already had, so logging
+     * the weight again later that day never wipes a waist measured that morning.
+     */
+    public void applyMeasurements(Measurements m) {
+        if (m.waistCm() != null) this.waistCm = m.waistCm();
+        if (m.chestCm() != null) this.chestCm = m.chestCm();
+        if (m.armCm() != null) this.armCm = m.armCm();
+        if (m.hipsCm() != null) this.hipsCm = m.hipsCm();
+        if (m.thighCm() != null) this.thighCm = m.thighCm();
+    }
+
+    public Measurements getMeasurements() {
+        return new Measurements(waistCm, chestCm, armCm, hipsCm, thighCm);
     }
 
     @PrePersist

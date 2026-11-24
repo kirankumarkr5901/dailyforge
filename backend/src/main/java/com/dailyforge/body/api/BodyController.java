@@ -49,7 +49,15 @@ public class BodyController {
     @ResponseStatus(HttpStatus.CREATED)
     public MetricResponse log(@Valid @RequestBody LogWeightRequest request) {
         UUID userId = currentUser.require();
-        var metric = metrics.upsert(userId, request.date(), request.weightKg(), request.heightCm(), request.bodyFatPct(), request.note());
+        var metric = metrics.upsert(
+                userId,
+                request.date(),
+                request.weightKg(),
+                request.heightCm(),
+                request.bodyFatPct(),
+                request.note(),
+                new com.dailyforge.body.domain.BodyMetric.Measurements(
+                        request.waistCm(), request.chestCm(), request.armCm(), request.hipsCm(), request.thighCm()));
         return MetricResponse.of(metric);
     }
 

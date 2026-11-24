@@ -33,6 +33,27 @@
       (ngModelChange)="bodyFatPct.set($event)"
     />
 
+    <button type="button" class="body-log__toggle" [attr.aria-expanded]="showTape()" (click)="showTape.set(!showTape())">
+      {{ showTape() ? 'Hide' : 'Add' }} measurements (optional)
+    </button>
+    @if (showTape()) {
+      <div class="body-log__tape">
+        @for (m of measurements; track m.key) {
+          <df-stepper-input
+            [label]="m.label"
+            suffix="cm"
+            hint="0 = not measured"
+            [min]="0"
+            [max]="m.max"
+            [step]="0.5"
+            [decimals]="1"
+            [ngModel]="tape()[m.key]"
+            (ngModelChange)="setTape(m.key, $event)"
+          />
+        }
+      </div>
+    }
+
     <df-input label="Note (optional)" [ngModel]="note()" (ngModelChange)="note.set($event)" />
 
     @if (error(); as message) {

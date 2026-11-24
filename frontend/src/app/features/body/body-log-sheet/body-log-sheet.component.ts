@@ -5,7 +5,7 @@ import { firstValueFrom } from 'rxjs';
 
 import { ApiError } from '../../../core/api/api.types';
 import { BodyApi } from '../../../core/body/body.api';
-import { BodyMetric } from '../../../core/body/body.types';
+import { BodyMetric, MEASUREMENTS, MeasurementKey } from '../../../core/body/body.types';
 import { LogicalDate } from '../../../core/time/logical-date';
 import { DfButtonComponent } from '../../../shared/ui/df-button/df-button.component';
 import { DfInputComponent } from '../../../shared/ui/df-input/df-input.component';
@@ -33,6 +33,14 @@ export class BodyLogSheetComponent {
   protected readonly heightCm = signal(0);
   protected readonly bodyFatPct = signal(0);
   protected readonly note = signal('');
+  /** Folded by default: most days are a weigh-in only. 0 means "not measured". */
+  protected readonly showTape = signal(false);
+  protected readonly measurements = MEASUREMENTS;
+  protected readonly tape = signal<Record<MeasurementKey, number>>({ waistCm: 0, chestCm: 0, armCm: 0, hipsCm: 0, thighCm: 0 });
+
+  protected setTape(key: MeasurementKey, value: number): void {
+    this.tape.update((t) => ({ ...t, [key]: value }));
+  }
   protected readonly saving = signal(false);
   protected readonly error = signal<string | null>(null);
 
@@ -50,10 +58,13 @@ export class BodyLogSheetComponent {
           heightCm: this.heightCm() > 0 ? this.heightCm() : undefined,
           bodyFatPct: this.bodyFatPct() > 0 ? this.bodyFatPct() : undefined,
           note: this.note().trim() || undefined,
+          ...Object.fromEntries(Object.entries(this.tape()).filter(([, v]) => v > 0)),
         }),
       );
       this.saved.emit(metric);
       this.note.set('');
+      this.tape.set({ waistCm: 0, chestCm: 0, armCm: 0, hipsCm: 0, thighCm: 0 });
+      this.showTape.set(false);
     } catch (error) {
       this.error.set(this.messageFor(error));
     } finally {

@@ -8,7 +8,7 @@ import { AuthSheetService } from '../../../core/auth/auth-sheet.service';
 import { SessionStore } from '../../../core/auth/session.store';
 import { SyncStore } from '../../../core/sync/sync.store';
 import { BodyApi } from '../../../core/body/body.api';
-import { BmiBand, BodyMetric, BodySummary } from '../../../core/body/body.types';
+import { BmiBand, BodyMetric, BodySummary, MEASUREMENTS } from '../../../core/body/body.types';
 import { LogicalDate, formatLong } from '../../../core/time/logical-date';
 import { DfButtonComponent } from '../../../shared/ui/df-button/df-button.component';
 import { DfCardComponent } from '../../../shared/ui/df-card/df-card.component';
@@ -141,6 +141,22 @@ export class BodyPageComponent {
   protected deltaIcon(value: number | null) {
     if (value === null || value === 0) return this.flatIcon;
     return value > 0 ? this.upIcon : this.downIcon;
+  }
+
+  /**
+   * Each measurement's latest value, and how it moved since the time before it was
+   * taken. Only measurements taken at least once appear.
+   */
+  protected measurementRows(entries: readonly BodyMetric[]) {
+    return MEASUREMENTS.map((m) => {
+      const taken = entries.filter((e) => e[m.key] !== null && e[m.key] !== undefined);
+      if (taken.length === 0) return null;
+      const latest = taken[taken.length - 1];
+      const previous = taken.length > 1 ? taken[taken.length - 2] : null;
+      const value = Number(latest[m.key]);
+      const change = previous ? Math.round((value - Number(previous[m.key])) * 10) / 10 : null;
+      return { key: m.key, label: m.label, value, change, since: previous?.date ?? null };
+    }).filter((r) => r !== null);
   }
 
   protected deltaLabel(value: number | null): string {

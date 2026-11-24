@@ -11,5 +11,7 @@ public interface ProteinLogRepository extends JpaRepository<ProteinLog, UUID> {
 
     List<ProteinLog> findAllByUserIdAndOccurredOnOrderByCreatedAtAsc(UUID userId, LocalDate occurredOn);
 
+    List<ProteinLog> findAllByUserIdAndOccurredOnBetween(UUID userId, LocalDate from, LocalDate to);
+
     Optional<ProteinLog> findByIdAndUserId(UUID id, UUID userId);
 }

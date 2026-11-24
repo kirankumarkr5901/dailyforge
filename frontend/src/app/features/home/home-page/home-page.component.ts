@@ -21,6 +21,8 @@ import { HeatmapComponent } from '../heatmap/heatmap.component';
 import { WorkoutsApi } from '../../../core/workouts/workouts.api';
 import { WeeklyVolume } from '../../../core/workouts/workouts.types';
 import { WeeklyVolumeCardComponent } from '../../workouts/weekly-volume-card/weekly-volume-card.component';
+import { TodayChecklistComponent } from '../today-checklist/today-checklist.component';
+import { WeekReviewComponent } from '../week-review/week-review.component';
 
 type Period = 'today' | 'thisWeek' | 'thisMonth';
 
@@ -64,6 +66,8 @@ interface DayGroup {
     DayDetailSheetComponent,
     HeatmapComponent,
     WeeklyVolumeCardComponent,
+    TodayChecklistComponent,
+    WeekReviewComponent,
   ],
   templateUrl: './home-page.component.html',
   styleUrl: './home-page.component.scss',

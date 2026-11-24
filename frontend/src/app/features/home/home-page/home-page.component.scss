@@ -284,3 +284,13 @@
   display: block;
   margin-top: var(--space-4);
 }
+
+.home-page__today {
+  display: block;
+  margin-bottom: var(--space-4);
+}
+
+.home-page__review:not(:empty) {
+  display: block;
+  margin-bottom: var(--space-4);
+}

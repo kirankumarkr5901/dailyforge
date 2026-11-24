@@ -1,5 +1,7 @@
 import { DOCUMENT, Injectable, computed, inject, signal } from '@angular/core';
 
+import { PushService } from '../../../core/push/push.service';
+
 const STORAGE_KEY = 'dailyforge.rest-timer-default-seconds';
 /** The running timer's deadline, so a reload or a resurrected tab picks it back up. */
 const DEADLINE_KEY = 'dailyforge.rest-timer-ends-at';
@@ -36,6 +38,8 @@ const MAX_SECONDS = 600;
 @Injectable({ providedIn: 'root' })
 export class RestTimerService {
   private readonly document = inject(DOCUMENT);
+  /** The server-side "Rest is over" push, for when this page is in the background or closed. */
+  private readonly push = inject(PushService);
 
   private readonly _secondsLeft = signal<number | null>(null);
   private readonly _defaultSeconds = signal(this.readDefault());
@@ -68,6 +72,7 @@ export class RestTimerService {
     this.safeStorage()?.setItem(DEADLINE_KEY, String(this.endsAt));
     this.arm();
     this.tick();
+    this.push.scheduleRest(duration);
   }
 
   /** Adds or removes time from the running rest by moving the deadline itself. */
@@ -79,9 +84,18 @@ export class RestTimerService {
     this.safeStorage()?.setItem(DEADLINE_KEY, String(this.endsAt));
     this.arm();
     this.tick();
+    // The pushed reminder moves with the deadline (the server replaces the pending one).
+    this.push.scheduleRest((this.endsAt - Date.now()) / 1000);
   }
 
+  /** Ended early by the user: the pending push is cancelled too. */
   dismiss(): void {
+    this.clear();
+    this.push.cancelRest();
+  }
+
+  /** Clears the rest without touching the push: a rest that ran out has already been pushed. */
+  private clear(): void {
     this.clearTimers();
     this.endsAt = null;
     this.safeStorage()?.removeItem(DEADLINE_KEY);
@@ -202,7 +216,7 @@ export class RestTimerService {
    * is not.
    */
   private finish(): void {
-    this.dismiss();
+    this.clear();
 
     const view = this.document.defaultView;
     if (!view) {
@@ -230,7 +244,7 @@ export class RestTimerService {
       vibrate: pattern,
       // Angular's worker reads this to bring the app forward when the notification is
       // tapped; without it a tap on Android dismisses the toast and nothing else.
-      data: { onActionClick: { default: { operation: 'focusLastFocusedOrOpen', url: '/workouts' } } },
+      data: { onActionClick: { default: { operation: 'focusLastFocusedOrOpen', url: '/workout' } } },
     };
 
     void this.showViaWorker(view, 'Rest is over', options).then((shown) => {

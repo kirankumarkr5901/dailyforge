@@ -21,10 +21,22 @@ public class InsightsController {
 
     private final DailySummaryService summaries;
     private final CurrentUser currentUser;
+    private final com.dailyforge.insight.domain.WeekReviewService weekReviews;
 
-    public InsightsController(DailySummaryService summaries, CurrentUser currentUser) {
+    public InsightsController(
+            DailySummaryService summaries,
+            CurrentUser currentUser,
+            com.dailyforge.insight.domain.WeekReviewService weekReviews) {
         this.summaries = summaries;
         this.currentUser = currentUser;
+        this.weekReviews = weekReviews;
+    }
+
+    /** The Monday-to-Sunday week containing {@code date} (this week if omitted), in a few numbers. */
+    @GetMapping("/week")
+    public com.dailyforge.insight.domain.WeekReviewService.WeekReview week(@RequestParam(required = false) LocalDate date) {
+        UUID userId = currentUser.require();
+        return weekReviews.review(userId, date != null ? date : weekReviews.today(userId));
     }
 
     @GetMapping("/heatmap")
