@@ -73,9 +73,11 @@
                   </div>
                 </div>
               } @else {
-                <span>{{ food.name }}</span>
-                <span class="protein-settings__food-side">
+                <span class="protein-settings__food-main">
+                  <span>{{ food.name }}</span>
                   <span class="protein-settings__grams">{{ foodLabel(food) }}</span>
+                </span>
+                <span class="protein-settings__food-side">
                   @if (session.editingEnabled()) {
                     <button
                       dfIconButton

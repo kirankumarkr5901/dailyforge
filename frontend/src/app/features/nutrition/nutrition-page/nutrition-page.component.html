@@ -134,9 +134,11 @@
         <ul class="nutrition__entries">
           @for (entry of d.entries; track entry.id) {
             <li class="nutrition__entry">
-              <span>{{ entry.foodName }}</span>
-              <span class="nutrition__entry-side">
+              <span class="nutrition__entry-main">
+                <span>{{ entry.foodName }}</span>
                 <span class="nutrition__entry-grams">{{ foodLabel(entry) }}</span>
+              </span>
+              <span class="nutrition__entry-side">
                 <button
                   dfIconButton
                   type="button"

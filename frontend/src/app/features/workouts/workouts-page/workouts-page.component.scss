@@ -1,8 +1,9 @@
 .workouts-page__header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-4);
+  gap: var(--space-2) var(--space-4);
   margin-bottom: var(--space-5);
 }
 
@@ -99,10 +100,20 @@
   }
 }
 
+/* Phone first: Warm-up, rest timer and Plans get a row of their own under the title,
+ * so three buttons never push past the screen edge. From 600px they sit beside it. */
 .workouts-page__header-actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2);
+  width: 100%;
+}
+
+@media (min-width: 600px) {
+  .workouts-page__header-actions {
+    width: auto;
+  }
 }
 
 /* The day's progress: exercises with a set logged, out of those planned. Sits between
