@@ -113,23 +113,29 @@ export class GoalFormSheetComponent {
     });
   }
 
+  /**
+   * Habits and exercises load independently: one failing must not empty the other's
+   * dropdown, and the message says which one it was.
+   */
   private async loadOptions(): Promise<void> {
     this.optionsLoading.set(true);
-    try {
-      const [habits, exercises] = await Promise.all([
-        firstValueFrom(this.habitsApi.list()),
-        firstValueFrom(this.workoutsApi.searchExercises()),
-      ]);
-      this.habitOptions.set(habits.map((h) => ({ value: h.id, label: h.name })));
-      this.exerciseOptions.set(exercises.map((e) => ({ value: e.id, label: e.name })));
-    } catch {
-      // Previously silent: a failed fetch here left both dropdowns empty with no
-      // explanation at all, reading as "the list just doesn't exist" rather than "this
-      // did not load". A toast at least says which of those it actually is.
-      this.toasts.show('Could not load your habits and exercises. Check your connection.', { tone: 'penalty' });
-    } finally {
-      this.optionsLoading.set(false);
+    const [habits, exercises] = await Promise.allSettled([
+      firstValueFrom(this.habitsApi.list()),
+      firstValueFrom(this.workoutsApi.searchExercises()),
+    ]);
+    if (habits.status === 'fulfilled') {
+      this.habitOptions.set(habits.value.map((h) => ({ value: h.id, label: h.name })));
     }
+    if (exercises.status === 'fulfilled') {
+      this.exerciseOptions.set(exercises.value.map((e) => ({ value: e.id, label: e.name })));
+    }
+    const failed = [habits.status === 'rejected' ? 'habits' : null, exercises.status === 'rejected' ? 'exercises' : null]
+      .filter(Boolean)
+      .join(' and ');
+    if (failed) {
+      this.toasts.show(`Could not load your ${failed}. Check your connection.`, { tone: 'penalty' });
+    }
+    this.optionsLoading.set(false);
   }
 
   protected async save(): Promise<void> {

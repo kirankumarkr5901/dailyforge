@@ -27,8 +27,9 @@ public class ExerciseService {
 
     @Transactional(readOnly = true)
     public List<Exercise> search(UUID userId, String query) {
-        String normalised = query == null || query.isBlank() ? null : Exercise.normalise(query);
-        return exercises.search(userId, normalised);
+        return query == null || query.isBlank()
+                ? exercises.findAllVisible(userId)
+                : exercises.search(userId, Exercise.normalise(query));
     }
 
     @Transactional
