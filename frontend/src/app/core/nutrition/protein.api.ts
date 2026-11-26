@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { LogicalDate } from '../time/logical-date';
-import { NutritionAmounts, ProteinDay, ProteinDayWrite, ProteinFood } from './protein.types';
+import { Meal, MealItem, NutritionAmounts, ProteinDay, ProteinDayWrite, ProteinFood } from './protein.types';
 
 @Injectable({ providedIn: 'root' })
 export class ProteinApi {
@@ -43,6 +43,24 @@ export class ProteinApi {
 
   updateFood(id: string, patch: { name?: string } & Partial<NutritionAmounts>): Observable<ProteinFood> {
     return this.http.patch<ProteinFood>(`${this.base}/protein/foods/${id}`, patch);
+  }
+
+  meals(): Observable<Meal[]> {
+    return this.http.get<Meal[]>(`${this.base}/protein/meals`);
+  }
+
+  /** Structural, like a food: needs "Enable edit". */
+  createMeal(name: string, items: MealItem[]): Observable<Meal> {
+    return this.http.post<Meal>(`${this.base}/protein/meals`, { name, items });
+  }
+
+  deleteMeal(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/protein/meals/${id}`);
+  }
+
+  /** Logs every item of the meal as its own entry. */
+  logMeal(id: string, date: LogicalDate): Observable<ProteinDayWrite> {
+    return this.http.post<ProteinDayWrite>(`${this.base}/protein/meals/${id}/log`, { date });
   }
 
   deleteFood(id: string): Observable<void> {

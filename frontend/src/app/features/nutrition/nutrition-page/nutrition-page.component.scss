@@ -244,3 +244,46 @@
   height: 8px;
   margin: var(--space-1) 0 0;
 }
+
+.nutrition__meal {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  border-radius: var(--radius-card);
+  text-align: left;
+}
+
+.nutrition__eaten-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.meal-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.meal-form__items {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.meal-form__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 48px;
+  border-top: 1px solid var(--line);
+  cursor: pointer;
+}
+
+.meal-form__item input {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  accent-color: var(--heat-2);
+}

@@ -153,6 +153,32 @@
         </div>
         }
       </div>
+      @if (meals().length > 0) {
+        <div>
+          <h3 class="protein-settings__subtitle">Meals</h3>
+          <ul class="protein-settings__foods">
+            @for (meal of meals(); track meal.id) {
+              <li class="protein-settings__food">
+                <span class="protein-settings__food-main">
+                  <span>{{ meal.name }}</span>
+                  <span class="protein-settings__grams">{{ meal.items.length }} items · {{ meal.proteinG }} g protein · {{ meal.kcal }} kcal</span>
+                </span>
+                @if (session.editingEnabled()) {
+                  <button
+                    dfIconButton
+                    type="button"
+                    [label]="'Remove ' + meal.name"
+                    variant="ghost"
+                    [icon]="deleteIcon"
+                    [size]="16"
+                    (click)="removeMeal(meal)"
+                  ></button>
+                }
+              </li>
+            }
+          </ul>
+        </div>
+      }
     </div>
   } @else {
     <p class="protein-settings__muted">Loading…</p>

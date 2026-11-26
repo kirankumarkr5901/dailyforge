@@ -203,6 +203,37 @@ class ProteinAndDeloadIntegrationTest {
     }
 
     @Test
+    void aMealIsSavedWithEditingOnAndLogsAllItsItemsInOneTap() throws Exception {
+        String meal = "{\"name\":\"Big breakfast\",\"items\":["
+                + "{\"foodName\":\"2 eggs\",\"grams\":12,\"kcal\":140,\"fatG\":10,\"carbsG\":1},"
+                + "{\"foodName\":\"Whey scoop\",\"grams\":130,\"kcal\":600,\"fatG\":8,\"carbsG\":15}]}";
+        mockMvc.perform(auth(post("/api/v1/protein/meals")).content(meal))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("EDITING_LOCKED"));
+
+        setEditing(true);
+        JsonNode created = json.readTree(mockMvc.perform(auth(post("/api/v1/protein/meals")).content(meal))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString());
+        assertThat(created.get("proteinG").asInt()).isEqualTo(142);
+        assertThat(created.get("items")).hasSize(2);
+        setEditing(false);
+
+        // Logging needs no editing, adds both entries, and pays the protein target once.
+        JsonNode logged = call(post("/api/v1/protein/meals/" + created.get("id").asString() + "/log")
+                .content("{\"date\":\"" + TODAY + "\"}"));
+        assertThat(logged.get("day").get("entries")).hasSize(2);
+        assertThat(logged.get("day").get("totalG").asInt()).isEqualTo(142);
+        assertThat(logged.get("day").get("totalCarbsG").asInt()).isEqualTo(16);
+        assertThat(logged.get("points").get("delta").asInt()).isEqualTo(10);
+
+        assertThat(call(get("/api/v1/protein/meals"))).hasSize(1);
+        setEditing(true);
+        mockMvc.perform(auth(delete("/api/v1/protein/meals/" + created.get("id").asString())))
+                .andExpect(status().isNoContent());
+        assertThat(call(get("/api/v1/protein/meals"))).isEmpty();
+    }
+
+    @Test
     void anEntryWithNothingInItIsRefused() throws Exception {
         mockMvc.perform(auth(post("/api/v1/protein/logs"))
                         .content("{\"date\":\"" + TODAY + "\",\"foodName\":\"x\",\"grams\":0,\"kcal\":0,\"fatG\":0}"))

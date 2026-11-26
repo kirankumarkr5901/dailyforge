@@ -60,3 +60,17 @@ export interface ProteinDayWrite {
   day: ProteinDay;
   points: PointsEnvelope;
 }
+
+/** One item of a meal: a copy of the food's values when the meal was saved. */
+export interface MealItem extends NutritionAmounts {
+  foodName: string;
+}
+
+/** A meal shortcut: logged with one tap, item by item. */
+export interface Meal {
+  id: string;
+  name: string;
+  proteinG: number;
+  kcal: number;
+  items: MealItem[];
+}

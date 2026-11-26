@@ -213,6 +213,20 @@ public class ProteinService {
         return new DayWrite(day(userId, date), reconcile(userId, date));
     }
 
+    /** Several entries at once (a meal): one write, and the day's points reconciled once. */
+    @Transactional
+    public DayWrite logMany(UUID userId, LocalDate date, List<java.util.Map.Entry<String, Amounts>> entries) {
+        requireEditableDate(userId, date);
+        for (var e : entries) {
+            requireAmounts(e.getValue());
+            Amounts a = e.getValue();
+            logs.save(ProteinLog.create(
+                    userId, date, e.getKey().trim(), a.proteinG(), a.kcal(), a.fatG(), a.carbsG(), a.fiberG(), a.sugarG()));
+        }
+        logs.flush();
+        return new DayWrite(day(userId, date), reconcile(userId, date));
+    }
+
     @Transactional
     public DayWrite deleteLog(UUID userId, UUID logId) {
         ProteinLog log = logs.findByIdAndUserId(logId, userId).orElseThrow(() -> ApiException.notFound("That entry"));
@@ -331,7 +345,7 @@ public class ProteinService {
         return foods.findByIdAndUserId(foodId, userId).orElseThrow(() -> ApiException.notFound("That food"));
     }
 
-    private static void requireAmounts(Amounts a) {
+    static void requireAmounts(Amounts a) {
         if (a.proteinG() < 0 || a.proteinG() > MAX_FOOD_G) {
             throw ApiException.outOfRange("grams", "Protein per serving must be between 0 and " + MAX_FOOD_G + " g.");
         }

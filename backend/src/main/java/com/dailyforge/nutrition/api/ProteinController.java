@@ -36,10 +36,13 @@ public class ProteinController {
 
     private final ProteinService protein;
     private final CurrentUser currentUser;
+    private final com.dailyforge.nutrition.domain.MealService meals;
 
-    public ProteinController(ProteinService protein, CurrentUser currentUser) {
+    public ProteinController(
+            ProteinService protein, CurrentUser currentUser, com.dailyforge.nutrition.domain.MealService meals) {
         this.protein = protein;
         this.currentUser = currentUser;
+        this.meals = meals;
     }
 
     /** {@code date} is optional: omitted means "today" in the user's own time zone. */
@@ -119,6 +122,62 @@ public class ProteinController {
     @StructuralChange
     public void deleteFood(@PathVariable UUID id) {
         protein.deleteFood(currentUser.require(), id);
+    }
+
+    // ------------------------------------------------------------------ meals
+
+    public record MealItemDto(
+            @jakarta.validation.constraints.NotBlank @jakarta.validation.constraints.Size(max = 60) String foodName,
+            Integer grams,
+            Integer kcal,
+            Integer fatG,
+            Integer carbsG,
+            Integer fiberG,
+            Integer sugarG) {}
+
+    public record MealResponse(UUID id, String name, int proteinG, int kcal, java.util.List<MealItemDto> items) {
+        static MealResponse of(com.dailyforge.nutrition.domain.MealService.Meal m) {
+            return new MealResponse(m.id(), m.name(), m.proteinG(), m.kcal(), m.items().stream()
+                    .map(i -> new MealItemDto(i.foodName(), i.amounts().proteinG(), i.amounts().kcal(), i.amounts().fatG(),
+                            i.amounts().carbsG(), i.amounts().fiberG(), i.amounts().sugarG()))
+                    .toList());
+        }
+    }
+
+    public record CreateMealRequest(
+            @jakarta.validation.constraints.NotBlank @jakarta.validation.constraints.Size(max = 60) String name,
+            @jakarta.validation.constraints.NotNull java.util.List<@Valid MealItemDto> items) {}
+
+    public record LogMealRequest(@jakarta.validation.constraints.NotNull LocalDate date) {}
+
+    @GetMapping("/meals")
+    public java.util.List<MealResponse> meals() {
+        return meals.list(currentUser.require()).stream().map(MealResponse::of).toList();
+    }
+
+    /** Saving a meal is structure, like a food: it needs "Enable edit". */
+    @PostMapping("/meals")
+    @ResponseStatus(HttpStatus.CREATED)
+    @StructuralChange
+    public MealResponse createMeal(@Valid @RequestBody CreateMealRequest request) {
+        var items = request.items().stream()
+                .map(i -> new com.dailyforge.nutrition.domain.MealService.Item(i.foodName(), new ProteinService.Amounts(
+                        orZero(i.grams()), orZero(i.kcal()), orZero(i.fatG()), orZero(i.carbsG()), orZero(i.fiberG()), orZero(i.sugarG()))))
+                .toList();
+        return MealResponse.of(meals.create(currentUser.require(), request.name(), items));
+    }
+
+    @DeleteMapping("/meals/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @StructuralChange
+    public void deleteMeal(@PathVariable UUID id) {
+        meals.delete(currentUser.require(), id);
+    }
+
+    /** Logging a meal is just logging: it always works. */
+    @PostMapping("/meals/{id}/log")
+    public DayWriteResponse logMeal(@PathVariable UUID id, @Valid @RequestBody LogMealRequest request) {
+        return DayWriteResponse.of(meals.log(currentUser.require(), id, request.date()));
     }
 
     private static int orZero(Integer value) {

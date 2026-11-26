@@ -5,7 +5,7 @@ import { ChevronDown, LucideAngularModule, Plus, SquarePen, Trash2 } from 'lucid
 
 import { SessionStore } from '../../../core/auth/session.store';
 import { ProteinApi } from '../../../core/nutrition/protein.api';
-import { ProteinDay, ProteinFood } from '../../../core/nutrition/protein.types';
+import { Meal, ProteinDay, ProteinFood } from '../../../core/nutrition/protein.types';
 import { PointsStore } from '../../../core/points/points.store';
 import { DfButtonComponent } from '../../../shared/ui/df-button/df-button.component';
 import { DfCardComponent } from '../../../shared/ui/df-card/df-card.component';
@@ -61,6 +61,7 @@ export class ProteinSettingsComponent {
   protected readonly savedSugar = signal(50);
   protected readonly sugarDraft = signal(50);
   protected readonly foods = signal<ProteinFood[]>([]);
+  protected readonly meals = signal<Meal[]>([]);
   /** The list is long; it stays folded until asked for. */
   protected readonly foodsOpen = signal(false);
 
@@ -105,6 +106,7 @@ export class ProteinSettingsComponent {
       const day = await firstValueFrom(this.api.day());
       this.applyTargets(day);
       this.foods.set(day.foods);
+      this.api.meals().subscribe({ next: (m) => this.meals.set(m), error: () => {} });
       this.loaded.set(true);
     } catch {
       this.toasts.show('Could not load your protein settings.', { tone: 'penalty' });
@@ -210,6 +212,15 @@ export class ProteinSettingsComponent {
       this.editingId.set(null);
     } catch {
       this.toasts.show('That did not save. Try again.', { tone: 'penalty' });
+    }
+  }
+
+  protected async removeMeal(meal: Meal): Promise<void> {
+    try {
+      await firstValueFrom(this.api.deleteMeal(meal.id));
+      this.meals.update((list) => list.filter((m) => m.id !== meal.id));
+    } catch {
+      this.toasts.show('Could not remove that meal. Try again.', { tone: 'penalty' });
     }
   }
 
