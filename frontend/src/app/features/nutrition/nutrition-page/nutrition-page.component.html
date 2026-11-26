@@ -94,6 +94,32 @@
       </div>
     </df-card>
 
+    <df-card class="nutrition__foods-card">
+      <div class="nutrition__row-head">
+        <h2 class="nutrition__section-title">Water</h2>
+        <span class="nutrition__total">
+          <span class="nutrition__total-value">{{ litres(d.waterMl) }}</span>
+          <span class="nutrition__total-target">/ {{ litres(d.waterTargetMl) }} L</span>
+        </span>
+      </div>
+      <div
+        class="nutrition__meter nutrition__meter--water"
+        [class.nutrition__meter--reached]="d.waterMl >= d.waterTargetMl"
+        role="progressbar"
+        [attr.aria-valuenow]="d.waterMl"
+        [attr.aria-valuemin]="0"
+        [attr.aria-valuemax]="d.waterTargetMl"
+        [attr.aria-label]="litres(d.waterMl) + ' of ' + litres(d.waterTargetMl) + ' litres of water'"
+      >
+        <span class="nutrition__meter-fill" [style.width.%]="d.waterTargetMl ? (d.waterMl / d.waterTargetMl) * 100 : 0"></span>
+      </div>
+      <div class="nutrition__water">
+        <button dfButton type="button" variant="primary" [disabled]="busy()" (click)="addWater(250)">+250 ml</button>
+        <button dfButton type="button" variant="secondary" [disabled]="busy()" (click)="addWater(500)">+500 ml</button>
+        <button dfButton type="button" variant="ghost" [disabled]="busy() || d.waterMl === 0" (click)="addWater(-250)">−250</button>
+      </div>
+    </df-card>
+
     @if (meals().length > 0) {
       <df-card class="nutrition__foods-card">
         <h2 class="nutrition__section-title">Meals</h2>

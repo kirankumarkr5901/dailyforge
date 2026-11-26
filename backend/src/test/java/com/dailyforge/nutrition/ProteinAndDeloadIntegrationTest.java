@@ -233,6 +233,33 @@ class ProteinAndDeloadIntegrationTest {
         assertThat(call(get("/api/v1/protein/meals"))).isEmpty();
     }
 
+    private JsonNode water(int delta) throws Exception {
+        return call(post("/api/v1/protein/water").content("{\"date\":\"" + TODAY + "\",\"deltaMl\":" + delta + "}"));
+    }
+
+    @Test
+    void waterPaysFifteenOnceTheTargetIsReachedAndUndoTakesItBack() throws Exception {
+        assertThat(call(get("/api/v1/protein/day")).get("waterTargetMl").asInt()).isEqualTo(3000);
+
+        assertThat(water(2000).get("points").get("delta").asInt()).isZero();
+        assertThat(water(500).get("day").get("waterMl").asInt()).isEqualTo(2500);
+        JsonNode hit = water(500);
+        assertThat(hit.get("day").get("waterMl").asInt()).isEqualTo(3000);
+        assertThat(hit.get("points").get("delta").asInt()).isEqualTo(15);
+        assertThat(water(250).get("points").get("delta").asInt()).isZero();
+
+        // Undo twice: back below the target, so the 15 go back.
+        water(-250);
+        assertThat(water(-250).get("points").get("delta").asInt()).isEqualTo(-15);
+
+        // Never below zero.
+        for (int i = 0; i < 2; i++) water(-2000);
+        assertThat(water(-250).get("day").get("waterMl").asInt()).isZero();
+
+        assertThat(call(put("/api/v1/protein/target").content("{\"waterTargetMl\":2000}")).get("day").get("waterTargetMl").asInt())
+                .isEqualTo(2000);
+    }
+
     @Test
     void anEntryWithNothingInItIsRefused() throws Exception {
         mockMvc.perform(auth(post("/api/v1/protein/logs"))

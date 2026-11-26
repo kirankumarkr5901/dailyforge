@@ -52,6 +52,8 @@ export interface ProteinDay {
   /** Sugar is a limit to stay under. */
   sugarLimitG: number;
   totalSugarG: number;
+  waterTargetMl: number;
+  waterMl: number;
   entries: ProteinEntry[];
   foods: ProteinFood[];
 }

@@ -208,6 +208,14 @@ export class NutritionPageComponent {
     }
   }
 
+  protected addWater(deltaMl: number): Promise<boolean> {
+    return this.write(() => this.api.addWater(this.day()!.date, deltaMl));
+  }
+
+  protected litres(ml: number): string {
+    return (Math.round(ml / 100) / 10).toString();
+  }
+
   protected logMeal(meal: Meal): Promise<boolean> {
     return this.write(() => this.api.logMeal(meal.id, this.day()!.date));
   }
@@ -308,9 +316,9 @@ export class NutritionPageComponent {
       this.points.applyEnvelope(result.points);
       const delta = result.points.delta;
       if (delta > 0) {
-        this.toasts.show(`Protein target hit! +${delta} pts`, { tone: 'earned', heatStep: 1 });
+        this.toasts.show(`Target hit! +${delta} pts`, { tone: 'earned', heatStep: 1 });
       } else if (delta < 0) {
-        this.toasts.show(`Back under the target. ${delta} pts`, { tone: 'penalty' });
+        this.toasts.show(`Back under a target. ${delta} pts`, { tone: 'penalty' });
       }
       return true;
     } catch {

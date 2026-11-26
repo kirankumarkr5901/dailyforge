@@ -101,6 +101,8 @@ public class ProteinService {
             int totalFiberG,
             int sugarLimitG,
             int totalSugarG,
+            int waterTargetMl,
+            int waterMl,
             List<ProteinLog> logs,
             List<ProteinFood> foods) {}
 
@@ -113,6 +115,7 @@ public class ProteinService {
     private final PointsRuleConfigService ruleConfigs;
     private final DayService dayService;
     private final IdentityService identity;
+    private final org.springframework.jdbc.core.JdbcTemplate jdbc;
 
     public ProteinService(
             NutritionSettingsRepository settingsRepo,
@@ -121,7 +124,8 @@ public class ProteinService {
             PointsService points,
             PointsRuleConfigService ruleConfigs,
             DayService dayService,
-            IdentityService identity) {
+            IdentityService identity,
+            org.springframework.jdbc.core.JdbcTemplate jdbc) {
         this.settingsRepo = settingsRepo;
         this.foods = foods;
         this.logs = logs;
@@ -129,6 +133,7 @@ public class ProteinService {
         this.ruleConfigs = ruleConfigs;
         this.dayService = dayService;
         this.identity = identity;
+        this.jdbc = jdbc;
     }
 
     /** The user's settings, created with the starter foods on first use. */
@@ -191,6 +196,8 @@ public class ProteinService {
                 dayLogs.stream().mapToInt(ProteinLog::getFiberG).sum(),
                 settings.getSugarLimitG(),
                 dayLogs.stream().mapToInt(ProteinLog::getSugarG).sum(),
+                settings.getWaterTargetMl(),
+                waterMl(userId, date),
                 dayLogs,
                 foods.findAllByUserIdOrderBySortOrderAscNameAsc(userId));
     }
@@ -211,6 +218,30 @@ public class ProteinService {
                 amounts.sugarG()));
         logs.flush();
         return new DayWrite(day(userId, date), reconcile(userId, date));
+    }
+
+    /** The day's water so far, in millilitres. */
+    public int waterMl(UUID userId, LocalDate date) {
+        List<Integer> ml = jdbc.queryForList(
+                "SELECT ml FROM water_log WHERE user_id = ? AND occurred_on = ?", Integer.class, userId, date);
+        return ml.isEmpty() ? 0 : ml.get(0);
+    }
+
+    /** Adds (or, negative, takes away) water for the day; never below 0 or above 10 L. */
+    @Transactional
+    public DayWrite addWater(UUID userId, LocalDate date, int deltaMl) {
+        requireEditableDate(userId, date);
+        if (deltaMl == 0 || Math.abs(deltaMl) > 2000) {
+            throw ApiException.outOfRange("deltaMl", "Add or remove up to 2,000 ml at a time.");
+        }
+        settings(userId);
+        int next = Math.max(0, Math.min(10_000, waterMl(userId, date) + deltaMl));
+        java.sql.Timestamp now = java.sql.Timestamp.from(java.time.Instant.now());
+        if (jdbc.update("UPDATE water_log SET ml = ?, updated_at = ? WHERE user_id = ? AND occurred_on = ?", next, now, userId, date) == 0) {
+            jdbc.update("INSERT INTO water_log (user_id, occurred_on, ml, updated_at) VALUES (?, ?, ?, ?)", userId, date, next, now);
+        }
+        PointsResult paid = points.reconcile(userId, new ReconcileScope.WaterDay(userId, date));
+        return new DayWrite(day(userId, date), paid);
     }
 
     /** Several entries at once (a meal): one write, and the day's points reconciled once. */
@@ -255,6 +286,20 @@ public class ProteinService {
             Integer carbsTargetG,
             Integer fiberTargetG,
             Integer sugarLimitG) {
+        return setTargets(userId, targetG, calorieBudget, fatTargetG, carbsTargetG, fiberTargetG, sugarLimitG, null);
+    }
+
+    @Transactional
+    public DayWrite setTargets(
+            UUID userId,
+            Integer targetG,
+            Integer calorieBudget,
+            Integer fatTargetG,
+            Integer carbsTargetG,
+            Integer fiberTargetG,
+            Integer sugarLimitG,
+            Integer waterTargetMl) {
+        // Every range check lives here, in the one version that does the work.
         if (carbsTargetG != null && (carbsTargetG < 10 || carbsTargetG > 800)) {
             throw ApiException.outOfRange("carbsTargetG", "Pick a carbs target between 10 and 800 g.");
         }
@@ -263,6 +308,9 @@ public class ProteinService {
         }
         if (sugarLimitG != null && (sugarLimitG < 5 || sugarLimitG > 300)) {
             throw ApiException.outOfRange("sugarLimitG", "Pick a sugar limit between 5 and 300 g.");
+        }
+        if (waterTargetMl != null && (waterTargetMl < 500 || waterTargetMl > 8000)) {
+            throw ApiException.outOfRange("waterTargetMl", "Pick a water target between 500 and 8,000 ml.");
         }
         if (targetG != null && (targetG < 1 || targetG > MAX_TARGET_G)) {
             throw ApiException.outOfRange("targetG", "Pick a protein target between 1 and " + MAX_TARGET_G + " g.");
@@ -280,6 +328,7 @@ public class ProteinService {
         if (carbsTargetG != null) settings.setCarbsTargetG(carbsTargetG);
         if (fiberTargetG != null) settings.setFiberTargetG(fiberTargetG);
         if (sugarLimitG != null) settings.setSugarLimitG(sugarLimitG);
+        if (waterTargetMl != null) settings.setWaterTargetMl(waterTargetMl);
         settingsRepo.saveAndFlush(settings);
         LocalDate today = today(userId);
         return new DayWrite(day(userId, today), reconcile(userId, today));

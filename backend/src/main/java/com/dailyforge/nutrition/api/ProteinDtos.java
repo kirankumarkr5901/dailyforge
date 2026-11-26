@@ -46,6 +46,8 @@ public final class ProteinDtos {
             int totalFiberG,
             int sugarLimitG,
             int totalSugarG,
+            int waterTargetMl,
+            int waterMl,
             List<LogResponse> entries,
             List<FoodResponse> foods) {
         public static DayResponse of(ProteinService.Day day) {
@@ -63,6 +65,8 @@ public final class ProteinDtos {
                     day.totalFiberG(),
                     day.sugarLimitG(),
                     day.totalSugarG(),
+                    day.waterTargetMl(),
+                    day.waterMl(),
                     day.logs().stream().map(LogResponse::of).toList(),
                     day.foods().stream().map(FoodResponse::of).toList());
         }
@@ -93,7 +97,10 @@ public final class ProteinDtos {
             Integer fatTargetG,
             Integer carbsTargetG,
             Integer fiberTargetG,
-            Integer sugarLimitG) {}
+            Integer sugarLimitG,
+            Integer waterTargetMl) {}
+
+    public record WaterRequest(@NotNull LocalDate date, @NotNull Integer deltaMl) {}
 
     public record CreateFoodRequest(
             @NotBlank @Size(max = 60) String name,

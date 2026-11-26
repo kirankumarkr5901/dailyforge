@@ -57,6 +57,16 @@
           [ngModel]="sugarDraft()"
           (ngModelChange)="sugarDraft.set($event)"
         />
+        <df-stepper-input
+          label="Daily water target"
+          suffix="ml"
+          hint="Reaching it earns points once a day."
+          [min]="500"
+          [max]="8000"
+          [step]="250"
+          [ngModel]="waterDraft()"
+          (ngModelChange)="waterDraft.set($event)"
+        />
         @if (targetsChanged()) {
           <button dfButton type="button" variant="primary" (click)="saveTargets()">Save targets</button>
         }

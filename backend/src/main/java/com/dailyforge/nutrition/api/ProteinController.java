@@ -72,6 +72,12 @@ public class ProteinController {
         return DayWriteResponse.of(protein.deleteLog(currentUser.require(), id));
     }
 
+    /** Water in steps: +250, +500, or -250 to undo a tap. */
+    @PostMapping("/water")
+    public DayWriteResponse addWater(@Valid @RequestBody ProteinDtos.WaterRequest request) {
+        return DayWriteResponse.of(protein.addWater(currentUser.require(), request.date(), request.deltaMl()));
+    }
+
     @PutMapping("/target")
     public DayWriteResponse setTarget(@Valid @RequestBody TargetRequest request) {
         return DayWriteResponse.of(
@@ -82,7 +88,8 @@ public class ProteinController {
                         request.fatTargetG(),
                         request.carbsTargetG(),
                         request.fiberTargetG(),
-                        request.sugarLimitG()));
+                        request.sugarLimitG(),
+                        request.waterTargetMl()));
     }
 
     @PostMapping("/foods")

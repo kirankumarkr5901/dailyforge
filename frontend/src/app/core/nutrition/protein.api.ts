@@ -32,6 +32,7 @@ export class ProteinApi {
     carbsTargetG?: number;
     fiberTargetG?: number;
     sugarLimitG?: number;
+    waterTargetMl?: number;
   }): Observable<ProteinDayWrite> {
     return this.http.put<ProteinDayWrite>(`${this.base}/protein/target`, targets);
   }
@@ -43,6 +44,11 @@ export class ProteinApi {
 
   updateFood(id: string, patch: { name?: string } & Partial<NutritionAmounts>): Observable<ProteinFood> {
     return this.http.patch<ProteinFood>(`${this.base}/protein/foods/${id}`, patch);
+  }
+
+  /** +250, +500, or -250 to undo a tap. Pays points the day the target is reached. */
+  addWater(date: LogicalDate, deltaMl: number): Observable<ProteinDayWrite> {
+    return this.http.post<ProteinDayWrite>(`${this.base}/protein/water`, { date, deltaMl });
   }
 
   meals(): Observable<Meal[]> {

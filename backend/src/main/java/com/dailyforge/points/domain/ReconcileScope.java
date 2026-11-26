@@ -38,4 +38,7 @@ public sealed interface ReconcileScope {
 
     /** One day's calories against the budget: paid once that day is over, if it stayed within. */
     record CalorieDay(UUID userId, LocalDate date) implements ReconcileScope {}
+
+    /** One day's water against the target: paid once it is reached. */
+    record WaterDay(UUID userId, LocalDate date) implements ReconcileScope {}
 }

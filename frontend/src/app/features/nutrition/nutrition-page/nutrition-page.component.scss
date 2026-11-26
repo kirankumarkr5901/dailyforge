@@ -287,3 +287,19 @@
   flex: none;
   accent-color: var(--heat-2);
 }
+
+/* Water: three thumb-sized buttons, the common one first. */
+.nutrition__water {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.nutrition__meter--water .nutrition__meter-fill {
+  background: var(--heat-1, var(--heat-2));
+}
+
+.nutrition__meter--water.nutrition__meter--reached .nutrition__meter-fill {
+  background: var(--done);
+}

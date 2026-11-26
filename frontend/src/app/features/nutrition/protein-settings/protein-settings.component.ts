@@ -60,6 +60,8 @@ export class ProteinSettingsComponent {
   protected readonly fiberDraft = signal(30);
   protected readonly savedSugar = signal(50);
   protected readonly sugarDraft = signal(50);
+  protected readonly savedWater = signal(3000);
+  protected readonly waterDraft = signal(3000);
   protected readonly foods = signal<ProteinFood[]>([]);
   protected readonly meals = signal<Meal[]>([]);
   /** The list is long; it stays folded until asked for. */
@@ -89,7 +91,8 @@ export class ProteinSettingsComponent {
       this.fatDraft() !== this.savedFat() ||
       this.carbsDraft() !== this.savedCarbs() ||
       this.fiberDraft() !== this.savedFiber() ||
-      this.sugarDraft() !== this.savedSugar()
+      this.sugarDraft() !== this.savedSugar() ||
+      this.waterDraft() !== this.savedWater()
     );
   }
 
@@ -126,6 +129,8 @@ export class ProteinSettingsComponent {
     this.fiberDraft.set(d.fiberTargetG);
     this.savedSugar.set(d.sugarLimitG);
     this.sugarDraft.set(d.sugarLimitG);
+    this.savedWater.set(d.waterTargetMl);
+    this.waterDraft.set(d.waterTargetMl);
   }
 
   protected async saveTargets(): Promise<void> {
@@ -138,6 +143,7 @@ export class ProteinSettingsComponent {
           carbsTargetG: this.carbsDraft(),
           fiberTargetG: this.fiberDraft(),
           sugarLimitG: this.sugarDraft(),
+          waterTargetMl: this.waterDraft(),
         }),
       );
       this.applyTargets(result.day);
