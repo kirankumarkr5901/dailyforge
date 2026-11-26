@@ -21,7 +21,7 @@ const MAX_SIDE = 1600;
 const MAX_BYTES = 3 * 1024 * 1024;
 
 /** Shrinks a camera photo to at most 1600 px on its long side, as JPEG. */
-async function shrink(file: File): Promise<Blob> {
+export async function shrink(file: Blob): Promise<Blob> {
   const bitmap = await createImageBitmap(file);
   const scale = Math.min(1, MAX_SIDE / Math.max(bitmap.width, bitmap.height));
   const canvas = document.createElement('canvas');
@@ -50,8 +50,9 @@ export class PhotosApi {
     return this.http.get<PhotoList>(`${this.base}/photos`);
   }
 
-  async upload(file: File, takenOn: LogicalDate): Promise<Photo> {
-    const blob = await shrink(file);
+  /** Shrinks, uploads and records. A blob already shrunk (a phone-only photo) uploads as is. */
+  async upload(file: Blob, takenOn: LogicalDate, alreadyShrunk = false): Promise<Photo> {
+    const blob = alreadyShrunk ? file : await shrink(file);
     const { key, uploadUrl } = await firstValueFrom(
       this.http.post<{ key: string; uploadUrl: string }>(`${this.base}/photos/upload-url`, { sizeBytes: blob.size }),
     );

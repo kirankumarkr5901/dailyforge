@@ -1,28 +1,39 @@
 <df-card class="photos">
   <div class="photos__head">
     <h2 class="photos__title">Progress photos</h2>
-    @if (enabled()) {
-      <label class="photos__add" [class.photos__add--busy]="uploading()">
+    @if (canAdd()) {
+      <label class="photos__add" [class.photos__add--busy]="busy()">
         <lucide-icon [img]="cameraIcon" [size]="18" aria-hidden="true" />
-        {{ uploading() ? 'Saving…' : 'Add photo' }}
-        <input class="photos__file" type="file" accept="image/*" [disabled]="uploading()" (change)="onPicked($event)" />
+        {{ busy() ? 'Saving…' : 'Add photo' }}
+        <input class="photos__file" type="file" accept="image/*" [disabled]="busy()" (change)="onPicked($event)" />
       </label>
     }
   </div>
 
-  @if (enabled() === false) {
-    <p class="photos__muted">Photo storage isn't set up on the server yet.</p>
-  } @else if (photos().length === 0) {
-    <p class="photos__muted">
-      Same spot, same light, every week or two. Photos are private: only you can see them.
+  @if (cloud() === false && canAdd()) {
+    <p class="photos__note">
+      Saved on this phone only. Clearing the browser's data, uninstalling the app or changing phones loses them.
     </p>
+  } @else if (cloud() && hasLocal()) {
+    <p class="photos__note">Some photos are still on this phone only. Open one to upload it to the cloud.</p>
+  }
+
+  @if (!canAdd()) {
+    <p class="photos__muted">This browser can't keep photos.</p>
+  } @else if (photos().length === 0) {
+    <p class="photos__muted">Same spot, same light, every week or two. Only you can see them.</p>
   } @else {
     <ul class="photos__grid">
       @for (photo of photos(); track photo.id; let i = $index) {
         <li>
           <button type="button" class="photos__thumb" [attr.aria-label]="'Photo from ' + formatLong(photo.takenOn)" (click)="viewing.set(i)">
             <img [src]="photo.url" alt="" loading="lazy" />
-            <span class="photos__date">{{ formatLong(photo.takenOn) }}</span>
+            <span class="photos__date">
+              {{ formatLong(photo.takenOn) }}
+              @if (photo.local && cloud()) {
+                <span class="photos__badge">On this phone</span>
+              }
+            </span>
           </button>
         </li>
       }
@@ -34,6 +45,12 @@
   @if (current(); as photo) {
     <div class="viewer">
       <img class="viewer__img" [src]="photo.url" [alt]="'Progress photo from ' + formatLong(photo.takenOn)" />
+      @if (photo.local && cloud()) {
+        <button dfButton type="button" variant="primary" [fullWidth]="true" [disabled]="busy()" (click)="uploadLocal(photo)">
+          <lucide-icon [img]="uploadIcon" [size]="16" aria-hidden="true" />
+          Upload to cloud
+        </button>
+      }
       <div class="viewer__bar">
         <button
           dfButton
