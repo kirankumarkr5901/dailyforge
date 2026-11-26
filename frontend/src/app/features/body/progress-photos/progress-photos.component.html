@@ -1,0 +1,60 @@
+<df-card class="photos">
+  <div class="photos__head">
+    <h2 class="photos__title">Progress photos</h2>
+    @if (enabled()) {
+      <label class="photos__add" [class.photos__add--busy]="uploading()">
+        <lucide-icon [img]="cameraIcon" [size]="18" aria-hidden="true" />
+        {{ uploading() ? 'Saving…' : 'Add photo' }}
+        <input class="photos__file" type="file" accept="image/*" [disabled]="uploading()" (change)="onPicked($event)" />
+      </label>
+    }
+  </div>
+
+  @if (enabled() === false) {
+    <p class="photos__muted">Photo storage isn't set up on the server yet.</p>
+  } @else if (photos().length === 0) {
+    <p class="photos__muted">
+      Same spot, same light, every week or two. Photos are private: only you can see them.
+    </p>
+  } @else {
+    <ul class="photos__grid">
+      @for (photo of photos(); track photo.id; let i = $index) {
+        <li>
+          <button type="button" class="photos__thumb" [attr.aria-label]="'Photo from ' + formatLong(photo.takenOn)" (click)="viewing.set(i)">
+            <img [src]="photo.url" alt="" loading="lazy" />
+            <span class="photos__date">{{ formatLong(photo.takenOn) }}</span>
+          </button>
+        </li>
+      }
+    </ul>
+  }
+</df-card>
+
+<df-sheet [open]="current() !== null" (openChange)="$event ? null : viewing.set(null)" [heading]="current() ? formatLong(current()!.takenOn) : ''">
+  @if (current(); as photo) {
+    <div class="viewer">
+      <img class="viewer__img" [src]="photo.url" [alt]="'Progress photo from ' + formatLong(photo.takenOn)" />
+      <div class="viewer__bar">
+        <button
+          dfButton
+          type="button"
+          variant="ghost"
+          [disabled]="viewing() === photos().length - 1"
+          (click)="step(1)"
+          aria-label="Older photo"
+        >
+          <lucide-icon [img]="prevIcon" [size]="18" aria-hidden="true" />
+          Older
+        </button>
+        <button dfButton type="button" variant="ghost" (click)="remove(photo)">
+          <lucide-icon [img]="deleteIcon" [size]="16" aria-hidden="true" />
+          Delete
+        </button>
+        <button dfButton type="button" variant="ghost" [disabled]="viewing() === 0" (click)="step(-1)" aria-label="Newer photo">
+          Newer
+          <lucide-icon [img]="nextIcon" [size]="18" aria-hidden="true" />
+        </button>
+      </div>
+    </div>
+  }
+</df-sheet>
