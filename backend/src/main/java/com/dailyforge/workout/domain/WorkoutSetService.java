@@ -105,6 +105,32 @@ public class WorkoutSetService {
             WeightMode weightMode,
             BigDecimal addedWeight,
             int reps) {
+        return logSet(userId, date, exerciseId, planId, dayIndex, enteredWeight, weightMode, addedWeight, reps, null);
+    }
+
+    /**
+     * As above, with the phone's own id for the set. A set sent again with an id this
+     * user already logged (an offline set retried after its first send got through)
+     * returns the saved set and changes nothing.
+     */
+    @Transactional
+    public SetWrite logSet(
+            UUID userId,
+            LocalDate date,
+            UUID exerciseId,
+            UUID planId,
+            Integer dayIndex,
+            BigDecimal enteredWeight,
+            WeightMode weightMode,
+            BigDecimal addedWeight,
+            int reps,
+            UUID clientId) {
+        if (clientId != null) {
+            var already = sets.findByUserIdAndClientId(userId, clientId);
+            if (already.isPresent()) {
+                return new SetWrite(already.get(), zeroResult(userId));
+            }
+        }
         requireEditableDate(userId, date);
         Exercise exercise = exerciseService.requireVisible(exerciseId, userId);
         checkSanityLimits(exercise.getEquipment(), enteredWeight, addedWeight, reps);
@@ -114,6 +140,7 @@ public class WorkoutSetService {
 
         WorkoutSet set =
                 WorkoutSet.log(session.getId(), exerciseId, exercise.getEquipment(), setNumber, enteredWeight, weightMode, addedWeight, reps);
+        set.assignClientId(clientId);
         sets.save(set);
 
         PointsResult reconciled = points.reconcile(userId, new ReconcileScope.ExercisePr(userId, exerciseId));

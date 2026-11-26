@@ -188,3 +188,15 @@
   margin-top: 2px;
   color: var(--heat-2);
 }
+
+/* A set saved on the phone with no signal: shown, counted, clearly not sent yet. */
+.exercise-card__set--pending {
+  color: var(--ink-muted);
+  font-style: italic;
+}
+
+.exercise-card__pending {
+  font-size: var(--text-xs);
+  font-style: normal;
+  font-weight: 600;
+}

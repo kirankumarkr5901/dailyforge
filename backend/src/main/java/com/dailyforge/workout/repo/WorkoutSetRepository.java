@@ -31,6 +31,12 @@ public interface WorkoutSetRepository extends JpaRepository<WorkoutSet, UUID> {
                     + "where sess.id = s.sessionId and sess.userId = :userId and s.exerciseId = :exerciseId")
     List<WorkoutSet> findAllForUserAndExercise(@Param("userId") UUID userId, @Param("exerciseId") UUID exerciseId);
 
+    /** A set this user already logged under the phone's own id, if any. */
+    @Query(
+            "select s from WorkoutSet s, WorkoutSession sess "
+                    + "where sess.id = s.sessionId and sess.userId = :userId and s.clientId = :clientId")
+    Optional<WorkoutSet> findByUserIdAndClientId(@Param("userId") UUID userId, @Param("clientId") UUID clientId);
+
     /** Ownership check for a single set, through its session — a set has no user_id column of its own. */
     @Query(
             "select s from WorkoutSet s, WorkoutSession sess "

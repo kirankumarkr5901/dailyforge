@@ -153,7 +153,9 @@ public final class WorkoutDtos {
             BigDecimal enteredWeight,
             @NotNull WeightMode weightMode,
             BigDecimal addedWeight,
-            @NotNull Integer reps) {}
+            @NotNull Integer reps,
+            /** The phone's own id for this set, so a resent offline set is saved once. */
+            UUID clientId) {}
 
     public record UpdateSetRequest(
             BigDecimal enteredWeight, @NotNull WeightMode weightMode, BigDecimal addedWeight, @NotNull Integer reps) {}

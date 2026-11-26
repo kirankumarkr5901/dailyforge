@@ -167,7 +167,8 @@ public class WorkoutController {
                         request.enteredWeight(),
                         request.weightMode(),
                         request.addedWeight(),
-                        request.reps());
+                        request.reps(),
+                        request.clientId());
         return SetWriteResponse.of(write.set(), write.points());
     }
 

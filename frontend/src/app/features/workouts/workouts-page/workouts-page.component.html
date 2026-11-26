@@ -168,6 +168,7 @@
         @for (entry of section.exercises; track entry.exerciseId) {
           <df-exercise-card
             [entry]="entry"
+            [pendingSets]="pendingFor(entry.exerciseId)"
             (logRequested)="openLogSheetForCard(entry)"
             (editSetRequested)="openEditSheet(entry, $event)"
             (deleteSetRequested)="deleteSet($event)"
@@ -221,6 +222,7 @@
   [lastSet]="lastSetForSheet()"
   (closed)="closeLogSheet()"
   (saved)="onSetSaved($event)"
+  (queued)="onSetsQueued($event)"
 />
 
 <df-exercise-picker-sheet [open]="pickerOpen()" (closed)="pickerOpen.set(false)" (picked)="onExercisePicked($event)" />

@@ -26,6 +26,11 @@ import { SessionStore } from '../../../core/auth/session.store';
 export class ExerciseCardComponent {
   protected readonly session = inject(SessionStore);
   readonly entry = input.required<ExerciseBoardEntry>();
+  /** Sets logged with no signal for this card, waiting on the phone to be sent. */
+  readonly pendingSets = input<readonly string[]>([]);
+
+  /** Sets on the server plus the ones waiting on the phone. */
+  private readonly setCount = computed(() => this.entry().sets.length + this.pendingSets().length);
 
   readonly logRequested = output<void>();
   readonly editSetRequested = output<WorkoutSet>();
@@ -64,7 +69,7 @@ export class ExerciseCardComponent {
     if (entry.completedAt) {
       return 'done';
     }
-    return entry.sets.length > 0 ? 'in-progress' : 'todo';
+    return this.setCount() > 0 ? 'in-progress' : 'todo';
   });
 
   protected readonly done = computed(() => this.state() === 'done');
@@ -74,15 +79,17 @@ export class ExerciseCardComponent {
    * get their own filled bubbles, so the row never under-reports what was done.
    */
   protected readonly bubbles = computed<boolean[] | null>(() => {
-    const { targetSets, sets } = this.entry();
+    const { targetSets } = this.entry();
+    const done = this.setCount();
     if (!targetSets) {
       return null;
     }
-    return Array.from({ length: Math.max(targetSets, sets.length) }, (_, i) => i < sets.length);
+    return Array.from({ length: Math.max(targetSets, done) }, (_, i) => i < done);
   });
 
   protected readonly targetLabel = computed<string | null>(() => {
-    const { targetSets, targetReps, targetRepsMax, sets } = this.entry();
+    const { targetSets, targetReps, targetRepsMax } = this.entry();
+    const sets = { length: this.setCount() };
     // `!= null` and a number check, not `!== null`: a server without rest times sends no
     // field at all, and formatting `undefined` is how the card once showed "NaN:NaN".
     const rest = typeof this.entry().restSeconds === 'number' ? this.entry().restSeconds : null;

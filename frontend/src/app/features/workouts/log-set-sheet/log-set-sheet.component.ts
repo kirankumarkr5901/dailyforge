@@ -10,6 +10,7 @@ import { Equipment, SetWriteResponse, WeightMode, WorkoutSet } from '../../../co
 import { DfButtonComponent } from '../../../shared/ui/df-button/df-button.component';
 import { DfSheetComponent } from '../../../shared/ui/df-sheet/df-sheet.component';
 import { DfStepperInputComponent } from '../../../shared/ui/df-stepper-input/df-stepper-input.component';
+import { WorkoutOutboxService, isOffline } from '../../../core/workouts/workout-outbox.service';
 
 /**
  * Weight / reps / mode, prefilled from the most recent log of the exercise (spec §8.3).
@@ -41,6 +42,10 @@ export class LogSetSheetComponent {
   /** One entry per set actually written — always one when editing, possibly several
    * when logging fresh sets at once. */
   readonly saved = output<SetWriteResponse[]>();
+  /** Sets saved on this phone because there was no signal; they send when it returns. */
+  readonly queued = output<number>();
+
+  private readonly outbox = inject(WorkoutOutboxService);
 
   protected readonly weight = signal(0);
   protected readonly weightMode = signal<WeightMode>('COMBINED');
@@ -138,26 +143,42 @@ export class LogSetSheetComponent {
         // landed. Whatever lands is emitted even if a later one in the batch fails —
         // sets already saved on the server must not silently vanish from the UI.
         const responses: SetWriteResponse[] = [];
+        let queued = 0;
         try {
           for (let i = 0; i < this.setCount(); i++) {
-            responses.push(
-              await firstValueFrom(
-                this.api.logSet({
-                  date: this.date()!,
-                  exerciseId: this.exerciseId()!,
-                  planId: this.planId(),
-                  dayIndex: this.dayIndex(),
-                  enteredWeight: this.isBodyweight() ? undefined : this.weight(),
-                  weightMode: this.weightMode(),
-                  addedWeight: this.isBodyweight() ? this.addedWeight() : undefined,
-                  reps: this.reps(),
-                }),
-              ),
-            );
+            const clientId = this.outbox.newId();
+            const payload = {
+              date: this.date()!,
+              exerciseId: this.exerciseId()!,
+              planId: this.planId(),
+              dayIndex: this.dayIndex(),
+              enteredWeight: this.isBodyweight() ? undefined : this.weight(),
+              weightMode: this.weightMode(),
+              addedWeight: this.isBodyweight() ? this.addedWeight() : undefined,
+              reps: this.reps(),
+              clientId,
+            };
+            // Once one set has gone to the queue, the rest follow it there, so they
+            // reach the server in the order they were done.
+            if (queued > 0) {
+              this.outbox.enqueue({ kind: 'set', clientId, payload, label: this.pendingLabel() });
+              queued++;
+              continue;
+            }
+            try {
+              responses.push(await firstValueFrom(this.api.logSet(payload)));
+            } catch (error) {
+              if (!isOffline(error)) throw error;
+              this.outbox.enqueue({ kind: 'set', clientId, payload, label: this.pendingLabel() });
+              queued++;
+            }
           }
         } finally {
           if (responses.length > 0) {
             this.saved.emit(responses);
+          }
+          if (queued > 0) {
+            this.queued.emit(queued);
           }
         }
       }
@@ -170,6 +191,15 @@ export class LogSetSheetComponent {
 
   protected close(): void {
     this.closed.emit();
+  }
+
+  /** "60 kg × 8", the way the card labels a set. */
+  private pendingLabel(): string {
+    if (this.isBodyweight()) {
+      return this.addedWeight() > 0 ? `BW + ${this.addedWeight()} kg × ${this.reps()}` : `BW × ${this.reps()}`;
+    }
+    const total = this.weightMode() === 'SINGLE' ? this.weight() * 2 : this.weight();
+    return `${total} kg × ${this.reps()}`;
   }
 
   private messageFor(error: unknown): string {

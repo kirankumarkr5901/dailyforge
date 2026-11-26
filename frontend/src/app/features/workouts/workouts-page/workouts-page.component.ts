@@ -47,6 +47,7 @@ import { PlanManagerSheetComponent } from '../plan-manager-sheet/plan-manager-sh
 import { ExerciseTargetsSheetComponent, TargetsContext } from '../exercise-targets-sheet/exercise-targets-sheet.component';
 import { RestTimerComponent } from '../rest-timer/rest-timer.component';
 import { RestTimerService } from '../rest-timer/rest-timer.service';
+import { PendingSet, WorkoutOutboxService, isOffline } from '../../../core/workouts/workout-outbox.service';
 
 /** Where an exercise has got to today. */
 type ExerciseStatus = 'todo' | 'in-progress' | 'done';
@@ -123,6 +124,26 @@ export class WorkoutsPageComponent {
   protected readonly error = signal<string | null>(null);
   protected readonly plans = signal<WorkoutPlan[]>([]);
   protected readonly targetsContext = signal<TargetsContext | null>(null);
+  private readonly outbox = inject(WorkoutOutboxService);
+
+  /** Labels of this exercise's sets waiting on the phone for the day on screen. */
+  protected pendingFor(exerciseId: string): string[] {
+    const date = this.viewedDate();
+    return this.outbox
+      .pending()
+      .filter((p): p is PendingSet => p.kind === 'set' && p.payload.exerciseId === exerciseId && p.payload.date === date)
+      .map((p) => p.label);
+  }
+
+  /** No signal: the sets wait on the phone. The rest timer still starts. */
+  protected onSetsQueued(count: number): void {
+    const entry = this.workoutSession()?.exercises.find((e) => e.exerciseId === this.logSheetContext()?.id);
+    this.closeLogSheet();
+    this.restTimer.start(typeof entry?.restSeconds === 'number' ? entry.restSeconds : undefined);
+    this.toasts.show(
+      count === 1 ? 'No signal. Saved on this phone; it sends when you are back online.' : `No signal. ${count} sets saved on this phone; they send when you are back online.`,
+    );
+  }
   private readonly mobility = inject(MobilityApi);
   protected readonly warmupFlow = signal<MobilityFlow | null>(null);
   protected readonly warmupLoading = signal(false);
@@ -336,6 +357,9 @@ export class WorkoutsPageComponent {
       }
       void this.loadAll();
     });
+
+    // Sets saved offline have reached the server: show them as real sets.
+    this.outbox.flushed.pipe(takeUntilDestroyed()).subscribe(() => void this.refreshSession());
   }
 
   private async loadAll(): Promise<void> {
@@ -524,7 +548,19 @@ export class WorkoutsPageComponent {
       } else {
         await firstValueFrom(this.api.reopenExercise(session.id, entry.exerciseId));
       }
-    } catch {
+    } catch (error) {
+      if (completedAt && isOffline(error)) {
+        // No signal: keep it marked here and send the mark when the signal returns.
+        this.outbox.enqueue({
+          kind: 'complete',
+          clientId: this.outbox.newId(),
+          sessionId: session.id,
+          exerciseId: entry.exerciseId,
+          date: session.date,
+        });
+        this.toasts.show('No signal. Marked complete on this phone; it sends when you are back online.');
+        return;
+      }
       this.patchEntry(entry.exerciseId, previous);
       this.toasts.show('That did not save. Check your connection and try again.');
     }
