@@ -55,7 +55,13 @@ public class ProteinController {
                 currentUser.require(),
                 request.date(),
                 request.foodName(),
-                new ProteinService.Amounts(orZero(request.grams()), orZero(request.kcal()), orZero(request.fatG()))));
+                new ProteinService.Amounts(
+                        orZero(request.grams()),
+                        orZero(request.kcal()),
+                        orZero(request.fatG()),
+                        orZero(request.carbsG()),
+                        orZero(request.fiberG()),
+                        orZero(request.sugarG()))));
     }
 
     @DeleteMapping("/logs/{id}")
@@ -66,7 +72,14 @@ public class ProteinController {
     @PutMapping("/target")
     public DayWriteResponse setTarget(@Valid @RequestBody TargetRequest request) {
         return DayWriteResponse.of(
-                protein.setTargets(currentUser.require(), request.targetG(), request.calorieBudget(), request.fatTargetG()));
+                protein.setTargets(
+                        currentUser.require(),
+                        request.targetG(),
+                        request.calorieBudget(),
+                        request.fatTargetG(),
+                        request.carbsTargetG(),
+                        request.fiberTargetG(),
+                        request.sugarLimitG()));
     }
 
     @PostMapping("/foods")
@@ -76,14 +89,29 @@ public class ProteinController {
         return FoodResponse.of(protein.addFood(
                 currentUser.require(),
                 request.name(),
-                new ProteinService.Amounts(orZero(request.grams()), orZero(request.kcal()), orZero(request.fatG()))));
+                new ProteinService.Amounts(
+                        orZero(request.grams()),
+                        orZero(request.kcal()),
+                        orZero(request.fatG()),
+                        orZero(request.carbsG()),
+                        orZero(request.fiberG()),
+                        orZero(request.sugarG()))));
     }
 
     @PatchMapping("/foods/{id}")
     @StructuralChange
     public FoodResponse updateFood(@PathVariable UUID id, @Valid @RequestBody UpdateFoodRequest request) {
         return FoodResponse.of(
-                protein.updateFood(currentUser.require(), id, request.name(), request.grams(), request.kcal(), request.fatG()));
+                protein.updateFood(
+                        currentUser.require(),
+                        id,
+                        request.name(),
+                        request.grams(),
+                        request.kcal(),
+                        request.fatG(),
+                        request.carbsG(),
+                        request.fiberG(),
+                        request.sugarG()));
     }
 
     @DeleteMapping("/foods/{id}")

@@ -52,6 +52,14 @@ public class UserSettings {
     @Column(name = "reminder_time")
     private LocalTime reminderTime;
 
+    /** Features switched off for now, comma-separated codes (V38). See {@link #FEATURES}. */
+    @Column(name = "disabled_features", nullable = false, length = 200)
+    private String disabledFeatures = "";
+
+    /** The features that can be switched off. Home, Workout and Settings always stay. */
+    public static final java.util.Set<String> FEATURES =
+            java.util.Set.of("NUTRITION", "GOALS", "FORGE", "JOBS", "SKILLS", "MOBILITY");
+
     /** "Enable edit": structural changes are refused while this is false (V27). */
     @Column(name = "editing_enabled", nullable = false)
     private boolean editingEnabled = false;
@@ -151,6 +159,20 @@ public class UserSettings {
 
     public boolean isEditingEnabled() {
         return editingEnabled;
+    }
+
+    public java.util.Set<String> getDisabledFeatures() {
+        return disabledFeatures.isBlank()
+                ? java.util.Set.of()
+                : java.util.Set.copyOf(java.util.Arrays.asList(disabledFeatures.split(",")));
+    }
+
+    public void setDisabledFeatures(java.util.Collection<String> features) {
+        this.disabledFeatures = String.join(",", new java.util.TreeSet<>(features));
+    }
+
+    public boolean isFeatureEnabled(String feature) {
+        return !getDisabledFeatures().contains(feature);
     }
 
     public void setEditingEnabled(boolean editingEnabled) {

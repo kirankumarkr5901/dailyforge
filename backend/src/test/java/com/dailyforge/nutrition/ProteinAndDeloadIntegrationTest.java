@@ -87,7 +87,7 @@ class ProteinAndDeloadIntegrationTest {
 
         assertThat(day.get("targetG").asInt()).isEqualTo(140);
         assertThat(day.get("totalG").asInt()).isZero();
-        assertThat(day.get("foods")).hasSize(12);
+        assertThat(day.get("foods")).hasSize(30);
         assertThat(day.get("foods").get(0).get("name").asString()).isEqualTo("2 eggs");
     }
 
@@ -173,6 +173,33 @@ class ProteinAndDeloadIntegrationTest {
         assertThat(after.get("totalKcal").asInt()).isEqualTo(490);
         assertThat(after.get("totalFatG").asInt()).isEqualTo(11);
         assertThat(after.get("totalG").asInt()).isEqualTo(12);
+    }
+
+    @Test
+    void carbsFiberAndSugarAddUpWithTheirOwnTargets() throws Exception {
+        JsonNode day = call(get("/api/v1/protein/day"));
+        assertThat(day.get("carbsTargetG").asInt()).isEqualTo(250);
+        assertThat(day.get("fiberTargetG").asInt()).isEqualTo(30);
+        assertThat(day.get("sugarLimitG").asInt()).isEqualTo(50);
+        assertThat(day.get("foods").get(0).get("carbsG").asInt()).isEqualTo(1);
+
+        JsonNode after = call(post("/api/v1/protein/logs").content("{\"date\":\"" + TODAY
+                + "\",\"foodName\":\"Oats\",\"grams\":10,\"kcal\":300,\"fatG\":5,\"carbsG\":54,\"fiberG\":8,\"sugarG\":2}"))
+                .get("day");
+        assertThat(after.get("totalCarbsG").asInt()).isEqualTo(54);
+        assertThat(after.get("totalFiberG").asInt()).isEqualTo(8);
+        assertThat(after.get("totalSugarG").asInt()).isEqualTo(2);
+        assertThat(after.get("entries").get(0).get("fiberG").asInt()).isEqualTo(8);
+
+        JsonNode targets = call(put("/api/v1/protein/target")
+                .content("{\"carbsTargetG\":200,\"fiberTargetG\":35,\"sugarLimitG\":40}")).get("day");
+        assertThat(targets.get("carbsTargetG").asInt()).isEqualTo(200);
+        assertThat(targets.get("fiberTargetG").asInt()).isEqualTo(35);
+        assertThat(targets.get("sugarLimitG").asInt()).isEqualTo(40);
+        assertThat(targets.get("targetG").asInt()).isEqualTo(140);
+
+        mockMvc.perform(auth(put("/api/v1/protein/target")).content("{\"fiberTargetG\":1}"))
+                .andExpect(status().is4xxClientError());
     }
 
     @Test

@@ -33,27 +33,59 @@ public class ProteinService {
 
     /** The starter list, from the Cut Block plan. Each user gets an editable copy. */
     static final List<StarterFood> STARTER_FOODS = List.of(
-            new StarterFood("2 eggs", 12, 140, 10),
-            new StarterFood("Chicken 100 g", 31, 165, 4),
-            new StarterFood("Paneer 100 g", 18, 265, 21),
-            new StarterFood("Curd 200 g", 7, 120, 6),
-            new StarterFood("Greek yogurt 150 g", 15, 100, 3),
-            new StarterFood("Soya chunks 50 g", 26, 172, 0),
-            new StarterFood("Dal bowl", 9, 180, 5),
-            new StarterFood("Whey scoop", 24, 120, 2),
-            new StarterFood("Milk 250 ml", 8, 150, 8),
-            new StarterFood("Fish 100 g", 22, 130, 3),
-            new StarterFood("Chana 1 cup", 12, 270, 4),
-            new StarterFood("Tofu 100 g", 12, 145, 9));
+            new StarterFood("2 eggs", 12, 140, 10, 1, 0, 1),
+            new StarterFood("Chicken 100 g", 31, 165, 4, 0, 0, 0),
+            new StarterFood("Paneer 100 g", 18, 265, 21, 3, 0, 3),
+            new StarterFood("Curd 200 g", 7, 120, 6, 9, 0, 9),
+            new StarterFood("Greek yogurt 150 g", 15, 100, 3, 6, 0, 5),
+            new StarterFood("Soya chunks 50 g", 26, 172, 0, 17, 7, 4),
+            new StarterFood("Dal bowl", 9, 180, 5, 25, 6, 1),
+            new StarterFood("Whey scoop", 24, 120, 2, 3, 0, 2),
+            new StarterFood("Milk 250 ml", 8, 150, 8, 12, 0, 12),
+            new StarterFood("Fish 100 g", 22, 130, 3, 0, 0, 0),
+            new StarterFood("Chana 1 cup", 12, 270, 4, 45, 12, 8),
+            new StarterFood("Tofu 100 g", 12, 145, 9, 3, 2, 1));
+
+    /**
+     * Version 2 of the starter list: common Indian dishes and servings. Typical values per
+     * serving (protein g, kcal, fat g, carbs g, fiber g, sugar g); home recipes vary, so
+     * every value is the user's to correct in Settings.
+     */
+    static final List<StarterFood> INDIAN_FOODS = List.of(
+            new StarterFood("Chicken biryani 100 g", 8, 180, 7, 22, 1, 1),
+            new StarterFood("Veg biryani 100 g", 4, 150, 5, 23, 2, 2),
+            new StarterFood("Dal (raw) 50 g", 12, 175, 1, 30, 8, 1),
+            new StarterFood("1 plain dosa", 3, 120, 4, 18, 1, 0),
+            new StarterFood("1 masala dosa", 5, 250, 10, 35, 3, 2),
+            new StarterFood("1 idli", 2, 40, 0, 8, 1, 0),
+            new StarterFood("1 chapati / roti", 3, 105, 3, 16, 2, 0),
+            new StarterFood("1 plain paratha", 5, 230, 9, 32, 3, 1),
+            new StarterFood("Rice 1 cup (cooked)", 4, 205, 0, 45, 1, 0),
+            new StarterFood("Sambar 1 bowl", 6, 130, 4, 18, 5, 3),
+            new StarterFood("Rajma 1 bowl", 10, 210, 5, 30, 8, 2),
+            new StarterFood("Chole 1 bowl", 10, 250, 9, 32, 9, 3),
+            new StarterFood("1 egg omelette", 6, 95, 7, 1, 0, 0),
+            new StarterFood("Egg bhurji (2 eggs)", 13, 200, 15, 3, 1, 1),
+            new StarterFood("Poha 1 plate", 5, 250, 8, 40, 2, 2),
+            new StarterFood("Upma 1 plate", 6, 250, 9, 36, 3, 2),
+            new StarterFood("Chicken curry 1 bowl", 22, 250, 15, 6, 1, 2),
+            new StarterFood("Paneer butter masala 1 bowl", 14, 350, 26, 12, 2, 5));
+
+    /** The current starter list version: 1 = the first twelve foods, 2 = plus INDIAN_FOODS. */
+    static final int STARTER_VERSION = 2;
 
     /** Typical values per serving; each user's copy is theirs to correct. */
-    record StarterFood(String name, int grams, int kcal, int fatG) {}
+    record StarterFood(String name, int grams, int kcal, int fatG, int carbsG, int fiberG, int sugarG) {}
 
     public static final int MAX_KCAL = 3000;
     public static final int MAX_FAT_G = 300;
 
-    /** What one entry adds: protein, calories, fat. At least one must be above zero. */
-    public record Amounts(int proteinG, int kcal, int fatG) {}
+    /** What one entry adds. At least one of protein, calories and fat must be above zero. */
+    public record Amounts(int proteinG, int kcal, int fatG, int carbsG, int fiberG, int sugarG) {
+        public Amounts(int proteinG, int kcal, int fatG) {
+            this(proteinG, kcal, fatG, 0, 0, 0);
+        }
+    }
 
     public record Day(
             LocalDate date,
@@ -63,6 +95,12 @@ public class ProteinService {
             int totalKcal,
             int fatTargetG,
             int totalFatG,
+            int carbsTargetG,
+            int totalCarbsG,
+            int fiberTargetG,
+            int totalFiberG,
+            int sugarLimitG,
+            int totalSugarG,
             List<ProteinLog> logs,
             List<ProteinFood> foods) {}
 
@@ -98,13 +136,37 @@ public class ProteinService {
     public NutritionSettings settings(UUID userId) {
         NutritionSettings settings = settingsRepo.findById(userId).orElseGet(() -> NutritionSettings.defaultsFor(userId));
         if (!settings.isFoodsSeeded()) {
-            for (int i = 0; i < STARTER_FOODS.size(); i++) {
-                StarterFood f = STARTER_FOODS.get(i);
-                foods.save(ProteinFood.create(userId, f.name(), f.grams(), f.kcal(), f.fatG(), i));
+            int i = 0;
+            for (StarterFood f : STARTER_FOODS) {
+                saveStarter(userId, f, i++);
+            }
+            for (StarterFood f : INDIAN_FOODS) {
+                saveStarter(userId, f, i++);
             }
             settings.markFoodsSeeded();
+            settings.setStarterVersion(STARTER_VERSION);
+        } else if (settings.getStarterVersion() < STARTER_VERSION) {
+            // Already has a list: add only the newer foods, once, skipping any name the user
+            // already has. Foods they deleted from the older list never come back.
+            var existing = foods.findAllByUserIdOrderBySortOrderAscNameAsc(userId);
+            java.util.Set<String> names = existing.stream()
+                    .map(f -> f.getName().toLowerCase(java.util.Locale.ROOT))
+                    .collect(java.util.stream.Collectors.toSet());
+            int next = existing.stream().mapToInt(ProteinFood::getSortOrder).max().orElse(-1) + 1;
+            for (StarterFood f : INDIAN_FOODS) {
+                if (!names.contains(f.name().toLowerCase(java.util.Locale.ROOT))) {
+                    saveStarter(userId, f, next++);
+                }
+            }
+            settings.setStarterVersion(STARTER_VERSION);
         }
         return settingsRepo.save(settings);
+    }
+
+    private void saveStarter(UUID userId, StarterFood f, int sortOrder) {
+        ProteinFood food = ProteinFood.create(userId, f.name(), f.grams(), f.kcal(), f.fatG(), sortOrder);
+        food.updateMore(f.carbsG(), f.fiberG(), f.sugarG());
+        foods.save(food);
     }
 
     public LocalDate today(UUID userId) {
@@ -123,6 +185,12 @@ public class ProteinService {
                 dayLogs.stream().mapToInt(ProteinLog::getKcal).sum(),
                 settings.getFatTargetG(),
                 dayLogs.stream().mapToInt(ProteinLog::getFatG).sum(),
+                settings.getCarbsTargetG(),
+                dayLogs.stream().mapToInt(ProteinLog::getCarbsG).sum(),
+                settings.getFiberTargetG(),
+                dayLogs.stream().mapToInt(ProteinLog::getFiberG).sum(),
+                settings.getSugarLimitG(),
+                dayLogs.stream().mapToInt(ProteinLog::getSugarG).sum(),
                 dayLogs,
                 foods.findAllByUserIdOrderBySortOrderAscNameAsc(userId));
     }
@@ -131,7 +199,16 @@ public class ProteinService {
     public DayWrite log(UUID userId, LocalDate date, String foodName, Amounts amounts) {
         requireEditableDate(userId, date);
         requireAmounts(amounts);
-        logs.save(ProteinLog.create(userId, date, foodName.trim(), amounts.proteinG(), amounts.kcal(), amounts.fatG()));
+        logs.save(ProteinLog.create(
+                userId,
+                date,
+                foodName.trim(),
+                amounts.proteinG(),
+                amounts.kcal(),
+                amounts.fatG(),
+                amounts.carbsG(),
+                amounts.fiberG(),
+                amounts.sugarG()));
         logs.flush();
         return new DayWrite(day(userId, date), reconcile(userId, date));
     }
@@ -152,6 +229,27 @@ public class ProteinService {
      */
     @Transactional
     public DayWrite setTargets(UUID userId, Integer targetG, Integer calorieBudget, Integer fatTargetG) {
+        return setTargets(userId, targetG, calorieBudget, fatTargetG, null, null, null);
+    }
+
+    @Transactional
+    public DayWrite setTargets(
+            UUID userId,
+            Integer targetG,
+            Integer calorieBudget,
+            Integer fatTargetG,
+            Integer carbsTargetG,
+            Integer fiberTargetG,
+            Integer sugarLimitG) {
+        if (carbsTargetG != null && (carbsTargetG < 10 || carbsTargetG > 800)) {
+            throw ApiException.outOfRange("carbsTargetG", "Pick a carbs target between 10 and 800 g.");
+        }
+        if (fiberTargetG != null && (fiberTargetG < 5 || fiberTargetG > 100)) {
+            throw ApiException.outOfRange("fiberTargetG", "Pick a fiber target between 5 and 100 g.");
+        }
+        if (sugarLimitG != null && (sugarLimitG < 5 || sugarLimitG > 300)) {
+            throw ApiException.outOfRange("sugarLimitG", "Pick a sugar limit between 5 and 300 g.");
+        }
         if (targetG != null && (targetG < 1 || targetG > MAX_TARGET_G)) {
             throw ApiException.outOfRange("targetG", "Pick a protein target between 1 and " + MAX_TARGET_G + " g.");
         }
@@ -165,6 +263,9 @@ public class ProteinService {
         if (targetG != null) settings.setProteinTargetG(targetG);
         if (calorieBudget != null) settings.setCalorieBudget(calorieBudget);
         if (fatTargetG != null) settings.setFatTargetG(fatTargetG);
+        if (carbsTargetG != null) settings.setCarbsTargetG(carbsTargetG);
+        if (fiberTargetG != null) settings.setFiberTargetG(fiberTargetG);
+        if (sugarLimitG != null) settings.setSugarLimitG(sugarLimitG);
         settingsRepo.saveAndFlush(settings);
         LocalDate today = today(userId);
         return new DayWrite(day(userId, today), reconcile(userId, today));
@@ -178,19 +279,39 @@ public class ProteinService {
                 .mapToInt(ProteinFood::getSortOrder)
                 .max()
                 .orElse(-1) + 1;
-        return foods.save(ProteinFood.create(userId, name.trim(), amounts.proteinG(), amounts.kcal(), amounts.fatG(), next));
+        ProteinFood food = ProteinFood.create(userId, name.trim(), amounts.proteinG(), amounts.kcal(), amounts.fatG(), next);
+        food.updateMore(amounts.carbsG(), amounts.fiberG(), amounts.sugarG());
+        return foods.save(food);
     }
 
     @Transactional
     public ProteinFood updateFood(UUID userId, UUID foodId, String name, Integer grams, Integer kcal, Integer fatG) {
+        return updateFood(userId, foodId, name, grams, kcal, fatG, null, null, null);
+    }
+
+    @Transactional
+    public ProteinFood updateFood(
+            UUID userId,
+            UUID foodId,
+            String name,
+            Integer grams,
+            Integer kcal,
+            Integer fatG,
+            Integer carbsG,
+            Integer fiberG,
+            Integer sugarG) {
         ProteinFood food = requireFood(userId, foodId);
         Amounts next = new Amounts(
                 grams != null ? grams : food.getGrams(),
                 kcal != null ? kcal : food.getKcal(),
-                fatG != null ? fatG : food.getFatG());
+                fatG != null ? fatG : food.getFatG(),
+                carbsG != null ? carbsG : food.getCarbsG(),
+                fiberG != null ? fiberG : food.getFiberG(),
+                sugarG != null ? sugarG : food.getSugarG());
         requireAmounts(next);
         food.update(
                 name != null && !name.isBlank() ? name.trim() : food.getName(), next.proteinG(), next.kcal(), next.fatG());
+        food.updateMore(next.carbsG(), next.fiberG(), next.sugarG());
         return foods.save(food);
     }
 
@@ -219,6 +340,9 @@ public class ProteinService {
         }
         if (a.fatG() < 0 || a.fatG() > MAX_FAT_G) {
             throw ApiException.outOfRange("fatG", "Fat per serving must be between 0 and " + MAX_FAT_G + " g.");
+        }
+        if (a.carbsG() < 0 || a.carbsG() > 500 || a.fiberG() < 0 || a.fiberG() > 100 || a.sugarG() < 0 || a.sugarG() > 300) {
+            throw ApiException.outOfRange("carbsG", "Carbs 0-500 g, fiber 0-100 g and sugar 0-300 g per serving.");
         }
         if (a.proteinG() == 0 && a.kcal() == 0 && a.fatG() == 0) {
             throw ApiException.outOfRange("grams", "Enter at least one of protein, calories or fat.");

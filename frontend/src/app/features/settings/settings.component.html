@@ -70,52 +70,6 @@
   }
 </section>
 
-<section class="page__section" id="app">
-  <h2 class="page__heading">
-    <button
-      type="button"
-      class="page__toggle"
-      [attr.aria-expanded]="isOpen('app')"
-      aria-controls="settings-app"
-      (click)="toggle('app')"
-    >
-      <span>This app</span>
-      <lucide-icon class="page__chevron" [class.page__chevron--open]="isOpen('app')" [img]="chevronIcon" [size]="20" aria-hidden="true" />
-    </button>
-  </h2>
-  @if (isOpen('app')) {
-    <div id="settings-app">
-    <df-card>
-      <div class="stack">
-        <!-- Only the install prompt is conditional. The version stays visible once
-             installed — that is precisely when you need to know which build you are on,
-             since an installed app updates itself and gives no other clue that it did. -->
-        @if (!install.isStandalone()) {
-          @if (install.canInstall()) {
-            <p class="page__hint">
-              Install DailyForge to your home screen. It opens without browser chrome and updates itself
-              whenever a new version ships — there is nothing to reinstall.
-            </p>
-            <button dfButton type="button" variant="primary" (click)="installApp()">Install app</button>
-          } @else {
-            <p class="page__hint">
-              To install: open your browser menu and choose “Add to home screen”. It opens without
-              browser chrome and updates itself whenever a new version ships.
-            </p>
-          }
-        }
-        <div class="settings__about">
-          <p class="settings__credit">Built by Kirankumar K R</p>
-          <p class="page__hint page__hint--version">
-            DailyForge · MIT licensed · Version {{ appVersion }}
-          </p>
-        </div>
-      </div>
-    </df-card>
-    </div>
-  }
-</section>
-
 <section class="page__section" id="help">
   <h2 class="page__heading">
     <button
@@ -244,6 +198,106 @@
     }
   </section>
 
+
+  <section class="page__section" id="features">
+    <h2 class="page__heading">
+      <button
+        type="button"
+        class="page__toggle"
+        [attr.aria-expanded]="isOpen('features')"
+        aria-controls="settings-features"
+        (click)="toggle('features')"
+      >
+        <span>Features</span>
+        <lucide-icon class="page__chevron" [class.page__chevron--open]="isOpen('features')" [img]="chevronIcon" [size]="20" aria-hidden="true" />
+      </button>
+    </h2>
+    @if (isOpen('features')) {
+      <div id="settings-features">
+        <df-card>
+          <p class="settings__muted">
+            Switch off what you're not using now. It disappears from the menu and Home and its automatic points pause;
+            everything you logged stays and comes back when you switch it on.
+          </p>
+          @if (!session.editingEnabled()) {
+            <p class="settings__muted">Turn on <strong>Enable edit</strong> above to change these.</p>
+          }
+          <div class="stack">
+            @for (f of features; track f.code) {
+              <df-switch
+                [label]="f.label"
+                [hint]="f.hint"
+                [disabled]="!session.editingEnabled() || saving()"
+                [ngModel]="session.featureEnabled(f.code)"
+                (ngModelChange)="setFeature(f.code, $event)"
+              />
+            }
+          </div>
+        </df-card>
+      </div>
+    }
+  </section>
+} @else {
+  <section class="page__section">
+    <df-empty-state
+      [icon]="settingsIcon"
+      [title]="'auth.anonymous.title' | t"
+      [body]="'auth.anonymous.body' | t"
+    >
+      <button dfButton type="button" variant="primary" (click)="signIn()">
+        {{ 'auth.signIn' | t }}
+      </button>
+    </df-empty-state>
+  </section>
+}
+
+<section class="page__section" id="app">
+  <h2 class="page__heading">
+    <button
+      type="button"
+      class="page__toggle"
+      [attr.aria-expanded]="isOpen('app')"
+      aria-controls="settings-app"
+      (click)="toggle('app')"
+    >
+      <span>This app</span>
+      <lucide-icon class="page__chevron" [class.page__chevron--open]="isOpen('app')" [img]="chevronIcon" [size]="20" aria-hidden="true" />
+    </button>
+  </h2>
+  @if (isOpen('app')) {
+    <div id="settings-app">
+    <df-card>
+      <div class="stack">
+        <!-- Only the install prompt is conditional. The version stays visible once
+             installed — that is precisely when you need to know which build you are on,
+             since an installed app updates itself and gives no other clue that it did. -->
+        @if (!install.isStandalone()) {
+          @if (install.canInstall()) {
+            <p class="page__hint">
+              Install DailyForge to your home screen. It opens without browser chrome and updates itself
+              whenever a new version ships — there is nothing to reinstall.
+            </p>
+            <button dfButton type="button" variant="primary" (click)="installApp()">Install app</button>
+          } @else {
+            <p class="page__hint">
+              To install: open your browser menu and choose “Add to home screen”. It opens without
+              browser chrome and updates itself whenever a new version ships.
+            </p>
+          }
+        }
+        <div class="settings__about">
+          <p class="settings__credit">Built by Kirankumar K R</p>
+          <p class="page__hint page__hint--version">
+            DailyForge · MIT licensed · Version {{ appVersion }}
+          </p>
+        </div>
+      </div>
+    </df-card>
+    </div>
+  }
+</section>
+
+@if (session.isAuthenticated()) {
   <section class="page__section" id="account">
     <h2 class="page__heading">
       <button
@@ -294,17 +348,5 @@
       </df-card>
       </div>
     }
-  </section>
-} @else {
-  <section class="page__section">
-    <df-empty-state
-      [icon]="settingsIcon"
-      [title]="'auth.anonymous.title' | t"
-      [body]="'auth.anonymous.body' | t"
-    >
-      <button dfButton type="button" variant="primary" (click)="signIn()">
-        {{ 'auth.signIn' | t }}
-      </button>
-    </df-empty-state>
   </section>
 }

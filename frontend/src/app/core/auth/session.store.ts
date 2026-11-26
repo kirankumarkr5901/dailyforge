@@ -41,6 +41,13 @@ export class SessionStore {
    */
   readonly editingEnabled = computed(() => this._user()?.settings.editingEnabled ?? false);
 
+  /** Switched-off features (Settings → Features). Guests see everything. */
+  readonly disabledFeatures = computed(() => new Set(this._user()?.settings.disabledFeatures ?? []));
+
+  featureEnabled(code: string): boolean {
+    return !this.disabledFeatures().has(code);
+  }
+
   /**
    * The user's time zone. Everything day-shaped in this app belongs to it, so it is read
    * from the browser only for a brand-new signup — after that the server's stored value

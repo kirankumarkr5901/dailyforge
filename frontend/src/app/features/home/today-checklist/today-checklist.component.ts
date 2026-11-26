@@ -12,6 +12,7 @@ import { SkillsApi } from '../../../core/skills/skills.api';
 import { LogicalDate } from '../../../core/time/logical-date';
 import { DfCardComponent } from '../../../shared/ui/df-card/df-card.component';
 import { ToastService } from '../../../shared/ui/df-toast/toast.service';
+import { SessionStore } from '../../../core/auth/session.store';
 
 /** One line of the checklist: either tickable here, or a link to where it is done. */
 interface Item {
@@ -46,6 +47,7 @@ export class TodayChecklistComponent {
   private readonly home = inject(HomeApi);
   private readonly points = inject(PointsStore);
   private readonly toasts = inject(ToastService);
+  private readonly session = inject(SessionStore);
 
   readonly date = input.required<LogicalDate>();
 
@@ -106,7 +108,7 @@ export class TodayChecklistComponent {
       items.push({ key: 'workout', label: 'Workout', detail: trained ? 'Logged today' : null, done: trained, link: '/workout' });
     }
 
-    if (skills.status === 'fulfilled') {
+    if (skills.status === 'fulfilled' && this.session.featureEnabled('SKILLS')) {
       const doneSkills = skills.value.skills.filter((s) => s.doneOnDate).length;
       items.push({
         key: 'skills',
@@ -117,7 +119,7 @@ export class TodayChecklistComponent {
       });
     }
 
-    if (protein.status === 'fulfilled') {
+    if (protein.status === 'fulfilled' && this.session.featureEnabled('NUTRITION')) {
       const p = protein.value;
       items.push({
         key: 'protein',

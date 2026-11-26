@@ -57,7 +57,10 @@ public class HomeSummaryService {
         ZoneId zone = dayService.zoneOf(identity.requireSettings(userId).getTimeZone());
         Quote quote = quotes.forDate(userId, date);
         ScoreSnapshot score = points.snapshot(userId, zone);
-        List<Goal> activeGoals = goalService.list(userId, GoalStatus.ACTIVE);
+        // Goals switched off: not read at all, so none auto-completes and pays from Home.
+        List<Goal> activeGoals = identity.requireSettings(userId).isFeatureEnabled("GOALS")
+                ? goalService.list(userId, GoalStatus.ACTIVE)
+                : List.of();
         List<PointsEntry> recentLedger =
                 entries.findAllByUserIdOrderByOccurredOnDescCreatedAtDesc(userId, PageRequest.of(0, 20)).getContent();
         return new HomeSummary(date, quote, score, activeGoals, recentLedger);

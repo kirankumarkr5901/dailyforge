@@ -127,6 +127,27 @@ public class MeController {
             settings.setEditingEnabled(request.editingEnabled());
         }
 
+        // Switching features on or off is structure, like adding a habit: it needs
+        // "Enable edit" (owner decision). Checked after the editing switch above, so one
+        // request may turn editing on and change features together.
+        if (request.disabledFeatures() != null) {
+            java.util.Set<String> wanted = new java.util.TreeSet<>(request.disabledFeatures());
+            for (String f : wanted) {
+                if (!UserSettings.FEATURES.contains(f)) {
+                    throw ApiException.outOfRange("disabledFeatures", "Unknown feature: " + f);
+                }
+            }
+            if (!wanted.equals(new java.util.TreeSet<>(settings.getDisabledFeatures()))) {
+                if (!settings.isEditingEnabled()) {
+                    throw new ApiException(
+                            com.dailyforge.common.error.ErrorCode.EDITING_LOCKED,
+                            org.springframework.http.HttpStatus.FORBIDDEN,
+                            "Editing is off. Turn on \"Enable edit\" in Settings to change this.");
+                }
+                settings.setDisabledFeatures(wanted);
+            }
+        }
+
         settingsRepository.save(settings);
         return SettingsResponse.of(settings);
     }

@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { environment } from '../environments/environment';
+import { featureGuard } from './core/features/feature.guard';
 
 /**
  * Every route is lazy except the shell itself (spec §10).
@@ -69,18 +70,21 @@ export const routes: Routes = [
       },
       {
         path: 'forge',
+        canActivate: [featureGuard('FORGE')],
         title: 'Forge 66 — DailyForge',
         loadComponent: () =>
           import('./features/forge/forge-page/forge-page.component').then((m) => m.ForgePageComponent),
       },
       {
         path: 'goals',
+        canActivate: [featureGuard('GOALS')],
         title: 'Goals — DailyForge',
         loadComponent: () =>
           import('./features/goals/goals-page/goals-page.component').then((m) => m.GoalsPageComponent),
       },
       {
         path: 'jobs',
+        canActivate: [featureGuard('JOBS')],
         title: 'Jobs — DailyForge',
         loadComponent: () =>
           import('./features/jobs/jobs-page/jobs-page.component').then((m) => m.JobsPageComponent),
@@ -93,18 +97,21 @@ export const routes: Routes = [
       },
       {
         path: 'mobility',
+        canActivate: [featureGuard('MOBILITY')],
         title: 'Mobility — DailyForge',
         loadComponent: () =>
           import('./features/mobility/mobility-page/mobility-page.component').then((m) => m.MobilityPageComponent),
       },
       {
         path: 'skills',
+        canActivate: [featureGuard('SKILLS')],
         title: 'Skills — DailyForge',
         loadComponent: () =>
           import('./features/skills/skills-page/skills-page.component').then((m) => m.SkillsPageComponent),
       },
       {
         path: 'nutrition',
+        canActivate: [featureGuard('NUTRITION')],
         title: 'Nutrition — DailyForge',
         loadComponent: () =>
           import('./features/nutrition/nutrition-page/nutrition-page.component').then((m) => m.NutritionPageComponent),

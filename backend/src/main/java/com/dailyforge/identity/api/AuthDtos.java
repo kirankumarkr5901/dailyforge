@@ -84,6 +84,8 @@ public final class AuthDtos {
             Instant onboardingCompletedAt,
             /** "Enable edit": while false, structural changes are refused. */
             boolean editingEnabled,
+            /** Features switched off for now: hidden, automatic points paused, data kept. */
+            java.util.List<String> disabledFeatures,
             /** Sent back on edit as If-Match so a stale device cannot overwrite a newer one. */
             long version) {
 
@@ -98,6 +100,7 @@ public final class AuthDtos {
                     settings.getReminderTime(),
                     settings.getOnboardingCompletedAt(),
                     settings.isEditingEnabled(),
+                    settings.getDisabledFeatures().stream().sorted().toList(),
                     settings.getVersion());
         }
     }
@@ -111,7 +114,9 @@ public final class AuthDtos {
             BigDecimal heightCm,
             LocalTime reminderTime,
             Boolean onboardingCompleted,
-            Boolean editingEnabled) {}
+            Boolean editingEnabled,
+            /** The full list of switched-off features; changing it needs "Enable edit". */
+            java.util.List<String> disabledFeatures) {}
 
     /** Tells the frontend which sign-in methods this deployment actually offers. */
     /** {@code googleClientId} is null when Google is off; it is public, not a secret. */

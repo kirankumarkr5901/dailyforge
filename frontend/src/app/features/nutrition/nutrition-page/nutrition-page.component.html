@@ -68,24 +68,29 @@
         </div>
       }
 
-      <div class="nutrition__row">
-        <div class="nutrition__row-head">
-          <span class="nutrition__row-name">Fat</span>
-          <span class="nutrition__total">
-            <span class="nutrition__total-value">{{ d.totalFatG }}</span>
-            <span class="nutrition__total-target">/ {{ d.fatTargetG }} g</span>
-          </span>
-        </div>
-        <div
-          class="nutrition__meter"
-          role="progressbar"
-          [attr.aria-valuenow]="d.totalFatG"
-          [attr.aria-valuemin]="0"
-          [attr.aria-valuemax]="d.fatTargetG"
-          [attr.aria-label]="d.totalFatG + ' of ' + d.fatTargetG + ' grams of fat'"
-        >
-          <span class="nutrition__meter-fill" [style.width.%]="fatPercent()"></span>
-        </div>
+      <!-- Fat, carbs, fiber and sugar: compact rows under the two headline meters. -->
+      <div class="nutrition__macros">
+        @for (m of macroRows(); track m.name) {
+          <div class="nutrition__macro">
+            <div class="nutrition__row-head">
+              <span class="nutrition__row-name">{{ m.name }}</span>
+              <span class="nutrition__macro-value" [class.nutrition__message--over]="m.over">
+                {{ m.total }} / {{ m.target }} g{{ m.limit ? ' limit' : '' }}
+              </span>
+            </div>
+            <div
+              class="nutrition__meter nutrition__meter--thin"
+              [class.nutrition__meter--over]="m.over"
+              role="progressbar"
+              [attr.aria-valuenow]="m.total"
+              [attr.aria-valuemin]="0"
+              [attr.aria-valuemax]="m.target"
+              [attr.aria-label]="m.total + ' of ' + m.target + ' grams of ' + m.name.toLowerCase() + (m.over ? ', over the limit' : '')"
+            >
+              <span class="nutrition__meter-fill" [style.width.%]="m.percent"></span>
+            </div>
+          </div>
+        }
       </div>
     </df-card>
 
@@ -118,6 +123,9 @@
         <df-stepper-input label="Protein (g)" [min]="0" [max]="200" [ngModel]="otherGrams()" (ngModelChange)="otherGrams.set($event)" />
         <df-stepper-input label="Calories" [min]="0" [max]="3000" [step]="10" [ngModel]="otherKcal()" (ngModelChange)="otherKcal.set($event)" />
         <df-stepper-input label="Fat (g)" [min]="0" [max]="300" [ngModel]="otherFat()" (ngModelChange)="otherFat.set($event)" />
+        <df-stepper-input label="Carbs (g)" [min]="0" [max]="500" [ngModel]="otherCarbs()" (ngModelChange)="otherCarbs.set($event)" />
+        <df-stepper-input label="Fiber (g)" [min]="0" [max]="100" [ngModel]="otherFiber()" (ngModelChange)="otherFiber.set($event)" />
+        <df-stepper-input label="Sugar (g)" [min]="0" [max]="300" [ngModel]="otherSugar()" (ngModelChange)="otherSugar.set($event)" />
         <button dfButton type="button" variant="secondary" [disabled]="busy()" (click)="eatOther()">
           <lucide-icon [img]="plusIcon" [size]="16" aria-hidden="true" />
           Add

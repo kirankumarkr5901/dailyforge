@@ -21,6 +21,9 @@ public class NutritionSettings {
     public static final int DEFAULT_TARGET_G = 140;
     public static final int DEFAULT_CALORIE_BUDGET = 2250;
     public static final int DEFAULT_FAT_TARGET_G = 70;
+    public static final int DEFAULT_CARBS_TARGET_G = 250;
+    public static final int DEFAULT_FIBER_TARGET_G = 30;
+    public static final int DEFAULT_SUGAR_LIMIT_G = 50;
 
     @Id
     @Column(name = "user_id", nullable = false)
@@ -35,6 +38,20 @@ public class NutritionSettings {
 
     @Column(name = "fat_target_g", nullable = false)
     private int fatTargetG = DEFAULT_FAT_TARGET_G;
+
+    @Column(name = "carbs_target_g", nullable = false)
+    private int carbsTargetG = DEFAULT_CARBS_TARGET_G;
+
+    @Column(name = "fiber_target_g", nullable = false)
+    private int fiberTargetG = DEFAULT_FIBER_TARGET_G;
+
+    /** Sugar is a limit to stay under, not a target. */
+    @Column(name = "sugar_limit_g", nullable = false)
+    private int sugarLimitG = DEFAULT_SUGAR_LIMIT_G;
+
+    /** Which starter food list this user has been given (see ProteinService.STARTER_VERSION). */
+    @Column(name = "starter_version", nullable = false)
+    private int starterVersion = 1;
 
     @Column(name = "foods_seeded", nullable = false)
     private boolean foodsSeeded;
@@ -93,6 +110,38 @@ public class NutritionSettings {
 
     public void setFatTargetG(int fatTargetG) {
         this.fatTargetG = fatTargetG;
+    }
+
+    public int getCarbsTargetG() {
+        return carbsTargetG;
+    }
+
+    public void setCarbsTargetG(int carbsTargetG) {
+        this.carbsTargetG = carbsTargetG;
+    }
+
+    public int getFiberTargetG() {
+        return fiberTargetG;
+    }
+
+    public void setFiberTargetG(int fiberTargetG) {
+        this.fiberTargetG = fiberTargetG;
+    }
+
+    public int getSugarLimitG() {
+        return sugarLimitG;
+    }
+
+    public void setSugarLimitG(int sugarLimitG) {
+        this.sugarLimitG = sugarLimitG;
+    }
+
+    public int getStarterVersion() {
+        return starterVersion;
+    }
+
+    public void setStarterVersion(int starterVersion) {
+        this.starterVersion = starterVersion;
     }
 
     public boolean isFoodsSeeded() {
