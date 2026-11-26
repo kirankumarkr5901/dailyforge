@@ -24,6 +24,7 @@ import { RestTimerService } from '../workouts/rest-timer/rest-timer.service';
 import { ChevronDown, LucideAngularModule, Settings as SettingsIcon } from 'lucide-angular';
 import { ProteinSettingsComponent } from '../nutrition/protein-settings/protein-settings.component';
 import { NotificationsSettingsComponent } from './notifications-settings/notifications-settings.component';
+import { FEATURES, FeatureCode } from '../../core/features/features';
 
 /**
  * Settings.
@@ -75,7 +76,8 @@ export class SettingsComponent {
    * with a fragment, like /settings#editing from "Turn it on in Settings", opens that
    * section so the switch it points at is right there.
    */
-  protected readonly openSections = signal<ReadonlySet<string>>(new Set());
+  // "This app" and "Account" start open (owner request); everything else starts folded.
+  protected readonly openSections = signal<ReadonlySet<string>>(new Set(['app', 'account']));
   protected readonly chevronIcon = ChevronDown;
 
   protected isOpen(key: string): boolean {
@@ -168,6 +170,16 @@ export class SettingsComponent {
 
   protected setEditing(enabled: boolean): void {
     void this.persist({ editingEnabled: enabled });
+  }
+
+  protected readonly features = FEATURES;
+
+  /** On or off for one feature; the server refuses it unless editing is on. */
+  protected setFeature(code: FeatureCode, on: boolean): void {
+    const off = new Set(this.session.disabledFeatures());
+    if (on) off.delete(code);
+    else off.add(code);
+    void this.persist({ disabledFeatures: [...off] });
   }
 
   protected saveHeight(): void {

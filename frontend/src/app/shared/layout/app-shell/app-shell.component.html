@@ -33,7 +33,7 @@
   <!-- Persistent rail at desktop widths; replaced by the bottom bar below 1024px. -->
   <nav class="shell__rail" [attr.aria-label]="'nav.menu' | t">
     <ul>
-      @for (item of navItems; track item.path) {
+      @for (item of navItems(); track item.path) {
         <li>
           <a
             [routerLink]="item.path"
@@ -54,7 +54,7 @@
   </main>
 
   <nav class="shell__bottom" [attr.aria-label]="'nav.menu' | t">
-    @for (item of primaryNav; track item.path) {
+    @for (item of primaryNav(); track item.path) {
       <a
         [routerLink]="item.path"
         routerLinkActive="is-active"
@@ -96,7 +96,7 @@
       </div>
 
       <ul class="drawer__list">
-        @for (item of navItems; track item.path) {
+        @for (item of navItems(); track item.path) {
           <li>
             <a
               [routerLink]="item.path"
@@ -116,10 +116,18 @@
 
       <div class="drawer__foot">
         @if (session.isAuthenticated()) {
-          <p class="drawer__account">{{ session.user()?.email }}</p>
-          <button type="button" class="drawer__action" (click)="signOut()">
-            {{ 'auth.signOut' | t }}
-          </button>
+          <!-- About you, nothing more: signing out lives in Settings → Account, so a
+               stray tap in the menu can never log you out. -->
+          @if (session.user(); as user) {
+            <div class="drawer__me">
+              <span class="drawer__avatar" aria-hidden="true">{{ (user.displayName || user.email).charAt(0).toUpperCase() }}</span>
+              <div class="drawer__me-text">
+                <span class="drawer__me-name">{{ user.displayName || 'You' }}</span>
+                <span class="drawer__account">{{ user.email }}</span>
+                <span class="drawer__me-points">{{ points.total().toLocaleString() }} points</span>
+              </div>
+            </div>
+          }
         } @else {
           <button type="button" class="drawer__action" (click)="signIn()">
             {{ 'auth.signIn' | t }}

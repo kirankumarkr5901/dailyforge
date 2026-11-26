@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal, computed } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { LucideAngularModule, Menu, MoreHorizontal, X } from 'lucide-angular';
 
@@ -43,8 +43,9 @@ export class AppShellComponent {
   protected readonly closeIcon = X;
   protected readonly moreIcon = MoreHorizontal;
 
-  protected readonly navItems = NAV_ITEMS;
-  protected readonly primaryNav = PRIMARY_NAV;
+  /** Switched-off features drop out of every navigation at once. */
+  protected readonly navItems = computed(() => NAV_ITEMS.filter((i) => !i.feature || this.session.featureEnabled(i.feature)));
+  protected readonly primaryNav = computed(() => PRIMARY_NAV.filter((i) => !i.feature || this.session.featureEnabled(i.feature)));
 
   protected readonly drawerOpen = signal(false);
 
@@ -61,8 +62,4 @@ export class AppShellComponent {
     this.authSheet.open('manual');
   }
 
-  protected async signOut(): Promise<void> {
-    this.closeDrawer();
-    await this.session.logout();
-  }
 }

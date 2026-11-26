@@ -5,6 +5,7 @@ import { HomeApi } from '../../../core/home/home.api';
 import { WeekReview } from '../../../core/home/home.types';
 import { LogicalDate } from '../../../core/time/logical-date';
 import { DfCardComponent } from '../../../shared/ui/df-card/df-card.component';
+import { SessionStore } from '../../../core/auth/session.store';
 
 function utcDay(date: LogicalDate): Date {
   const [y, m, d] = date.split('-').map(Number);
@@ -25,6 +26,7 @@ function utcDay(date: LogicalDate): Date {
 })
 export class WeekReviewComponent {
   private readonly api = inject(HomeApi);
+  protected readonly session = inject(SessionStore);
 
   /** Today, in the user's own time zone. */
   readonly today = input.required<LogicalDate>();

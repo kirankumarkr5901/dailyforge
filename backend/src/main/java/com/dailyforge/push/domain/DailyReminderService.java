@@ -55,6 +55,7 @@ public class DailyReminderService {
     private final NutritionSettingsRepository nutritionSettings;
     private final DayService dayService;
     private final Clock clock;
+    private final com.dailyforge.identity.domain.IdentityService identity;
 
     private record Due(ZoneId zone, LocalTime time) {}
 
@@ -70,7 +71,8 @@ public class DailyReminderService {
             ProteinService protein,
             NutritionSettingsRepository nutritionSettings,
             DayService dayService,
-            Clock clock) {
+            Clock clock,
+            com.dailyforge.identity.domain.IdentityService identity) {
         this.jdbc = jdbc;
         this.sender = sender;
         this.habitBoard = habitBoard;
@@ -79,6 +81,7 @@ public class DailyReminderService {
         this.nutritionSettings = nutritionSettings;
         this.dayService = dayService;
         this.clock = clock;
+        this.identity = identity;
     }
 
     // ------------------------------------------------------------------ settings
@@ -185,7 +188,7 @@ public class DailyReminderService {
             parts.add(habitsOpen + (habitsOpen == 1 ? " habit" : " habits"));
         }
 
-        if (nutritionSettings.existsById(userId)) {
+        if (identity.requireSettings(userId).isFeatureEnabled("NUTRITION") && nutritionSettings.existsById(userId)) {
             var day = protein.day(userId, today);
             int left = day.targetG() - day.totalG();
             if (left > 0) {

@@ -44,6 +44,8 @@ export interface UserSettings {
   onboardingCompletedAt: string | null;
   /** "Enable edit": while false the server refuses structural changes (EDITING_LOCKED). */
   editingEnabled: boolean;
+  /** Features switched off for now (Settings → Features). */
+  disabledFeatures: string[];
   /** Echoed back on edit so a stale device cannot overwrite a newer one. */
   version: number;
 }

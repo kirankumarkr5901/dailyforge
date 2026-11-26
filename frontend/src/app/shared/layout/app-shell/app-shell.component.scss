@@ -360,3 +360,47 @@
     opacity: 0;
   }
 }
+
+/* The menu's footer: who you are, at a glance. */
+.drawer__me {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.drawer__avatar {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--heat-2);
+  color: #fff;
+  font-weight: 800;
+}
+
+.drawer__me-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.drawer__me-name {
+  overflow: hidden;
+  color: var(--ink);
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.drawer__me .drawer__account {
+  margin-bottom: 0;
+  white-space: nowrap;
+}
+
+.drawer__me-points {
+  color: var(--ink-muted);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+}

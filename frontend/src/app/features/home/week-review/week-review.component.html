@@ -21,6 +21,7 @@
         <dt>Habit ticks</dt>
         <dd>{{ r.habitTicks }}</dd>
       </div>
+      @if (session.featureEnabled('NUTRITION')) {
       <div class="review__tile">
         <dt>Within calories</dt>
         <dd>{{ r.daysWithinCalories }} <small>/ {{ r.nutritionDaysLogged }} days logged</small></dd>
@@ -29,6 +30,7 @@
         <dt>Protein hit</dt>
         <dd>{{ r.daysProteinHit }} <small>{{ r.daysProteinHit === 1 ? 'day' : 'days' }}</small></dd>
       </div>
+      }
       <div class="review__tile">
         <dt>Weight</dt>
         <dd>{{ weight(r) }}</dd>

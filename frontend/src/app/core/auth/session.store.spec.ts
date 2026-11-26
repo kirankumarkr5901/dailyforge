@@ -23,6 +23,7 @@ const user: CurrentUser = {
     reminderTime: null,
     onboardingCompletedAt: null,
     editingEnabled: false,
+    disabledFeatures: [],
     version: 0,
   },
 };

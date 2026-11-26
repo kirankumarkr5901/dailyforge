@@ -1,6 +1,7 @@
 import { Award, Beef, PersonStanding, StretchHorizontal, Briefcase, Dumbbell, Flame, Footprints, Gift, House, PartyPopper, Scale, Settings, Target } from 'lucide-angular';
 import { LucideIconData } from 'lucide-angular';
 import { StringKey } from '../../../core/i18n/strings';
+import { FeatureCode } from '../../../core/features/features';
 
 export interface NavItem {
   readonly path: string;
@@ -10,6 +11,8 @@ export interface NavItem {
   readonly primary: boolean;
   /** False until the milestone that builds it lands. */
   readonly ready: boolean;
+  /** Set for screens that can be switched off in Settings → Features. */
+  readonly feature?: FeatureCode;
 }
 
 /**
@@ -24,13 +27,13 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { path: '/workout', labelKey: 'nav.workout', icon: Dumbbell, primary: true, ready: true },
   { path: '/habits', labelKey: 'nav.habits', icon: Target, primary: true, ready: true },
   { path: '/run', labelKey: 'nav.run', icon: Footprints, primary: true, ready: true },
-  { path: '/forge', labelKey: 'nav.forge', icon: Flame, primary: false, ready: true },
-  { path: '/goals', labelKey: 'nav.goals', icon: Award, primary: false, ready: true },
-  { path: '/jobs', labelKey: 'nav.jobs', icon: Briefcase, primary: false, ready: true },
+  { path: '/forge', labelKey: 'nav.forge', icon: Flame, primary: false, ready: true, feature: 'FORGE' },
+  { path: '/goals', labelKey: 'nav.goals', icon: Award, primary: false, ready: true, feature: 'GOALS' },
+  { path: '/jobs', labelKey: 'nav.jobs', icon: Briefcase, primary: false, ready: true, feature: 'JOBS' },
   { path: '/body', labelKey: 'nav.body', icon: Scale, primary: false, ready: true },
-  { path: '/skills', labelKey: 'nav.skills', icon: PersonStanding, primary: false, ready: true },
-  { path: '/mobility', labelKey: 'nav.mobility', icon: StretchHorizontal, primary: false, ready: true },
-  { path: '/nutrition', labelKey: 'nav.nutrition', icon: Beef, primary: false, ready: true },
+  { path: '/skills', labelKey: 'nav.skills', icon: PersonStanding, primary: false, ready: true, feature: 'SKILLS' },
+  { path: '/mobility', labelKey: 'nav.mobility', icon: StretchHorizontal, primary: false, ready: true, feature: 'MOBILITY' },
+  { path: '/nutrition', labelKey: 'nav.nutrition', icon: Beef, primary: false, ready: true, feature: 'NUTRITION' },
   { path: '/rewards', labelKey: 'nav.rewards', icon: Gift, primary: false, ready: true },
   { path: '/milestones', labelKey: 'nav.milestones', icon: PartyPopper, primary: false, ready: true },
   { path: '/settings', labelKey: 'nav.settings', icon: Settings, primary: false, ready: true },
