@@ -61,6 +61,10 @@ public class WorkoutSet {
     @Column(name = "deleted_at")
     private Instant deletedAt;
 
+    /** The phone's own id for this set (V41), so a resent offline set is never saved twice. */
+    @Column(name = "client_id")
+    private UUID clientId;
+
     /** Optimistic-concurrency guard for multi-device editing (see StaleWrite). */
     @Version
     @Column(name = "version", nullable = false)
@@ -112,6 +116,14 @@ public class WorkoutSet {
         }
         BigDecimal weight = enteredWeight == null ? BigDecimal.ZERO : enteredWeight;
         return weightMode == WeightMode.SINGLE ? weight.multiply(BigDecimal.valueOf(2)) : weight;
+    }
+
+    public void assignClientId(UUID clientId) {
+        this.clientId = clientId;
+    }
+
+    public UUID getClientId() {
+        return clientId;
     }
 
     public void softDelete(Instant when) {

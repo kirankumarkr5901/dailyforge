@@ -81,7 +81,7 @@
     </div>
   </div>
 
-  @if (entry().sets.length > 0) {
+  @if (entry().sets.length > 0 || pendingSets().length > 0) {
     <ul class="exercise-card__sets">
       @for (set of entry().sets; track set.id) {
         <li class="exercise-card__set">
@@ -106,6 +106,12 @@
               (click)="deleteSetRequested.emit(set)"
             ></button>
           </span>
+        </li>
+      }
+      @for (label of pendingSets(); track $index) {
+        <li class="exercise-card__set exercise-card__set--pending">
+          <span>{{ label }}</span>
+          <span class="exercise-card__pending">Waiting for signal</span>
         </li>
       }
     </ul>

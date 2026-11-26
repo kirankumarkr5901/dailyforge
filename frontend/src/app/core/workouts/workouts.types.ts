@@ -146,6 +146,8 @@ export interface LogSetPayload {
   weightMode: WeightMode;
   addedWeight?: number;
   reps: number;
+  /** The phone's own id for this set, so a resent offline set is saved once. */
+  clientId?: string;
 }
 
 export interface UpdateSetPayload {

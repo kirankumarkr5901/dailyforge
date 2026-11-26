@@ -255,6 +255,20 @@ class WorkoutCompletionTest {
                 .isInstanceOf(ApiException.class);
     }
 
+    /** An offline set resent after its first send got through is saved once. */
+    @Test
+    void aSetResentWithTheSameClientIdIsSavedOnce() {
+        UUID clientId = UUID.randomUUID();
+        var first = setService.logSet(user, TODAY, exerciseId, session.getPlanId(), session.getDayIndex(),
+                new java.math.BigDecimal("60"), WeightMode.COMBINED, null, 8, clientId);
+        var again = setService.logSet(user, TODAY, exerciseId, session.getPlanId(), session.getDayIndex(),
+                new java.math.BigDecimal("60"), WeightMode.COMBINED, null, 8, clientId);
+
+        assertThat(again.set().getId()).isEqualTo(first.set().getId());
+        assertThat(again.points().delta()).isZero();
+        assertThat(entry().sets()).hasSize(1);
+    }
+
     @Test
     void theBoardCarriesThePlanTargets() {
         var e = entry();

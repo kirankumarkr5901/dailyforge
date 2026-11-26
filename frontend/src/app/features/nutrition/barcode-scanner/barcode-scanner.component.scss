@@ -1,0 +1,66 @@
+/* Phone first: the camera fills the sheet's width; everything else stacks under it. */
+.scan {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.scan__camera {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  background: #000;
+  aspect-ratio: 4 / 3;
+}
+
+.scan__video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Where to hold the barcode. */
+.scan__frame {
+  position: absolute;
+  inset: 30% 12%;
+  border: 2px solid var(--heat-2);
+  border-radius: 10px;
+  box-shadow: 0 0 0 9999px rgb(0 0 0 / 0.35);
+}
+
+.scan__muted,
+.scan__source {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+}
+
+.scan__source {
+  font-size: var(--text-xs);
+}
+
+.scan__name {
+  margin: 0 0 var(--space-1);
+  font-size: var(--text-lg);
+}
+
+.scan__totals {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.scan__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.scan__manual {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: var(--space-2);
+}

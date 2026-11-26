@@ -24,6 +24,7 @@ public class NutritionSettings {
     public static final int DEFAULT_CARBS_TARGET_G = 250;
     public static final int DEFAULT_FIBER_TARGET_G = 30;
     public static final int DEFAULT_SUGAR_LIMIT_G = 50;
+    public static final int DEFAULT_WATER_TARGET_ML = 3000;
 
     @Id
     @Column(name = "user_id", nullable = false)
@@ -52,6 +53,9 @@ public class NutritionSettings {
     /** Which starter food list this user has been given (see ProteinService.STARTER_VERSION). */
     @Column(name = "starter_version", nullable = false)
     private int starterVersion = 1;
+
+    @Column(name = "water_target_ml", nullable = false)
+    private int waterTargetMl = DEFAULT_WATER_TARGET_ML;
 
     @Column(name = "foods_seeded", nullable = false)
     private boolean foodsSeeded;
@@ -142,6 +146,14 @@ public class NutritionSettings {
 
     public void setStarterVersion(int starterVersion) {
         this.starterVersion = starterVersion;
+    }
+
+    public int getWaterTargetMl() {
+        return waterTargetMl;
+    }
+
+    public void setWaterTargetMl(int waterTargetMl) {
+        this.waterTargetMl = waterTargetMl;
     }
 
     public boolean isFoodsSeeded() {

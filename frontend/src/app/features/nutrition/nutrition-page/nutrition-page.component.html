@@ -95,7 +95,50 @@
     </df-card>
 
     <df-card class="nutrition__foods-card">
-      <h2 class="nutrition__section-title">Tap what you ate</h2>
+      <div class="nutrition__row-head">
+        <h2 class="nutrition__section-title">Water</h2>
+        <span class="nutrition__total">
+          <span class="nutrition__total-value">{{ litres(d.waterMl) }}</span>
+          <span class="nutrition__total-target">/ {{ litres(d.waterTargetMl) }} L</span>
+        </span>
+      </div>
+      <div
+        class="nutrition__meter nutrition__meter--water"
+        [class.nutrition__meter--reached]="d.waterMl >= d.waterTargetMl"
+        role="progressbar"
+        [attr.aria-valuenow]="d.waterMl"
+        [attr.aria-valuemin]="0"
+        [attr.aria-valuemax]="d.waterTargetMl"
+        [attr.aria-label]="litres(d.waterMl) + ' of ' + litres(d.waterTargetMl) + ' litres of water'"
+      >
+        <span class="nutrition__meter-fill" [style.width.%]="d.waterTargetMl ? (d.waterMl / d.waterTargetMl) * 100 : 0"></span>
+      </div>
+      <div class="nutrition__water">
+        <button dfButton type="button" variant="primary" [disabled]="busy()" (click)="addWater(250)">+250 ml</button>
+        <button dfButton type="button" variant="secondary" [disabled]="busy()" (click)="addWater(500)">+500 ml</button>
+        <button dfButton type="button" variant="ghost" [disabled]="busy() || d.waterMl === 0" (click)="addWater(-250)">−250</button>
+      </div>
+    </df-card>
+
+    @if (meals().length > 0) {
+      <df-card class="nutrition__foods-card">
+        <h2 class="nutrition__section-title">Meals</h2>
+        <div class="nutrition__foods">
+          @for (meal of meals(); track meal.id) {
+            <button type="button" class="nutrition__food nutrition__meal" [disabled]="busy()" (click)="logMeal(meal)">
+              {{ meal.name }}
+              <span class="nutrition__food-grams">{{ meal.items.length }} items · {{ meal.proteinG }} g · {{ meal.kcal }} kcal</span>
+            </button>
+          }
+        </div>
+      </df-card>
+    }
+
+    <df-card class="nutrition__foods-card">
+      <div class="nutrition__eaten-head">
+        <h2 class="nutrition__section-title">Tap what you ate</h2>
+        <button dfButton type="button" variant="secondary" (click)="scannerOpen.set(true)">Scan barcode</button>
+      </div>
       @if (d.foods.length > 0) {
         <df-input
           class="nutrition__search"
@@ -137,7 +180,12 @@
     </df-card>
 
     @if (d.entries.length > 0) {
-      <h2 class="nutrition__section-title">Eaten today</h2>
+      <div class="nutrition__eaten-head">
+        <h2 class="nutrition__section-title">Eaten today</h2>
+        @if (session.editingEnabled()) {
+          <button dfButton type="button" variant="ghost" (click)="openMealSheet()">Save as a meal</button>
+        }
+      </div>
       <df-card [flush]="true">
         <ul class="nutrition__entries">
           @for (entry of d.entries; track entry.id) {
@@ -163,4 +211,35 @@
       </df-card>
     }
   }
+}
+
+<df-sheet [open]="mealSheetOpen()" (openChange)="mealSheetOpen.set($event)" heading="Save as a meal">
+  <div class="meal-form">
+    <df-input label="Name" placeholder="e.g. My breakfast" [ngModel]="mealName()" (ngModelChange)="mealName.set($event)" />
+    <p class="nutrition__muted">What goes in it:</p>
+    <ul class="meal-form__items">
+      @for (entry of day()?.entries ?? []; track entry.id) {
+        <li>
+          <label class="meal-form__item">
+            <input type="checkbox" [checked]="mealPicks().has(entry.id)" (change)="toggleMealPick(entry.id)" />
+            <span class="nutrition__entry-main">
+              <span>{{ entry.foodName }}</span>
+              <span class="nutrition__entry-grams">{{ foodLabel(entry) }}</span>
+            </span>
+          </label>
+        </li>
+      }
+    </ul>
+    <button dfButton type="button" variant="primary" [fullWidth]="true" (click)="saveMeal()">Save meal</button>
+  </div>
+</df-sheet>
+
+@if (day(); as d) {
+  <df-barcode-scanner
+    [open]="scannerOpen()"
+    [date]="d.date"
+    (closed)="scannerOpen.set(false)"
+    (logged)="onScanned($event)"
+    (foodSaved)="reload()"
+  />
 }

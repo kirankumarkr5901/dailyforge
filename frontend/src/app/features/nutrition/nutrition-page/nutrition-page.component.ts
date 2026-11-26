@@ -8,7 +8,9 @@ import { Beef, LucideAngularModule, Plus, Trash2 } from 'lucide-angular';
 import { AuthSheetService } from '../../../core/auth/auth-sheet.service';
 import { SessionStore } from '../../../core/auth/session.store';
 import { ProteinApi } from '../../../core/nutrition/protein.api';
-import { ProteinDay, ProteinDayWrite, ProteinEntry, ProteinFood } from '../../../core/nutrition/protein.types';
+import { Meal, ProteinDay, ProteinDayWrite, ProteinEntry, ProteinFood } from '../../../core/nutrition/protein.types';
+import { DfSheetComponent } from '../../../shared/ui/df-sheet/df-sheet.component';
+import { BarcodeScannerComponent } from '../barcode-scanner/barcode-scanner.component';
 import { PointsStore } from '../../../core/points/points.store';
 import { SyncStore } from '../../../core/sync/sync.store';
 import { DfButtonComponent } from '../../../shared/ui/df-button/df-button.component';
@@ -39,6 +41,8 @@ import { ToastService } from '../../../shared/ui/df-toast/toast.service';
     DfInputComponent,
     DfSkeletonComponent,
     DfStepperInputComponent,
+    DfSheetComponent,
+    BarcodeScannerComponent,
   ],
   templateUrl: './nutrition-page.component.html',
   styleUrl: './nutrition-page.component.scss',
@@ -61,6 +65,29 @@ export class NutritionPageComponent {
   protected readonly day = signal<ProteinDay | null>(null);
   /** One write at a time, so a quick double tap cannot log the same food twice. */
   protected readonly busy = signal(false);
+
+  protected readonly meals = signal<Meal[]>([]);
+  protected readonly scannerOpen = signal(false);
+
+  /** A scanned product was added: same bookkeeping as any other write. */
+  protected onScanned(result: ProteinDayWrite): void {
+    this.day.set(result.day);
+    this.points.applyEnvelope(result.points);
+    if (result.points.delta > 0) {
+      this.toasts.show(`Protein target hit! +${result.points.delta} pts`, { tone: 'earned', heatStep: 1 });
+    } else {
+      this.toasts.show('Added.');
+    }
+  }
+
+  protected reload(): void {
+    void this.load();
+  }
+
+  /** "Save as a meal": which of today's entries go in, and its name. */
+  protected readonly mealSheetOpen = signal(false);
+  protected readonly mealName = signal('');
+  protected readonly mealPicks = signal<ReadonlySet<string>>(new Set());
 
   protected readonly search = signal('');
   protected readonly visibleFoods = computed(() => {
@@ -165,10 +192,74 @@ export class NutritionPageComponent {
     this.error.set(null);
     try {
       this.day.set(await firstValueFrom(this.api.day()));
+      void this.loadMeals();
     } catch {
       this.error.set('Could not load your protein for today. Check your connection and try again.');
     } finally {
       this.loading.set(false);
+    }
+  }
+
+  private async loadMeals(): Promise<void> {
+    try {
+      this.meals.set(await firstValueFrom(this.api.meals()));
+    } catch {
+      // Meals are a shortcut; the foods below still work without them.
+    }
+  }
+
+  protected addWater(deltaMl: number): Promise<boolean> {
+    return this.write(() => this.api.addWater(this.day()!.date, deltaMl));
+  }
+
+  protected litres(ml: number): string {
+    return (Math.round(ml / 100) / 10).toString();
+  }
+
+  protected logMeal(meal: Meal): Promise<boolean> {
+    return this.write(() => this.api.logMeal(meal.id, this.day()!.date));
+  }
+
+  protected openMealSheet(): void {
+    const entries = this.day()?.entries ?? [];
+    this.mealName.set('');
+    this.mealPicks.set(new Set(entries.map((e) => e.id)));
+    this.mealSheetOpen.set(true);
+  }
+
+  protected toggleMealPick(id: string): void {
+    this.mealPicks.update((set) => {
+      const next = new Set(set);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  protected async saveMeal(): Promise<void> {
+    const name = this.mealName().trim();
+    const items = (this.day()?.entries ?? [])
+      .filter((e) => this.mealPicks().has(e.id))
+      .map((e) => ({
+        foodName: e.foodName,
+        grams: e.grams,
+        kcal: e.kcal,
+        fatG: e.fatG,
+        carbsG: e.carbsG,
+        fiberG: e.fiberG,
+        sugarG: e.sugarG,
+      }));
+    if (!name || items.length === 0) {
+      this.toasts.show(!name ? 'Give the meal a name, e.g. "My breakfast".' : 'Pick at least one item.');
+      return;
+    }
+    try {
+      await firstValueFrom(this.api.createMeal(name, items));
+      this.mealSheetOpen.set(false);
+      await this.loadMeals();
+      this.toasts.show(`Saved "${name}". Tap it under Meals to log it again.`);
+    } catch {
+      this.toasts.show('Could not save that meal. Try again.', { tone: 'penalty' });
     }
   }
 
@@ -225,9 +316,9 @@ export class NutritionPageComponent {
       this.points.applyEnvelope(result.points);
       const delta = result.points.delta;
       if (delta > 0) {
-        this.toasts.show(`Protein target hit! +${delta} pts`, { tone: 'earned', heatStep: 1 });
+        this.toasts.show(`Target hit! +${delta} pts`, { tone: 'earned', heatStep: 1 });
       } else if (delta < 0) {
-        this.toasts.show(`Back under the target. ${delta} pts`, { tone: 'penalty' });
+        this.toasts.show(`Back under a target. ${delta} pts`, { tone: 'penalty' });
       }
       return true;
     } catch {

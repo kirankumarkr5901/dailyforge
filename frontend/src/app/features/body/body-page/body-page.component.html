@@ -132,6 +132,10 @@
         </df-card>
       }
 
+      @if (todayDate(); as today) {
+        <df-progress-photos class="body-page__chart-card" [today]="today" />
+      }
+
       <h2 class="body-page__section-title">Recent logs</h2>
       <df-card [flush]="true">
         <div class="body-page__list">

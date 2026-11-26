@@ -203,6 +203,64 @@ class ProteinAndDeloadIntegrationTest {
     }
 
     @Test
+    void aMealIsSavedWithEditingOnAndLogsAllItsItemsInOneTap() throws Exception {
+        String meal = "{\"name\":\"Big breakfast\",\"items\":["
+                + "{\"foodName\":\"2 eggs\",\"grams\":12,\"kcal\":140,\"fatG\":10,\"carbsG\":1},"
+                + "{\"foodName\":\"Whey scoop\",\"grams\":130,\"kcal\":600,\"fatG\":8,\"carbsG\":15}]}";
+        mockMvc.perform(auth(post("/api/v1/protein/meals")).content(meal))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("EDITING_LOCKED"));
+
+        setEditing(true);
+        JsonNode created = json.readTree(mockMvc.perform(auth(post("/api/v1/protein/meals")).content(meal))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString());
+        assertThat(created.get("proteinG").asInt()).isEqualTo(142);
+        assertThat(created.get("items")).hasSize(2);
+        setEditing(false);
+
+        // Logging needs no editing, adds both entries, and pays the protein target once.
+        JsonNode logged = call(post("/api/v1/protein/meals/" + created.get("id").asString() + "/log")
+                .content("{\"date\":\"" + TODAY + "\"}"));
+        assertThat(logged.get("day").get("entries")).hasSize(2);
+        assertThat(logged.get("day").get("totalG").asInt()).isEqualTo(142);
+        assertThat(logged.get("day").get("totalCarbsG").asInt()).isEqualTo(16);
+        assertThat(logged.get("points").get("delta").asInt()).isEqualTo(10);
+
+        assertThat(call(get("/api/v1/protein/meals"))).hasSize(1);
+        setEditing(true);
+        mockMvc.perform(auth(delete("/api/v1/protein/meals/" + created.get("id").asString())))
+                .andExpect(status().isNoContent());
+        assertThat(call(get("/api/v1/protein/meals"))).isEmpty();
+    }
+
+    private JsonNode water(int delta) throws Exception {
+        return call(post("/api/v1/protein/water").content("{\"date\":\"" + TODAY + "\",\"deltaMl\":" + delta + "}"));
+    }
+
+    @Test
+    void waterPaysFifteenOnceTheTargetIsReachedAndUndoTakesItBack() throws Exception {
+        assertThat(call(get("/api/v1/protein/day")).get("waterTargetMl").asInt()).isEqualTo(3000);
+
+        assertThat(water(2000).get("points").get("delta").asInt()).isZero();
+        assertThat(water(500).get("day").get("waterMl").asInt()).isEqualTo(2500);
+        JsonNode hit = water(500);
+        assertThat(hit.get("day").get("waterMl").asInt()).isEqualTo(3000);
+        assertThat(hit.get("points").get("delta").asInt()).isEqualTo(15);
+        assertThat(water(250).get("points").get("delta").asInt()).isZero();
+
+        // Undo twice: back below the target, so the 15 go back.
+        water(-250);
+        assertThat(water(-250).get("points").get("delta").asInt()).isEqualTo(-15);
+
+        // Never below zero.
+        for (int i = 0; i < 2; i++) water(-2000);
+        assertThat(water(-250).get("day").get("waterMl").asInt()).isZero();
+
+        assertThat(call(put("/api/v1/protein/target").content("{\"waterTargetMl\":2000}")).get("day").get("waterTargetMl").asInt())
+                .isEqualTo(2000);
+    }
+
+    @Test
     void anEntryWithNothingInItIsRefused() throws Exception {
         mockMvc.perform(auth(post("/api/v1/protein/logs"))
                         .content("{\"date\":\"" + TODAY + "\",\"foodName\":\"x\",\"grams\":0,\"kcal\":0,\"fatG\":0}"))

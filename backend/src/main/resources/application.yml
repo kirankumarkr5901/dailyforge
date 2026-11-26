@@ -50,6 +50,14 @@ dailyforge:
 
   # Web Push (phone notifications). Blank keys switch notifications off. Generate a P-256
   # VAPID key pair once and set both as environment variables; see docs/notifications.md.
+  # Progress photos in Cloudflare R2. Any blank value switches photos off; see
+  # docs/progress-photos.md.
+  r2:
+    account-id: ${R2_ACCOUNT_ID:}
+    access-key-id: ${R2_ACCESS_KEY_ID:}
+    secret-access-key: ${R2_SECRET_ACCESS_KEY:}
+    bucket: ${R2_BUCKET:}
+
   push:
     vapid-public-key: ${VAPID_PUBLIC_KEY:}
     vapid-private-key: ${VAPID_PRIVATE_KEY:}

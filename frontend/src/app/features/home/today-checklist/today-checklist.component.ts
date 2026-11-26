@@ -128,6 +128,13 @@ export class TodayChecklistComponent {
         done: p.totalG >= p.targetG,
         link: '/nutrition',
       });
+      items.push({
+        key: 'water',
+        label: 'Water',
+        detail: `${Math.round(p.waterMl / 100) / 10} / ${Math.round(p.waterTargetMl / 100) / 10} L`,
+        done: p.waterMl >= p.waterTargetMl,
+        link: '/nutrition',
+      });
     }
 
     this.items.set(items);

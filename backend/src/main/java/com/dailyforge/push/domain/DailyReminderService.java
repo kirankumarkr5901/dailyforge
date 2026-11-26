@@ -194,6 +194,10 @@ public class DailyReminderService {
             if (left > 0) {
                 parts.add(left + " g protein");
             }
+            int waterLeft = day.waterTargetMl() - day.waterMl();
+            if (waterLeft > 0) {
+                parts.add(String.format(java.util.Locale.ROOT, "%.1f L water", waterLeft / 1000.0));
+            }
         }
         return parts.isEmpty() ? null : "Still to do: " + String.join(", ", parts);
     }
