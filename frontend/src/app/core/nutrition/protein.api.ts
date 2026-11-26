@@ -25,7 +25,14 @@ export class ProteinApi {
   }
 
   /** Any of the three; a target left out stays as it is. */
-  setTargets(targets: { targetG?: number; calorieBudget?: number; fatTargetG?: number }): Observable<ProteinDayWrite> {
+  setTargets(targets: {
+    targetG?: number;
+    calorieBudget?: number;
+    fatTargetG?: number;
+    carbsTargetG?: number;
+    fiberTargetG?: number;
+    sugarLimitG?: number;
+  }): Observable<ProteinDayWrite> {
     return this.http.put<ProteinDayWrite>(`${this.base}/protein/target`, targets);
   }
 
@@ -34,7 +41,7 @@ export class ProteinApi {
     return this.http.post<ProteinFood>(`${this.base}/protein/foods`, { name, ...amounts });
   }
 
-  updateFood(id: string, patch: { name?: string; grams?: number; kcal?: number; fatG?: number }): Observable<ProteinFood> {
+  updateFood(id: string, patch: { name?: string } & Partial<NutritionAmounts>): Observable<ProteinFood> {
     return this.http.patch<ProteinFood>(`${this.base}/protein/foods/${id}`, patch);
   }
 

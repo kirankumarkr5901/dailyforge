@@ -5,7 +5,7 @@ import { ChevronDown, LucideAngularModule, Plus, SquarePen, Trash2 } from 'lucid
 
 import { SessionStore } from '../../../core/auth/session.store';
 import { ProteinApi } from '../../../core/nutrition/protein.api';
-import { ProteinFood } from '../../../core/nutrition/protein.types';
+import { ProteinDay, ProteinFood } from '../../../core/nutrition/protein.types';
 import { PointsStore } from '../../../core/points/points.store';
 import { DfButtonComponent } from '../../../shared/ui/df-button/df-button.component';
 import { DfCardComponent } from '../../../shared/ui/df-card/df-card.component';
@@ -54,6 +54,12 @@ export class ProteinSettingsComponent {
   protected readonly budgetDraft = signal(2250);
   protected readonly savedFat = signal(70);
   protected readonly fatDraft = signal(70);
+  protected readonly savedCarbs = signal(250);
+  protected readonly carbsDraft = signal(250);
+  protected readonly savedFiber = signal(30);
+  protected readonly fiberDraft = signal(30);
+  protected readonly savedSugar = signal(50);
+  protected readonly sugarDraft = signal(50);
   protected readonly foods = signal<ProteinFood[]>([]);
   /** The list is long; it stays folded until asked for. */
   protected readonly foodsOpen = signal(false);
@@ -62,23 +68,32 @@ export class ProteinSettingsComponent {
   protected readonly newGrams = signal(0);
   protected readonly newKcal = signal(0);
   protected readonly newFat = signal(0);
+  protected readonly newCarbs = signal(0);
+  protected readonly newFiber = signal(0);
+  protected readonly newSugar = signal(0);
 
   protected readonly editingId = signal<string | null>(null);
   protected readonly editName = signal('');
   protected readonly editGrams = signal(0);
   protected readonly editKcal = signal(0);
   protected readonly editFat = signal(0);
+  protected readonly editCarbs = signal(0);
+  protected readonly editFiber = signal(0);
+  protected readonly editSugar = signal(0);
 
   protected targetsChanged(): boolean {
     return (
       this.targetDraft() !== this.savedTarget() ||
       this.budgetDraft() !== this.savedBudget() ||
-      this.fatDraft() !== this.savedFat()
+      this.fatDraft() !== this.savedFat() ||
+      this.carbsDraft() !== this.savedCarbs() ||
+      this.fiberDraft() !== this.savedFiber() ||
+      this.sugarDraft() !== this.savedSugar()
     );
   }
 
   protected foodLabel(f: ProteinFood): string {
-    return `${f.grams} g protein · ${f.kcal} kcal · ${f.fatG} g fat`;
+    return `${f.grams} g protein · ${f.kcal} kcal · ${f.carbsG} g carbs · ${f.fatG} g fat · ${f.fiberG} g fiber · ${f.sugarG} g sugar`;
   }
 
   constructor() {
@@ -88,7 +103,7 @@ export class ProteinSettingsComponent {
   private async load(): Promise<void> {
     try {
       const day = await firstValueFrom(this.api.day());
-      this.applyTargets(day.targetG, day.calorieBudget, day.fatTargetG);
+      this.applyTargets(day);
       this.foods.set(day.foods);
       this.loaded.set(true);
     } catch {
@@ -96,21 +111,34 @@ export class ProteinSettingsComponent {
     }
   }
 
-  private applyTargets(protein: number, budget: number, fat: number): void {
-    this.savedTarget.set(protein);
-    this.targetDraft.set(protein);
-    this.savedBudget.set(budget);
-    this.budgetDraft.set(budget);
-    this.savedFat.set(fat);
-    this.fatDraft.set(fat);
+  private applyTargets(d: ProteinDay): void {
+    this.savedTarget.set(d.targetG);
+    this.targetDraft.set(d.targetG);
+    this.savedBudget.set(d.calorieBudget);
+    this.budgetDraft.set(d.calorieBudget);
+    this.savedFat.set(d.fatTargetG);
+    this.fatDraft.set(d.fatTargetG);
+    this.savedCarbs.set(d.carbsTargetG);
+    this.carbsDraft.set(d.carbsTargetG);
+    this.savedFiber.set(d.fiberTargetG);
+    this.fiberDraft.set(d.fiberTargetG);
+    this.savedSugar.set(d.sugarLimitG);
+    this.sugarDraft.set(d.sugarLimitG);
   }
 
   protected async saveTargets(): Promise<void> {
     try {
       const result = await firstValueFrom(
-        this.api.setTargets({ targetG: this.targetDraft(), calorieBudget: this.budgetDraft(), fatTargetG: this.fatDraft() }),
+        this.api.setTargets({
+          targetG: this.targetDraft(),
+          calorieBudget: this.budgetDraft(),
+          fatTargetG: this.fatDraft(),
+          carbsTargetG: this.carbsDraft(),
+          fiberTargetG: this.fiberDraft(),
+          sugarLimitG: this.sugarDraft(),
+        }),
       );
-      this.applyTargets(result.day.targetG, result.day.calorieBudget, result.day.fatTargetG);
+      this.applyTargets(result.day);
       this.points.applyEnvelope(result.points);
       this.toasts.show('Targets saved.');
     } catch {
@@ -130,13 +158,23 @@ export class ProteinSettingsComponent {
         return;
       }
       const food = await firstValueFrom(
-        this.api.addFood(name, { grams: this.newGrams(), kcal: this.newKcal(), fatG: this.newFat() }),
+        this.api.addFood(name, {
+          grams: this.newGrams(),
+          kcal: this.newKcal(),
+          fatG: this.newFat(),
+          carbsG: this.newCarbs(),
+          fiberG: this.newFiber(),
+          sugarG: this.newSugar(),
+        }),
       );
       this.foods.update((list) => [...list, food]);
       this.newName.set('');
       this.newGrams.set(0);
       this.newKcal.set(0);
       this.newFat.set(0);
+      this.newCarbs.set(0);
+      this.newFiber.set(0);
+      this.newSugar.set(0);
     } catch {
       this.toasts.show('Could not add that food. Try again.', { tone: 'penalty' });
     }
@@ -148,6 +186,9 @@ export class ProteinSettingsComponent {
     this.editGrams.set(food.grams);
     this.editKcal.set(food.kcal);
     this.editFat.set(food.fatG);
+    this.editCarbs.set(food.carbsG);
+    this.editFiber.set(food.fiberG);
+    this.editSugar.set(food.sugarG);
   }
 
   protected async saveEdit(): Promise<void> {
@@ -160,6 +201,9 @@ export class ProteinSettingsComponent {
           grams: this.editGrams(),
           kcal: this.editKcal(),
           fatG: this.editFat(),
+          carbsG: this.editCarbs(),
+          fiberG: this.editFiber(),
+          sugarG: this.editSugar(),
         }),
       );
       this.foods.update((list) => list.map((f) => (f.id === id ? food : f)));

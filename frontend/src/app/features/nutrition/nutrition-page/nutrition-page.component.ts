@@ -73,6 +73,9 @@ export class NutritionPageComponent {
   protected readonly otherGrams = signal(0);
   protected readonly otherKcal = signal(0);
   protected readonly otherFat = signal(0);
+  protected readonly otherCarbs = signal(0);
+  protected readonly otherFiber = signal(0);
+  protected readonly otherSugar = signal(0);
 
   /** Calories against the budget: what is left, or how far over. */
   protected readonly calories = computed(() => {
@@ -86,16 +89,37 @@ export class NutritionPageComponent {
     };
   });
 
-  protected readonly fatPercent = computed(() => {
+  /**
+   * Fat, carbs, fiber and sugar, drawn the same way. Fat, carbs and fiber are targets;
+   * sugar is a limit, so going over it turns the bar to the warning tone and says so.
+   */
+  protected readonly macroRows = computed(() => {
     const d = this.day();
-    return d && d.fatTargetG > 0 ? Math.min(100, (d.totalFatG / d.fatTargetG) * 100) : 0;
+    if (!d) return [];
+    const row = (name: string, total: number, target: number, limit = false) => ({
+      name,
+      total,
+      target,
+      limit,
+      over: limit && total > target,
+      percent: target > 0 ? Math.min(100, (total / target) * 100) : 0,
+    });
+    return [
+      row('Fat', d.totalFatG, d.fatTargetG),
+      row('Carbs', d.totalCarbsG, d.carbsTargetG),
+      row('Fiber', d.totalFiberG, d.fiberTargetG),
+      row('Sugar', d.totalSugarG, d.sugarLimitG, true),
+    ];
   });
 
-  protected foodLabel(f: { grams: number; kcal: number; fatG: number }): string {
+  protected foodLabel(f: { grams: number; kcal: number; fatG: number; carbsG: number; fiberG: number; sugarG: number }): string {
     const parts: string[] = [];
     if (f.grams) parts.push(`${f.grams} g protein`);
     if (f.kcal) parts.push(`${f.kcal} kcal`);
+    if (f.carbsG) parts.push(`${f.carbsG} g carbs`);
     if (f.fatG) parts.push(`${f.fatG} g fat`);
+    if (f.fiberG) parts.push(`${f.fiberG} g fiber`);
+    if (f.sugarG) parts.push(`${f.sugarG} g sugar`);
     return parts.join(' · ');
   }
 
@@ -150,13 +174,27 @@ export class NutritionPageComponent {
 
   protected eat(food: ProteinFood): Promise<boolean> {
     return this.write(() =>
-      this.api.log(this.day()!.date, food.name, { grams: food.grams, kcal: food.kcal, fatG: food.fatG }),
+      this.api.log(this.day()!.date, food.name, {
+        grams: food.grams,
+        kcal: food.kcal,
+        fatG: food.fatG,
+        carbsG: food.carbsG,
+        fiberG: food.fiberG,
+        sugarG: food.sugarG,
+      }),
     );
   }
 
   protected async eatOther(): Promise<void> {
     const name = this.otherName().trim() || 'Other';
-    const amounts = { grams: this.otherGrams(), kcal: this.otherKcal(), fatG: this.otherFat() };
+    const amounts = {
+      grams: this.otherGrams(),
+      kcal: this.otherKcal(),
+      fatG: this.otherFat(),
+      carbsG: this.otherCarbs(),
+      fiberG: this.otherFiber(),
+      sugarG: this.otherSugar(),
+    };
     if (!amounts.grams && !amounts.kcal && !amounts.fatG) {
       this.toasts.show('Enter at least one of protein, calories or fat.');
       return;
@@ -166,6 +204,9 @@ export class NutritionPageComponent {
       this.otherGrams.set(0);
       this.otherKcal.set(0);
       this.otherFat.set(0);
+      this.otherCarbs.set(0);
+      this.otherFiber.set(0);
+      this.otherSugar.set(0);
     }
   }
 

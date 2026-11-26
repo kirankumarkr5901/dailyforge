@@ -10,6 +10,9 @@ export interface ProteinFood {
   grams: number;
   kcal: number;
   fatG: number;
+  carbsG: number;
+  fiberG: number;
+  sugarG: number;
 }
 
 export interface ProteinEntry {
@@ -18,6 +21,9 @@ export interface ProteinEntry {
   grams: number;
   kcal: number;
   fatG: number;
+  carbsG: number;
+  fiberG: number;
+  sugarG: number;
 }
 
 /** What one entry or food adds. At least one must be above zero. */
@@ -25,6 +31,9 @@ export interface NutritionAmounts {
   grams: number;
   kcal: number;
   fatG: number;
+  carbsG: number;
+  fiberG: number;
+  sugarG: number;
 }
 
 export interface ProteinDay {
@@ -36,6 +45,13 @@ export interface ProteinDay {
   totalKcal: number;
   fatTargetG: number;
   totalFatG: number;
+  carbsTargetG: number;
+  totalCarbsG: number;
+  fiberTargetG: number;
+  totalFiberG: number;
+  /** Sugar is a limit to stay under. */
+  sugarLimitG: number;
+  totalSugarG: number;
   entries: ProteinEntry[];
   foods: ProteinFood[];
 }

@@ -16,15 +16,19 @@ public final class ProteinDtos {
     private ProteinDtos() {}
 
     /** {@code grams} is protein, kept under its original name so older clients still read it. */
-    public record FoodResponse(UUID id, String name, int grams, int kcal, int fatG) {
+    public record FoodResponse(UUID id, String name, int grams, int kcal, int fatG, int carbsG, int fiberG, int sugarG) {
         public static FoodResponse of(ProteinFood food) {
-            return new FoodResponse(food.getId(), food.getName(), food.getGrams(), food.getKcal(), food.getFatG());
+            return new FoodResponse(
+                    food.getId(), food.getName(), food.getGrams(), food.getKcal(), food.getFatG(),
+                    food.getCarbsG(), food.getFiberG(), food.getSugarG());
         }
     }
 
-    public record LogResponse(UUID id, String foodName, int grams, int kcal, int fatG) {
+    public record LogResponse(UUID id, String foodName, int grams, int kcal, int fatG, int carbsG, int fiberG, int sugarG) {
         public static LogResponse of(ProteinLog log) {
-            return new LogResponse(log.getId(), log.getFoodName(), log.getGrams(), log.getKcal(), log.getFatG());
+            return new LogResponse(
+                    log.getId(), log.getFoodName(), log.getGrams(), log.getKcal(), log.getFatG(),
+                    log.getCarbsG(), log.getFiberG(), log.getSugarG());
         }
     }
 
@@ -36,6 +40,12 @@ public final class ProteinDtos {
             int totalKcal,
             int fatTargetG,
             int totalFatG,
+            int carbsTargetG,
+            int totalCarbsG,
+            int fiberTargetG,
+            int totalFiberG,
+            int sugarLimitG,
+            int totalSugarG,
             List<LogResponse> entries,
             List<FoodResponse> foods) {
         public static DayResponse of(ProteinService.Day day) {
@@ -47,6 +57,12 @@ public final class ProteinDtos {
                     day.totalKcal(),
                     day.fatTargetG(),
                     day.totalFatG(),
+                    day.carbsTargetG(),
+                    day.totalCarbsG(),
+                    day.fiberTargetG(),
+                    day.totalFiberG(),
+                    day.sugarLimitG(),
+                    day.totalSugarG(),
                     day.logs().stream().map(LogResponse::of).toList(),
                     day.foods().stream().map(FoodResponse::of).toList());
         }
@@ -61,12 +77,39 @@ public final class ProteinDtos {
 
     /** {@code grams} is protein. Calories and fat default to 0 when left out. */
     public record LogRequest(
-            @NotNull LocalDate date, @NotBlank @Size(max = 60) String foodName, Integer grams, Integer kcal, Integer fatG) {}
+            @NotNull LocalDate date,
+            @NotBlank @Size(max = 60) String foodName,
+            Integer grams,
+            Integer kcal,
+            Integer fatG,
+            Integer carbsG,
+            Integer fiberG,
+            Integer sugarG) {}
 
     /** Any of the three; null leaves that target as it is. */
-    public record TargetRequest(Integer targetG, Integer calorieBudget, Integer fatTargetG) {}
+    public record TargetRequest(
+            Integer targetG,
+            Integer calorieBudget,
+            Integer fatTargetG,
+            Integer carbsTargetG,
+            Integer fiberTargetG,
+            Integer sugarLimitG) {}
 
-    public record CreateFoodRequest(@NotBlank @Size(max = 60) String name, Integer grams, Integer kcal, Integer fatG) {}
+    public record CreateFoodRequest(
+            @NotBlank @Size(max = 60) String name,
+            Integer grams,
+            Integer kcal,
+            Integer fatG,
+            Integer carbsG,
+            Integer fiberG,
+            Integer sugarG) {}
 
-    public record UpdateFoodRequest(@Size(max = 60) String name, Integer grams, Integer kcal, Integer fatG) {}
+    public record UpdateFoodRequest(
+            @Size(max = 60) String name,
+            Integer grams,
+            Integer kcal,
+            Integer fatG,
+            Integer carbsG,
+            Integer fiberG,
+            Integer sugarG) {}
 }

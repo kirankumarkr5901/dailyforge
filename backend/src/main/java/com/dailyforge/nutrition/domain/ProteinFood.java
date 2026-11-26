@@ -34,6 +34,15 @@ public class ProteinFood {
     @Column(name = "fat_g", nullable = false)
     private int fatG;
 
+    @Column(name = "carbs_g", nullable = false)
+    private int carbsG;
+
+    @Column(name = "fiber_g", nullable = false)
+    private int fiberG;
+
+    @Column(name = "sugar_g", nullable = false)
+    private int sugarG;
+
     @Column(name = "sort_order", nullable = false)
     private int sortOrder;
 
@@ -64,6 +73,12 @@ public class ProteinFood {
         this.grams = grams;
         this.kcal = kcal;
         this.fatG = fatG;
+    }
+
+    public void updateMore(int carbsG, int fiberG, int sugarG) {
+        this.carbsG = carbsG;
+        this.fiberG = fiberG;
+        this.sugarG = sugarG;
     }
 
     @PrePersist
@@ -100,6 +115,18 @@ public class ProteinFood {
 
     public int getFatG() {
         return fatG;
+    }
+
+    public int getCarbsG() {
+        return carbsG;
+    }
+
+    public int getFiberG() {
+        return fiberG;
+    }
+
+    public int getSugarG() {
+        return sugarG;
     }
 
     public int getSortOrder() {

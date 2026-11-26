@@ -40,6 +40,15 @@ public class ProteinLog {
     @Column(name = "fat_g", nullable = false)
     private int fatG;
 
+    @Column(name = "carbs_g", nullable = false)
+    private int carbsG;
+
+    @Column(name = "fiber_g", nullable = false)
+    private int fiberG;
+
+    @Column(name = "sugar_g", nullable = false)
+    private int sugarG;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
@@ -56,6 +65,15 @@ public class ProteinLog {
         log.grams = grams;
         log.kcal = kcal;
         log.fatG = fatG;
+        return log;
+    }
+
+    public static ProteinLog create(
+            UUID userId, LocalDate occurredOn, String foodName, int grams, int kcal, int fatG, int carbsG, int fiberG, int sugarG) {
+        ProteinLog log = create(userId, occurredOn, foodName, grams, kcal, fatG);
+        log.carbsG = carbsG;
+        log.fiberG = fiberG;
+        log.sugarG = sugarG;
         return log;
     }
 
@@ -90,6 +108,18 @@ public class ProteinLog {
 
     public int getFatG() {
         return fatG;
+    }
+
+    public int getCarbsG() {
+        return carbsG;
+    }
+
+    public int getFiberG() {
+        return fiberG;
+    }
+
+    public int getSugarG() {
+        return sugarG;
     }
 
     public Instant getCreatedAt() {
