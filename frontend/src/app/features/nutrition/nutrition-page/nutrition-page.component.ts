@@ -10,6 +10,7 @@ import { SessionStore } from '../../../core/auth/session.store';
 import { ProteinApi } from '../../../core/nutrition/protein.api';
 import { Meal, ProteinDay, ProteinDayWrite, ProteinEntry, ProteinFood } from '../../../core/nutrition/protein.types';
 import { DfSheetComponent } from '../../../shared/ui/df-sheet/df-sheet.component';
+import { BarcodeScannerComponent } from '../barcode-scanner/barcode-scanner.component';
 import { PointsStore } from '../../../core/points/points.store';
 import { SyncStore } from '../../../core/sync/sync.store';
 import { DfButtonComponent } from '../../../shared/ui/df-button/df-button.component';
@@ -41,6 +42,7 @@ import { ToastService } from '../../../shared/ui/df-toast/toast.service';
     DfSkeletonComponent,
     DfStepperInputComponent,
     DfSheetComponent,
+    BarcodeScannerComponent,
   ],
   templateUrl: './nutrition-page.component.html',
   styleUrl: './nutrition-page.component.scss',
@@ -65,6 +67,22 @@ export class NutritionPageComponent {
   protected readonly busy = signal(false);
 
   protected readonly meals = signal<Meal[]>([]);
+  protected readonly scannerOpen = signal(false);
+
+  /** A scanned product was added: same bookkeeping as any other write. */
+  protected onScanned(result: ProteinDayWrite): void {
+    this.day.set(result.day);
+    this.points.applyEnvelope(result.points);
+    if (result.points.delta > 0) {
+      this.toasts.show(`Protein target hit! +${result.points.delta} pts`, { tone: 'earned', heatStep: 1 });
+    } else {
+      this.toasts.show('Added.');
+    }
+  }
+
+  protected reload(): void {
+    void this.load();
+  }
 
   /** "Save as a meal": which of today's entries go in, and its name. */
   protected readonly mealSheetOpen = signal(false);

@@ -109,7 +109,10 @@
     }
 
     <df-card class="nutrition__foods-card">
-      <h2 class="nutrition__section-title">Tap what you ate</h2>
+      <div class="nutrition__eaten-head">
+        <h2 class="nutrition__section-title">Tap what you ate</h2>
+        <button dfButton type="button" variant="secondary" (click)="scannerOpen.set(true)">Scan barcode</button>
+      </div>
       @if (d.foods.length > 0) {
         <df-input
           class="nutrition__search"
@@ -204,3 +207,13 @@
     <button dfButton type="button" variant="primary" [fullWidth]="true" (click)="saveMeal()">Save meal</button>
   </div>
 </df-sheet>
+
+@if (day(); as d) {
+  <df-barcode-scanner
+    [open]="scannerOpen()"
+    [date]="d.date"
+    (closed)="scannerOpen.set(false)"
+    (logged)="onScanned($event)"
+    (foodSaved)="reload()"
+  />
+}
