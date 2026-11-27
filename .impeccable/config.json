@@ -10,16 +10,18 @@
           "src/app/features/goals/goals-page/goals-page.component.scss"
         ],
         "createdAt": "2026-09-08T05:33:55.995Z",
-        "reason": "Progress-bar fill: width IS the data being shown, so the width transition is literal, domain-appropriate motion, not decoration. The element is a solid-colour 8px bar with no children inside an overflow:hidden track, and it animates only when progress changes — not on scroll or in a loop. scaleX would be visually identical but would misrepresent the property that carries the meaning."
+        "reason": "Progress-bar fill: width IS the data being shown, so the width transition is literal, domain-appropriate motion, not decoration. The element is a solid-colour 8px bar with no children inside an overflow:hidden track, and it animates only when progress changes \u2014 not on scroll or in a loop. scaleX would be visually identical but would misrepresent the property that carries the meaning."
       },
       {
         "rule": "broken-image",
         "value": "*",
         "files": [
-          "frontend/src/app/features/body/progress-photos/progress-photos.component.html"
+          "frontend/src/app/features/body/progress-photos/progress-photos.component.html",
+          "frontend/src/app/features/nutrition/meal-photo/meal-photo.component.html",
+          "src/app/features/nutrition/meal-photo/meal-photo.component.html"
         ],
         "createdAt": "2026-11-26T18:53:25.330Z",
-        "reason": "Claude: src is bound at runtime via [src]=\"photo.url\" (presigned R2 URL); the static scan sees no literal src"
+        "reason": "Claude: src is bound at runtime via [src]=\"photo.url\" (presigned R2 URL); the static scan sees no literal src; meal-photo preview is bound via [src]=\"src\" (a local object URL of the shrunk photo)"
       }
     ]
   }

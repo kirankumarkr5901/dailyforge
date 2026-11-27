@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { LogicalDate } from '../time/logical-date';
-import { BarcodeProduct, Meal, MealItem, NutritionAmounts, ProteinDay, ProteinDayWrite, ProteinFood } from './protein.types';
+import { BarcodeProduct, Meal, MealItem, MealPhotoDish, NutritionAmounts, ProteinDay, ProteinDayWrite, ProteinFood } from './protein.types';
 
 @Injectable({ providedIn: 'root' })
 export class ProteinApi {
@@ -18,6 +18,21 @@ export class ProteinApi {
 
   log(date: LogicalDate, foodName: string, amounts: NutritionAmounts): Observable<ProteinDayWrite> {
     return this.http.post<ProteinDayWrite>(`${this.base}/protein/logs`, { date, foodName, ...amounts });
+  }
+
+  /** Several entries in one write, e.g. the dishes from a meal photo. */
+  logMany(date: LogicalDate, items: MealItem[]): Observable<ProteinDayWrite> {
+    return this.http.post<ProteinDayWrite>(`${this.base}/protein/logs/many`, { date, items });
+  }
+
+  /** Whether "Snap a meal" is set up on the server (it needs a Gemini key). */
+  mealPhotoStatus(): Observable<{ enabled: boolean }> {
+    return this.http.get<{ enabled: boolean }>(`${this.base}/protein/meal-photo`);
+  }
+
+  /** A JPEG as base64; the answer is estimates, nothing is logged. */
+  readMealPhoto(photo: string): Observable<{ dishes: MealPhotoDish[] }> {
+    return this.http.post<{ dishes: MealPhotoDish[] }>(`${this.base}/protein/meal-photo`, { photo });
   }
 
   deleteLog(id: string): Observable<ProteinDayWrite> {

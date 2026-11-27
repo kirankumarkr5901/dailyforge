@@ -1,0 +1,109 @@
+/* Phone first: one column; the photo on top, then each dish as its own block. */
+.snap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.snap__photo {
+  display: block;
+  width: 100%;
+  max-height: 40vh;
+  object-fit: cover;
+  border-radius: var(--radius-card);
+}
+
+.snap__muted,
+.snap__source {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+}
+
+.snap__source {
+  font-size: var(--text-xs);
+}
+
+.snap__error {
+  margin: 0;
+  color: var(--ink);
+  font-size: var(--text-sm);
+}
+
+/* The file inputs are hidden inside big labels, so the whole button opens the camera. */
+.snap__pick {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control, 10px);
+  background: var(--surface-sunken);
+  color: var(--ink);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.snap__pick--primary {
+  border-color: transparent;
+  background: var(--heat-2);
+  color: var(--ink-on-accent, #fff);
+}
+
+.snap__pick:focus-within {
+  outline: 2px solid var(--heat-2);
+  outline-offset: 2px;
+}
+
+.snap__file {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.snap__dishes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.snap__dish {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+}
+
+.snap__dish--out {
+  opacity: 0.6;
+}
+
+.snap__dish-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: end;
+  gap: var(--space-2);
+}
+
+/* A thumb-sized tick box, lined up with the name field rather than its label. */
+.snap__check {
+  width: 24px;
+  height: 24px;
+  margin: 0 0 12px;
+  accent-color: var(--heat-2);
+}
+
+.snap__amounts {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}

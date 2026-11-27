@@ -38,16 +38,56 @@ public class ProteinController {
     private final CurrentUser currentUser;
     private final com.dailyforge.nutrition.domain.MealService meals;
     private final com.dailyforge.nutrition.domain.BarcodeLookupService barcodes;
+    private final com.dailyforge.nutrition.domain.MealPhotoService mealPhotos;
 
     public ProteinController(
             ProteinService protein,
             CurrentUser currentUser,
             com.dailyforge.nutrition.domain.MealService meals,
-            com.dailyforge.nutrition.domain.BarcodeLookupService barcodes) {
+            com.dailyforge.nutrition.domain.BarcodeLookupService barcodes,
+            com.dailyforge.nutrition.domain.MealPhotoService mealPhotos) {
         this.protein = protein;
         this.currentUser = currentUser;
         this.meals = meals;
         this.barcodes = barcodes;
+        this.mealPhotos = mealPhotos;
+    }
+
+    // ------------------------------------------------------------------ meal photos
+
+    public record MealPhotoStatus(boolean enabled) {}
+
+    /** {@code photo} is a JPEG, base64 (a data: URL prefix is fine). */
+    public record MealPhotoRequest(@jakarta.validation.constraints.NotBlank String photo) {}
+
+    public record MealPhotoResponse(java.util.List<com.dailyforge.nutrition.domain.MealPhotoService.Dish> dishes) {}
+
+    /** Whether "Snap a meal" is set up on this server. */
+    @GetMapping("/meal-photo")
+    public MealPhotoStatus mealPhotoStatus() {
+        currentUser.require();
+        return new MealPhotoStatus(mealPhotos.enabled());
+    }
+
+    /** Estimates only: nothing is logged until the user adds the rows they agree with. */
+    @PostMapping("/meal-photo")
+    public MealPhotoResponse readMealPhoto(@Valid @RequestBody MealPhotoRequest request) {
+        return new MealPhotoResponse(mealPhotos.analyze(currentUser.require(), request.photo()));
+    }
+
+    public record LogManyRequest(
+            @jakarta.validation.constraints.NotNull LocalDate date,
+            @jakarta.validation.constraints.NotEmpty @jakarta.validation.constraints.Size(max = 12)
+                    java.util.List<@Valid MealItemDto> items) {}
+
+    /** Several entries in one write (the dishes from a photo): points reconciled once. */
+    @PostMapping("/logs/many")
+    public DayWriteResponse logMany(@Valid @RequestBody LogManyRequest request) {
+        var entries = request.items().stream()
+                .map(i -> java.util.Map.entry(i.foodName(), new ProteinService.Amounts(
+                        orZero(i.grams()), orZero(i.kcal()), orZero(i.fatG()), orZero(i.carbsG()), orZero(i.fiberG()), orZero(i.sugarG()))))
+                .toList();
+        return DayWriteResponse.of(protein.logMany(currentUser.require(), request.date(), entries));
     }
 
     /** A packaged food by barcode, from Open Food Facts via the server. 404 when unknown. */

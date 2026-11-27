@@ -267,6 +267,26 @@ class ProteinAndDeloadIntegrationTest {
         mockMvc.perform(auth(get("/api/v1/protein/barcode/abcdefghij"))).andExpect(status().is4xxClientError());
     }
 
+    /** Without GEMINI_API_KEY the feature says it is off, and never calls out. */
+    @Test
+    void mealPhotosAreOffWithoutAKey() throws Exception {
+        assertThat(call(get("/api/v1/protein/meal-photo")).get("enabled").asBoolean()).isFalse();
+        mockMvc.perform(auth(post("/api/v1/protein/meal-photo")).content("{\"photo\":\"/9j/4AAQ\"}"))
+                .andExpect(status().isServiceUnavailable());
+    }
+
+    /** The dishes from a photo go in together, and the day adds them all up. */
+    @Test
+    void severalEntriesAreLoggedInOneWrite() throws Exception {
+        JsonNode body = call(post("/api/v1/protein/logs/many")
+                        .content("{\"date\":\"" + TODAY + "\",\"items\":["
+                                + "{\"foodName\":\"Chicken biryani\",\"grams\":25,\"kcal\":550,\"fatG\":18,\"carbsG\":70},"
+                                + "{\"foodName\":\"Raita\",\"grams\":4,\"kcal\":80,\"fatG\":3}]}"));
+        assertThat(body.get("day").get("totalG").asInt()).isEqualTo(29);
+        assertThat(body.get("day").get("totalKcal").asInt()).isEqualTo(630);
+        assertThat(body.get("day").get("entries").size()).isEqualTo(2);
+    }
+
     @Test
     void anEntryWithNothingInItIsRefused() throws Exception {
         mockMvc.perform(auth(post("/api/v1/protein/logs"))

@@ -1,0 +1,102 @@
+<df-sheet [open]="open()" (openChange)="$event ? null : close()" heading="Snap a meal">
+  <div class="snap">
+    @if (preview(); as src) {
+      <img class="snap__photo" [src]="src" alt="Your meal photo" />
+    }
+
+    @switch (status()) {
+      @case ('pick') {
+        <p class="snap__muted">
+          Take a photo of your plate from above. The dishes and their nutrition come back as
+          estimates for you to check.
+        </p>
+        <label class="snap__pick snap__pick--primary">
+          Take a photo
+          <input
+            class="snap__file"
+            type="file"
+            accept="image/*"
+            capture="environment"
+            (change)="onFile($event)"
+          />
+        </label>
+        <label class="snap__pick">
+          Choose from gallery
+          <input class="snap__file" type="file" accept="image/*" (change)="onFile($event)" />
+        </label>
+      }
+      @case ('reading') {
+        <p class="snap__muted" role="status">Looking at your meal…</p>
+      }
+      @case ('empty') {
+        <p class="snap__muted" role="status">No food found in that photo.</p>
+        <button dfButton type="button" variant="secondary" (click)="tryAgain()">
+          Try another photo
+        </button>
+      }
+      @case ('error') {
+        <p class="snap__error" role="alert">{{ error() }}</p>
+        <button dfButton type="button" variant="secondary" (click)="tryAgain()">Try again</button>
+      }
+      @case ('review') {
+        <p class="snap__muted">Estimates. Fix a name or portion, or leave a dish out.</p>
+        <ul class="snap__dishes">
+          @for (row of rows(); track $index; let i = $index) {
+            <li class="snap__dish" [class.snap__dish--out]="!row.include">
+              <div class="snap__dish-head">
+                <input
+                  class="snap__check"
+                  type="checkbox"
+                  [checked]="row.include"
+                  [attr.aria-label]="'Include ' + row.name"
+                  (change)="update(i, { include: $any($event.target).checked })"
+                />
+                <df-input
+                  class="snap__name"
+                  label="Dish"
+                  [ngModel]="row.name"
+                  (ngModelChange)="update(i, { name: $event })"
+                />
+              </div>
+              @if (row.include) {
+                <df-stepper-input
+                  label="Portion"
+                  suffix="g"
+                  [min]="5"
+                  [max]="2000"
+                  [step]="10"
+                  [ngModel]="row.portionG"
+                  (ngModelChange)="update(i, { portionG: $event })"
+                />
+                @let a = amounts(row);
+                <p class="snap__amounts">
+                  {{ a.grams }} g protein · {{ a.kcal }} kcal · {{ a.carbsG }} g carbs ·
+                  {{ a.fatG }} g fat · {{ a.fiberG }} g fiber · {{ a.sugarG }} g sugar
+                </p>
+              }
+            </li>
+          }
+        </ul>
+        <p class="snap__amounts">
+          Together: {{ totals().grams }} g protein · {{ totals().kcal }} kcal
+        </p>
+        <button
+          dfButton
+          type="button"
+          variant="primary"
+          [fullWidth]="true"
+          [disabled]="busy() || chosen().length === 0"
+          (click)="addToToday()"
+        >
+          Add {{ chosen().length }} to today
+        </button>
+        <button dfButton type="button" variant="ghost" (click)="tryAgain()">
+          Use another photo
+        </button>
+      }
+    }
+    <p class="snap__source">
+      Photos are read by Google Gemini. Google may use them to improve its products.
+    </p>
+  </div>
+</df-sheet>
