@@ -58,7 +58,7 @@ dailyforge:
     secret-access-key: ${R2_SECRET_ACCESS_KEY:}
     bucket: ${R2_BUCKET:}
 
-  # Meal photos read by Google Gemini (free tier). A blank key switches them off; see
+  # AI features (meal photos, coach, Forge plans) use Google Gemini (free tier). A blank key switches them off; see
   # docs/meal-photos.md. GEMINI_MODEL and GEMINI_FALLBACK_MODEL (asked when the main
   # model is overloaded) are optional.
   gemini:

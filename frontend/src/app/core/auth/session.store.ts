@@ -97,6 +97,12 @@ export class SessionStore {
     this.adopt(response.accessToken, response.refreshToken, response.user);
   }
 
+  /** Signs in to the shared demo account, filled with a sample week and reset nightly. */
+  async loginDemo(): Promise<void> {
+    const response = await firstValueFrom(this.api.demo());
+    this.adopt(response.accessToken, response.refreshToken, response.user);
+  }
+
   async loginWithGoogle(idToken: string): Promise<void> {
     const response = await firstValueFrom(
       this.api.loginWithGoogle(idToken, SessionStore.browserTimeZone()),

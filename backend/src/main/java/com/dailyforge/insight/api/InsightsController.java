@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/insights")
 public class InsightsController {
 
+    private final com.dailyforge.insight.domain.WeeklyCoachService weeklyCoach;
     private final DailySummaryService summaries;
     private final CurrentUser currentUser;
     private final com.dailyforge.insight.domain.WeekReviewService weekReviews;
@@ -26,10 +27,25 @@ public class InsightsController {
     public InsightsController(
             DailySummaryService summaries,
             CurrentUser currentUser,
-            com.dailyforge.insight.domain.WeekReviewService weekReviews) {
+            com.dailyforge.insight.domain.WeekReviewService weekReviews,
+            com.dailyforge.insight.domain.WeeklyCoachService weeklyCoach) {
         this.summaries = summaries;
         this.currentUser = currentUser;
         this.weekReviews = weekReviews;
+        this.weeklyCoach = weeklyCoach;
+    }
+
+    /**
+     * The AI coach's review of the week containing {@code date}: written once that week
+     * reaches its Sunday, then kept. 204 when AI is off or the week isn't there yet.
+     */
+    @GetMapping("/coach")
+    public org.springframework.http.ResponseEntity<com.dailyforge.insight.domain.WeeklyCoachService.Review> coach(
+            @RequestParam LocalDate date) {
+        var review = weeklyCoach.review(currentUser.require(), date);
+        return review == null
+                ? org.springframework.http.ResponseEntity.noContent().build()
+                : org.springframework.http.ResponseEntity.ok(review);
     }
 
     /** The Monday-to-Sunday week containing {@code date} (this week if omitted), in a few numbers. */

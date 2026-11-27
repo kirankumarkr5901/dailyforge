@@ -67,7 +67,11 @@ export class MealPhotoComponent {
   /** A dish was saved as a food: the page reloads its food list. */
   readonly foodSaved = output<void>();
 
-  protected readonly status = signal<'pick' | 'reading' | 'review' | 'empty' | 'error'>('pick');
+  protected readonly status = signal<
+    'pick' | 'describe' | 'reading' | 'review' | 'empty' | 'error'
+  >('pick');
+  /** "Describe it": what the user ate, typed or spoken with the keyboard's mic. */
+  protected readonly description = signal('');
   protected readonly error = signal('');
   protected readonly preview = signal<string | null>(null);
   protected readonly rows = signal<Row[]>([]);
@@ -92,6 +96,7 @@ export class MealPhotoComponent {
 
   private reset(): void {
     this.status.set('pick');
+    this.description.set('');
     this.error.set('');
     this.setPreview(null);
     this.rows.set([]);
@@ -113,11 +118,24 @@ export class MealPhotoComponent {
     const file = inputEl.files?.[0];
     inputEl.value = '';
     if (!file) return;
-    this.status.set('reading');
-    try {
+    await this.read(async () => {
       const blob = await shrink(file, PHOTO_SIDE);
       this.setPreview(URL.createObjectURL(blob));
-      const { dishes } = await firstValueFrom(this.api.readMealPhoto(await toBase64(blob)));
+      return firstValueFrom(this.api.readMealPhoto(await toBase64(blob)));
+    });
+  }
+
+  protected async readDescription(): Promise<void> {
+    const text = this.description().trim();
+    if (!text) return;
+    await this.read(() => firstValueFrom(this.api.readMealText(text)));
+  }
+
+  /** Photo or words: the same estimates, the same review. */
+  private async read(ask: () => Promise<{ dishes: MealPhotoDish[] }>): Promise<void> {
+    this.status.set('reading');
+    try {
+      const { dishes } = await ask();
       this.rows.set(
         dishes.map((d) => ({
           estimate: d,
@@ -177,7 +195,9 @@ export class MealPhotoComponent {
     this.busy.set(true);
     try {
       const { foodName, ...amounts } = a;
-      await firstValueFrom(this.api.addFood(`${foodName} ${row.portionG} g`.slice(0, 60), amounts));
+      await firstValueFrom(
+        this.api.addFood(`${foodName} ${row.portionG} g`.slice(0, 60), amounts, 'PHOTO'),
+      );
       this.update(index, { saved: true });
       this.foodSaved.emit();
       this.toasts.show('Saved to your foods.');

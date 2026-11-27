@@ -1,0 +1,92 @@
+/* Phone first: a full-width, thumb-height fold; the chips wrap under the search. */
+:host {
+  display: block;
+}
+
+.food-list__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 44px;
+  margin-bottom: var(--space-2);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.food-list__toggle:focus-visible {
+  outline: 2px solid var(--heat-2);
+  outline-offset: 2px;
+}
+
+.food-list__chevron {
+  transition: transform var(--duration-base) var(--ease-out);
+}
+
+.food-list__chevron--open {
+  transform: rotate(180deg);
+}
+
+.food-list__panel {
+  margin-bottom: var(--space-3);
+}
+
+.food-list__search {
+  display: block;
+  margin-bottom: var(--space-3);
+}
+
+.food-list__foods {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.food-list__food {
+  min-height: 40px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-sunken);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.food-list__food:hover:not(:disabled) {
+  border-color: var(--heat-2);
+}
+
+.food-list__food:focus-visible {
+  outline: 2px solid var(--heat-2);
+  outline-offset: 2px;
+}
+
+.food-list__food:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.food-list__grams {
+  color: var(--ink-muted);
+  font-weight: 500;
+}
+
+.food-list__muted {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .food-list__chevron {
+    transition: none;
+  }
+}

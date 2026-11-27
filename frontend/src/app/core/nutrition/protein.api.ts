@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { LogicalDate } from '../time/logical-date';
-import { BarcodeProduct, Meal, MealItem, MealPhotoDish, NutritionAmounts, ProteinDay, ProteinDayWrite, ProteinFood } from './protein.types';
+import { BarcodeProduct, Meal, MealItem, MealPhotoDish, ProteinSuggestion, NutritionAmounts, ProteinDay, ProteinDayWrite, ProteinFood } from './protein.types';
 
 @Injectable({ providedIn: 'root' })
 export class ProteinApi {
@@ -30,6 +30,16 @@ export class ProteinApi {
     return this.http.get<{ enabled: boolean }>(`${this.base}/protein/meal-photo`);
   }
 
+  /** Two or three options that fit what's left of the day's protein and calories. */
+  suggestions(date: LogicalDate): Observable<{ suggestions: ProteinSuggestion[] }> {
+    return this.http.post<{ suggestions: ProteinSuggestion[] }>(`${this.base}/protein/suggestions`, { date });
+  }
+
+  /** What the user ate, in their own words; the answer is estimates, nothing is logged. */
+  readMealText(description: string): Observable<{ dishes: MealPhotoDish[] }> {
+    return this.http.post<{ dishes: MealPhotoDish[] }>(`${this.base}/protein/meal-text`, { description });
+  }
+
   /** A JPEG as base64; the answer is estimates, nothing is logged. */
   readMealPhoto(photo: string): Observable<{ dishes: MealPhotoDish[] }> {
     return this.http.post<{ dishes: MealPhotoDish[] }>(`${this.base}/protein/meal-photo`, { photo });
@@ -53,8 +63,9 @@ export class ProteinApi {
   }
 
   /** Food list changes are structural: they need "Enable edit". */
-  addFood(name: string, amounts: NutritionAmounts): Observable<ProteinFood> {
-    return this.http.post<ProteinFood>(`${this.base}/protein/foods`, { name, ...amounts });
+  /** `source`: PHOTO or BARCODE when saved from a meal photo or a scan; the list otherwise. */
+  addFood(name: string, amounts: NutritionAmounts, source?: 'PHOTO' | 'BARCODE'): Observable<ProteinFood> {
+    return this.http.post<ProteinFood>(`${this.base}/protein/foods`, { name, ...amounts, source });
   }
 
   updateFood(id: string, patch: { name?: string } & Partial<NutritionAmounts>): Observable<ProteinFood> {

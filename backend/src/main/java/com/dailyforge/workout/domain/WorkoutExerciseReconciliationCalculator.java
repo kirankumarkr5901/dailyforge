@@ -17,14 +17,18 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 /**
  * Recomputes one user's one exercise from its raw {@code workout_set} rows: a
- * {@code WORKOUT_SET} entry for every logged set, and — at most one — {@code
- * WORKOUT_PR} entry for whichever set currently holds the lifetime record (spec §5.3's
- * own mechanism, applied here the way {@code HabitReconciliationCalculator} applies it
- * to a streak). Both rule codes share the {@code WORKOUT_SET} source type, keyed by the
+ * {@code WORKOUT_SET} entry for every logged set, and a {@code WORKOUT_PR} entry for
+ * every set that was a lifetime record when it was done (heavier than every earlier
+ * set, or as heavy with more reps). A record keeps its bonus when a later one beats it
+ * (owner request: logging a set must never take record points away), so the bonus only
+ * moves when a set is deleted or one is back-dated before it. Both rule codes share the {@code WORKOUT_SET} source type, keyed by the
  * set's own real id — no deterministic hashing is needed the way a habit-day pair
  * needed one, since every set already has a row of its own.
  *
@@ -98,27 +102,35 @@ public class WorkoutExerciseReconciliationCalculator
         if (exercise.getKind() != ExerciseKind.CARDIO) {
             RuleConfig prConfig = ruleConfigs.getSystemDefault("WORKOUT_PR");
             if (prConfig.enabled() && !live.isEmpty()) {
-                List<WorkoutSet> ranked =
-                        live.stream()
-                                .sorted(
-                                        Comparator.comparing(WorkoutSet::getTotalWeightKg)
-                                                .thenComparing(WorkoutSet::getReps)
-                                                .reversed())
-                                .toList();
-                WorkoutSet best = ranked.get(0);
-                boolean repsOnly =
-                        ranked.size() > 1 && ranked.get(1).getTotalWeightKg().compareTo(best.getTotalWeightKg()) == 0;
-                int amount = prAmount(prConfig, exercise.getEquipment(), best.getTotalWeightKg(), repsOnly);
-
-                desired.add(
-                        new DesiredEntry(
-                                occurredOnOf(best),
-                                PointsCategory.WORKOUT,
-                                "WORKOUT_PR",
-                                amount,
-                                SOURCE_TYPE,
-                                best.getId(),
-                                "Personal record — " + exercise.getName()));
+                Map<UUID, java.time.LocalDate> dates = new HashMap<>();
+                sessions.findAllById(live.stream().map(WorkoutSet::getSessionId).collect(Collectors.toSet()))
+                        .forEach(sess -> dates.put(sess.getId(), sess.getOccurredOn()));
+                List<WorkoutSet> inOrder = live.stream()
+                        .filter(set -> dates.containsKey(set.getSessionId()))
+                        .sorted(Comparator.comparing((WorkoutSet set) -> dates.get(set.getSessionId()))
+                                .thenComparing(WorkoutSet::getLoggedAt)
+                                .thenComparing(WorkoutSet::getSetNumber))
+                        .toList();
+                WorkoutSet best = null;
+                for (WorkoutSet set : inOrder) {
+                    boolean heavier = best == null || set.getTotalWeightKg().compareTo(best.getTotalWeightKg()) > 0;
+                    boolean sameWeightMoreReps = best != null
+                            && set.getTotalWeightKg().compareTo(best.getTotalWeightKg()) == 0
+                            && set.getReps() > best.getReps();
+                    if (!heavier && !sameWeightMoreReps) {
+                        continue;
+                    }
+                    int amount = prAmount(prConfig, exercise.getEquipment(), set.getTotalWeightKg(), sameWeightMoreReps);
+                    desired.add(new DesiredEntry(
+                            dates.get(set.getSessionId()),
+                            PointsCategory.WORKOUT,
+                            "WORKOUT_PR",
+                            amount,
+                            SOURCE_TYPE,
+                            set.getId(),
+                            "Personal record — " + exercise.getName()));
+                    best = set;
+                }
             }
         }
 

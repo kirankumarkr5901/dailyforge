@@ -46,6 +46,11 @@ export class AuthApi {
     });
   }
 
+  /** "Try the demo": a session on the shared demo account, no sign-up. */
+  demo(): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.base}/auth/demo`, {}, { context: this.skipRefresh });
+  }
+
   loginWithGoogle(idToken: string, timeZone: string): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(
       `${this.base}/auth/google`,

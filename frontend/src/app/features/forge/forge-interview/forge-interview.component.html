@@ -1,0 +1,141 @@
+<div class="quiz">
+  <div class="quiz__top">
+    <button type="button" class="quiz__back" (click)="back()" aria-label="Back">
+      <lucide-icon [img]="backIcon" [size]="20" aria-hidden="true" />
+    </button>
+    <div
+      class="quiz__bar"
+      role="progressbar"
+      aria-label="Interview progress"
+      [attr.aria-valuenow]="progressPercent()"
+      aria-valuemin="0"
+      aria-valuemax="100"
+    >
+      <div class="quiz__bar-fill" [style.width.%]="progressPercent()"></div>
+    </div>
+  </div>
+
+  @if (error(); as message) {
+    <p class="quiz__error" role="alert">{{ message }}</p>
+    @if (!onModeStep()) {
+      <button type="button" class="forge-btn forge-btn--ghost" (click)="ask()">Try again</button>
+    }
+  }
+
+  @if (thinking()) {
+    <p class="quiz__loading" role="status">
+      {{ turns().length === 0 ? 'Getting your interview ready…' : 'Thinking about your answer…' }}
+    </p>
+  } @else if (onModeStep()) {
+    <p class="quiz__eyebrow">Interview done · {{ turns().length }} answers</p>
+    <h2 class="quiz__prompt">How hard should it push you?</h2>
+    <p class="quiz__hint">
+      The AI writes your first week now, then rewrites each next week from what you did and missed.
+    </p>
+
+    <div class="quiz__modes">
+      <button
+        type="button"
+        class="quiz__mode"
+        [class.is-picked]="mode() === 'NORMAL'"
+        [attr.aria-pressed]="mode() === 'NORMAL'"
+        (click)="mode.set('NORMAL')"
+      >
+        <span class="quiz__mode-name">Normal</span>
+        <span class="quiz__mode-body">A missed day resets your streak. Nothing else is lost.</span>
+      </button>
+      <button
+        type="button"
+        class="quiz__mode quiz__mode--hard"
+        [class.is-picked]="mode() === 'HARD'"
+        [attr.aria-pressed]="mode() === 'HARD'"
+        (click)="mode.set('HARD')"
+      >
+        <span class="quiz__mode-name">Hard</span>
+        <span class="quiz__mode-body">
+          20% more XP per quest, but miss a day or leave it unfinished and the run starts again at
+          day 1. XP and points you've earned are kept.
+        </span>
+      </button>
+    </div>
+
+    <button
+      type="button"
+      class="forge-btn forge-btn--primary quiz__cta"
+      [disabled]="!mode() || submitting()"
+      (click)="begin()"
+    >
+      {{ submitting() ? 'Writing your plan…' : 'Build my plan' }}
+    </button>
+    <button type="button" class="interview__link" [disabled]="submitting()" (click)="back()">
+      Change my last answer
+    </button>
+  } @else if (current(); as q) {
+    <p class="quiz__eyebrow">Question {{ turns().length + 1 }}</p>
+    <h2 class="quiz__prompt">{{ q.question }}</h2>
+    @if (q.hint) {
+      <p class="quiz__hint">{{ q.hint }}</p>
+    }
+
+    @if (q.options.length > 0) {
+      <div
+        class="quiz__options"
+        [attr.role]="q.multi ? 'group' : 'radiogroup'"
+        [attr.aria-label]="q.question"
+      >
+        @for (option of q.options; track option) {
+          <button
+            type="button"
+            class="quiz__option"
+            [class.is-picked]="picks().includes(option)"
+            [attr.role]="q.multi ? null : 'radio'"
+            [attr.aria-checked]="q.multi ? null : picks().includes(option)"
+            [attr.aria-pressed]="q.multi ? picks().includes(option) : null"
+            (click)="toggle(option)"
+          >
+            {{ option }}
+          </button>
+        }
+      </div>
+      @if (q.multi) {
+        <p class="quiz__hint">Pick all that apply.</p>
+      }
+    }
+
+    <label class="interview__label" for="interview-text">
+      {{ q.options.length > 0 ? 'Anything to add? (optional)' : 'Your answer' }}
+    </label>
+    <textarea
+      id="interview-text"
+      class="interview__text"
+      rows="2"
+      maxlength="400"
+      [ngModel]="text()"
+      (ngModelChange)="text.set($event)"
+    ></textarea>
+
+    <button
+      type="button"
+      class="forge-btn forge-btn--primary quiz__cta"
+      [disabled]="!canAnswer()"
+      (click)="next()"
+    >
+      Next
+    </button>
+    @if (turns().length >= minTurns) {
+      <button type="button" class="interview__link" (click)="finishNow()">
+        That's enough, build my plan
+      </button>
+    }
+    @if (turns().length > 0) {
+      <button type="button" class="interview__link" (click)="startOver()">
+        Start the interview over
+      </button>
+    }
+  }
+
+  <p class="interview__note">
+    Your answers are read by Google Gemini to plan with. Google may use them to improve its
+    products.
+  </p>
+</div>

@@ -16,11 +16,12 @@ public final class ProteinDtos {
     private ProteinDtos() {}
 
     /** {@code grams} is protein, kept under its original name so older clients still read it. */
-    public record FoodResponse(UUID id, String name, int grams, int kcal, int fatG, int carbsG, int fiberG, int sugarG) {
+    public record FoodResponse(
+            UUID id, String name, int grams, int kcal, int fatG, int carbsG, int fiberG, int sugarG, String source) {
         public static FoodResponse of(ProteinFood food) {
             return new FoodResponse(
                     food.getId(), food.getName(), food.getGrams(), food.getKcal(), food.getFatG(),
-                    food.getCarbsG(), food.getFiberG(), food.getSugarG());
+                    food.getCarbsG(), food.getFiberG(), food.getSugarG(), food.getSource());
         }
     }
 
@@ -102,6 +103,7 @@ public final class ProteinDtos {
 
     public record WaterRequest(@NotNull LocalDate date, @NotNull Integer deltaMl) {}
 
+    /** {@code source} is optional: PHOTO or BARCODE when saved from a meal photo or a scan. */
     public record CreateFoodRequest(
             @NotBlank @Size(max = 60) String name,
             Integer grams,
@@ -109,7 +111,8 @@ public final class ProteinDtos {
             Integer fatG,
             Integer carbsG,
             Integer fiberG,
-            Integer sugarG) {}
+            Integer sugarG,
+            String source) {}
 
     public record UpdateFoodRequest(
             @Size(max = 60) String name,

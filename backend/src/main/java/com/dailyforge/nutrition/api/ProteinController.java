@@ -39,18 +39,31 @@ public class ProteinController {
     private final com.dailyforge.nutrition.domain.MealService meals;
     private final com.dailyforge.nutrition.domain.BarcodeLookupService barcodes;
     private final com.dailyforge.nutrition.domain.MealPhotoService mealPhotos;
+    private final com.dailyforge.nutrition.domain.ProteinSuggestionService suggestions;
 
     public ProteinController(
             ProteinService protein,
             CurrentUser currentUser,
             com.dailyforge.nutrition.domain.MealService meals,
             com.dailyforge.nutrition.domain.BarcodeLookupService barcodes,
-            com.dailyforge.nutrition.domain.MealPhotoService mealPhotos) {
+            com.dailyforge.nutrition.domain.MealPhotoService mealPhotos,
+            com.dailyforge.nutrition.domain.ProteinSuggestionService suggestions) {
         this.protein = protein;
         this.currentUser = currentUser;
         this.meals = meals;
         this.barcodes = barcodes;
         this.mealPhotos = mealPhotos;
+        this.suggestions = suggestions;
+    }
+
+    public record SuggestionsRequest(@jakarta.validation.constraints.NotNull LocalDate date) {}
+
+    public record SuggestionsResponse(java.util.List<com.dailyforge.nutrition.domain.ProteinSuggestionService.Suggestion> suggestions) {}
+
+    /** "What should I eat to hit protein?": two or three options that fit what's left today. */
+    @PostMapping("/suggestions")
+    public SuggestionsResponse suggestions(@Valid @RequestBody SuggestionsRequest request) {
+        return new SuggestionsResponse(suggestions.suggest(currentUser.require(), request.date()));
     }
 
     // ------------------------------------------------------------------ meal photos
@@ -59,6 +72,15 @@ public class ProteinController {
 
     /** {@code photo} is a JPEG, base64 (a data: URL prefix is fine). */
     public record MealPhotoRequest(@jakarta.validation.constraints.NotBlank String photo) {}
+
+    public record MealTextRequest(
+            @jakarta.validation.constraints.NotBlank @jakarta.validation.constraints.Size(max = 400) String description) {}
+
+    /** The same estimates, from what the user typed or said ("2 idli, sambar and coffee"). */
+    @PostMapping("/meal-text")
+    public MealPhotoResponse readMealText(@Valid @RequestBody MealTextRequest request) {
+        return new MealPhotoResponse(mealPhotos.describe(currentUser.require(), request.description()));
+    }
 
     public record MealPhotoResponse(java.util.List<com.dailyforge.nutrition.domain.MealPhotoService.Dish> dishes) {}
 
@@ -164,7 +186,8 @@ public class ProteinController {
                         orZero(request.fatG()),
                         orZero(request.carbsG()),
                         orZero(request.fiberG()),
-                        orZero(request.sugarG()))));
+                        orZero(request.sugarG())),
+                request.source()));
     }
 
     @PatchMapping("/foods/{id}")

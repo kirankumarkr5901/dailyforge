@@ -29,9 +29,12 @@ public class AuthController {
     private final IdentityService identity;
     private final AuthRateLimiter rateLimiter;
 
-    public AuthController(IdentityService identity, AuthRateLimiter rateLimiter) {
+    private final com.dailyforge.demo.DemoService demo;
+
+    public AuthController(IdentityService identity, AuthRateLimiter rateLimiter, com.dailyforge.demo.DemoService demo) {
         this.identity = identity;
         this.rateLimiter = rateLimiter;
+        this.demo = demo;
     }
 
     /**
@@ -91,6 +94,17 @@ public class AuthController {
         IdentityService.Session session =
                 identity.loginWithGoogle(request.idToken(), request.timeZone(), device);
 
+        rateLimiter.clear(caller);
+        return toResponse(session);
+    }
+
+    /** "Try the demo": a session on the shared demo account, no sign-up needed. */
+    @PostMapping("/demo")
+    public AuthResponse demo(
+            @RequestHeader(value = "X-Device-Label", required = false) String device, HttpServletRequest http) {
+        String caller = callerOf(http);
+        rateLimiter.check(caller);
+        IdentityService.Session session = demo.start(device);
         rateLimiter.clear(caller);
         return toResponse(session);
     }

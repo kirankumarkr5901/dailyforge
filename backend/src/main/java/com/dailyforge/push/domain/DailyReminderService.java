@@ -56,6 +56,7 @@ public class DailyReminderService {
     private final DayService dayService;
     private final Clock clock;
     private final com.dailyforge.identity.domain.IdentityService identity;
+    private final com.dailyforge.insight.domain.WeeklyCoachService weeklyCoach;
 
     private record Due(ZoneId zone, LocalTime time) {}
 
@@ -72,7 +73,8 @@ public class DailyReminderService {
             NutritionSettingsRepository nutritionSettings,
             DayService dayService,
             Clock clock,
-            com.dailyforge.identity.domain.IdentityService identity) {
+            com.dailyforge.identity.domain.IdentityService identity,
+            com.dailyforge.insight.domain.WeeklyCoachService weeklyCoach) {
         this.jdbc = jdbc;
         this.sender = sender;
         this.habitBoard = habitBoard;
@@ -82,6 +84,7 @@ public class DailyReminderService {
         this.dayService = dayService;
         this.clock = clock;
         this.identity = identity;
+        this.weeklyCoach = weeklyCoach;
     }
 
     // ------------------------------------------------------------------ settings
@@ -153,6 +156,11 @@ public class DailyReminderService {
             } catch (Exception ex) {
                 log.warn("Daily reminder for {} failed: {}", userId, ex.toString());
             }
+            try {
+                sendWeeklyReview(userId, today);
+            } catch (Exception ex) {
+                log.warn("Weekly review for {} failed: {}", userId, ex.toString());
+            }
         }
     }
 
@@ -169,6 +177,16 @@ public class DailyReminderService {
             return false;
         }
         return sender.send(userId, new PushSender.Message("DailyForge", body, "dailyforge-daily-reminder", "/home"), 3600) > 0;
+    }
+
+    /** On Sundays, at the reminder time: the AI coach's review of the week, once. */
+    public boolean sendWeeklyReview(UUID userId, LocalDate today) {
+        var review = weeklyCoach.forSundayPush(userId, today);
+        if (review == null) {
+            return false;
+        }
+        String body = review.summary().length() > 160 ? review.summary().substring(0, 157) + "..." : review.summary();
+        return sender.send(userId, new PushSender.Message("Your week", body, "dailyforge-weekly-review", "/home"), 6 * 3600) > 0;
     }
 
     /** "Still to do: Plank (day 12), 2 habits, 60 g protein", or null when nothing is open. */

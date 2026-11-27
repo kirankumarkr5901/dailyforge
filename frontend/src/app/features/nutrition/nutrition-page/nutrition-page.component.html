@@ -40,6 +40,9 @@
           <span class="nutrition__meter-fill" [style.width.%]="percent()"></span>
         </div>
         <p class="nutrition__message" aria-live="polite">{{ message() }}</p>
+        @if (mealPhotoEnabled() && !reached()) {
+          <df-protein-tips [date]="d.date" (logged)="onScanned($event)" />
+        }
       </div>
 
       @if (calories(); as c) {
@@ -138,65 +141,29 @@
       <h2 class="nutrition__section-title">Tap what you ate</h2>
       <div class="nutrition__capture">
         @if (mealPhotoEnabled()) {
-          <button dfButton type="button" variant="primary" (click)="mealPhotoOpen.set(true)">Snap a meal</button>
+          <button dfButton type="button" variant="primary" (click)="mealPhotoOpen.set(true)">Log a meal</button>
         }
         <button dfButton type="button" variant="secondary" (click)="scannerOpen.set(true)">Scan barcode</button>
       </div>
-      @if (d.foods.length > 0) {
-        <button
-          type="button"
-          class="nutrition__toggle"
-          [attr.aria-expanded]="foodsOpen()"
-          aria-controls="nutrition-foods"
-          (click)="toggleFoods()"
-        >
-          <span>Your foods ({{ d.foods.length }})</span>
-          <lucide-icon
-            class="nutrition__chevron"
-            [class.nutrition__chevron--open]="foodsOpen()"
-            [img]="chevronIcon"
-            [size]="18"
-            aria-hidden="true"
-          />
-        </button>
-        @if (foodsOpen()) {
-          <div id="nutrition-foods">
-            <df-input
-              class="nutrition__search"
-              label="Search foods"
-              placeholder="e.g. paneer"
-              [ngModel]="search()"
-              (ngModelChange)="search.set($event)"
-            />
-            <div class="nutrition__foods">
-              @for (food of visibleFoods(); track food.id) {
-                <button type="button" class="nutrition__food" [disabled]="busy()" (click)="eat(food)">
-                  {{ food.name }}
-                  <span class="nutrition__food-grams">{{ food.grams }} g · {{ food.kcal }} kcal</span>
-                </button>
-              } @empty {
-                <p class="nutrition__muted">No food matches "{{ search() }}". Add it below as something else.</p>
-              }
-            </div>
-          </div>
-        }
-      } @else {
+      @if (d.foods.length === 0) {
         <p class="nutrition__muted">No foods yet. Add some in <a routerLink="/settings" fragment="nutrition">Settings</a>.</p>
+      } @else {
+        <df-food-list
+          heading="Your foods"
+          storageKey="dailyforge.nutrition-foods-open"
+          [foods]="listFoods()"
+          [busy]="busy()"
+          (eat)="eat($event)"
+        />
       }
-
-      <div class="nutrition__other">
-        <df-input label="Something else" [ngModel]="otherName()" (ngModelChange)="otherName.set($event)" />
-        <df-stepper-input label="Protein (g)" [min]="0" [max]="200" [ngModel]="otherGrams()" (ngModelChange)="otherGrams.set($event)" />
-        <df-stepper-input label="Calories" [min]="0" [max]="3000" [step]="10" [ngModel]="otherKcal()" (ngModelChange)="otherKcal.set($event)" />
-        <df-stepper-input label="Fat (g)" [min]="0" [max]="300" [ngModel]="otherFat()" (ngModelChange)="otherFat.set($event)" />
-        <df-stepper-input label="Carbs (g)" [min]="0" [max]="500" [ngModel]="otherCarbs()" (ngModelChange)="otherCarbs.set($event)" />
-        <df-stepper-input label="Fiber (g)" [min]="0" [max]="100" [ngModel]="otherFiber()" (ngModelChange)="otherFiber.set($event)" />
-        <df-stepper-input label="Sugar (g)" [min]="0" [max]="300" [ngModel]="otherSugar()" (ngModelChange)="otherSugar.set($event)" />
-        <button dfButton type="button" variant="secondary" [disabled]="busy()" (click)="eatOther()">
-          <lucide-icon [img]="plusIcon" [size]="16" aria-hidden="true" />
-          Add
-        </button>
-      </div>
+      <df-food-list
+        heading="Saved foods"
+        storageKey="dailyforge.nutrition-saved-open"
+        emptyText="Foods you save from a meal photo or a barcode scan show up here."
+        [foods]="savedFoods()"
+        [busy]="busy()"
+        (eat)="eat($event)"
+      />
       <p class="nutrition__muted">
         Change your targets and your food list in <a routerLink="/settings" fragment="nutrition">Settings</a>.
       </p>

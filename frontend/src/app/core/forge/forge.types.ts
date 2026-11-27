@@ -121,3 +121,19 @@ export const FORGE_PHASE_LABELS: Record<number, string> = {
   2: 'Build',
   3: 'Forge',
 };
+
+/** One answered question of the AI interview. */
+export interface ForgeAiTurn {
+  question: string;
+  answer: string;
+}
+
+/** The AI interview's next question, or done when it knows enough to plan. */
+export interface ForgeAiQuestion {
+  done: boolean;
+  question: string;
+  hint: string;
+  options: string[];
+  /** Several options can apply. */
+  multi: boolean;
+}

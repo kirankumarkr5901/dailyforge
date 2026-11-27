@@ -26,13 +26,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/push")
 public class PushController {
 
+    private final com.dailyforge.identity.domain.IdentityService identity;
     private final PushSender sender;
     private final RestPushScheduler rest;
     private final DailyReminderService reminders;
     private final CurrentUser currentUser;
 
     public PushController(
-            PushSender sender, RestPushScheduler rest, DailyReminderService reminders, CurrentUser currentUser) {
+            PushSender sender, RestPushScheduler rest, DailyReminderService reminders, CurrentUser currentUser,
+            com.dailyforge.identity.domain.IdentityService identity) {
+        this.identity = identity;
         this.sender = sender;
         this.rest = rest;
         this.reminders = reminders;
@@ -64,6 +67,13 @@ public class PushController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void subscribe(@Valid @RequestBody SubscribeRequest request) {
         UUID userId = currentUser.require();
+        if (identity.isDemo(userId)) {
+            // Anyone can use the demo; notifications from it would go to strangers' phones.
+            throw new com.dailyforge.common.error.ApiException(
+                    com.dailyforge.common.error.ErrorCode.FORBIDDEN,
+                    org.springframework.http.HttpStatus.FORBIDDEN,
+                    "The demo account can't turn on notifications. Create your own account for that.");
+        }
         sender.subscribe(userId, new PushSender.Subscription(request.endpoint(), request.keys().p256dh(), request.keys().auth()));
         reminders.refresh(userId);
     }

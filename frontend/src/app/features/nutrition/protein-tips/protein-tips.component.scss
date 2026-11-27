@@ -1,0 +1,46 @@
+/* Phone first: each option is a row, its Add button at thumb reach on the right. */
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.tips {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tips__item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+}
+
+.tips__main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tips__name {
+  font-weight: 600;
+}
+
+.tips__numbers {
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.tips__why {
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+}

@@ -1,0 +1,46 @@
+<button
+  type="button"
+  class="food-list__toggle"
+  [attr.aria-expanded]="open()"
+  [attr.aria-controls]="panelId"
+  (click)="toggle()"
+>
+  <span>{{ heading() }} ({{ foods().length }})</span>
+  <lucide-icon
+    class="food-list__chevron"
+    [class.food-list__chevron--open]="open()"
+    [img]="chevronIcon"
+    [size]="18"
+    aria-hidden="true"
+  />
+</button>
+@if (open()) {
+  <div class="food-list__panel" [id]="panelId">
+    @if (foods().length === 0) {
+      <p class="food-list__muted">{{ emptyText() }}</p>
+    } @else {
+      <df-input
+        class="food-list__search"
+        [label]="'Search ' + heading().toLowerCase()"
+        placeholder="e.g. paneer"
+        [ngModel]="search()"
+        (ngModelChange)="search.set($event)"
+      />
+      <div class="food-list__foods">
+        @for (food of visible(); track food.id) {
+          <button
+            type="button"
+            class="food-list__food"
+            [disabled]="busy()"
+            (click)="eat.emit(food)"
+          >
+            {{ food.name }}
+            <span class="food-list__grams">{{ food.grams }} g · {{ food.kcal }} kcal</span>
+          </button>
+        } @empty {
+          <p class="food-list__muted">No food matches "{{ search() }}".</p>
+        }
+      </div>
+    }
+  </div>
+}

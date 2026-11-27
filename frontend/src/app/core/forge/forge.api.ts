@@ -2,7 +2,15 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { ForgeOverview, ForgeQuestChange, ForgeQuestionnaire, ForgeStartPayload } from './forge.types';
+import {
+  ForgeAiQuestion,
+  ForgeAiTurn,
+  ForgeMode,
+  ForgeOverview,
+  ForgeQuestChange,
+  ForgeQuestionnaire,
+  ForgeStartPayload,
+} from './forge.types';
 
 @Injectable({ providedIn: 'root' })
 export class ForgeApi {
@@ -19,6 +27,16 @@ export class ForgeApi {
 
   start(payload: ForgeStartPayload): Observable<ForgeOverview> {
     return this.http.post<ForgeOverview>(`${this.base}/program`, payload);
+  }
+
+  /** The AI interview: the answers so far in, the next question (or done) out. */
+  aiInterview(turns: ForgeAiTurn[]): Observable<ForgeAiQuestion> {
+    return this.http.post<ForgeAiQuestion>(`${this.base}/ai/interview`, { turns });
+  }
+
+  /** Starts a program the AI plans from the interview. */
+  aiStart(turns: ForgeAiTurn[], mode: ForgeMode): Observable<ForgeOverview> {
+    return this.http.post<ForgeOverview>(`${this.base}/ai/program`, { turns, mode });
   }
 
   abandon(): Observable<ForgeOverview> {

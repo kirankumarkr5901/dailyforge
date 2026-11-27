@@ -3,6 +3,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { Flame, LucideAngularModule, Swords, Trophy } from 'lucide-angular';
+import { AiStatusService } from '../../../core/ai/ai-status.service';
+import { ForgeInterviewComponent } from '../forge-interview/forge-interview.component';
 
 import { AuthSheetService } from '../../../core/auth/auth-sheet.service';
 import { SessionStore } from '../../../core/auth/session.store';
@@ -27,7 +29,7 @@ import { ForgeStatsComponent } from '../forge-stats/forge-stats.component';
  */
 @Component({
   selector: 'df-forge-page',
-  imports: [LucideAngularModule, RouterLink, ForgeQuizComponent, ForgeCalendarComponent, ForgeQuestComponent, ForgeStatsComponent],
+  imports: [LucideAngularModule, RouterLink, ForgeQuizComponent, ForgeInterviewComponent, ForgeCalendarComponent, ForgeQuestComponent, ForgeStatsComponent],
   templateUrl: './forge-page.component.html',
   styleUrl: './forge-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -50,6 +52,9 @@ export class ForgePageComponent {
   protected readonly error = signal<string | null>(null);
   protected readonly overview = signal<ForgeOverview | null>(null);
   protected readonly quizOpen = signal(false);
+  /** The AI interview, the personal way in (shown when AI is set up on the server). */
+  protected readonly interviewOpen = signal(false);
+  protected readonly ai = inject(AiStatusService);
   protected readonly busyQuestId = signal<string | null>(null);
   protected readonly confirmingAbandon = signal(false);
   /** Shown briefly after a level-up; the number it celebrates. */
@@ -69,6 +74,7 @@ export class ForgePageComponent {
   protected readonly questsDone = computed(() => this.program()?.quests.filter((q) => q.done).length ?? 0);
 
   constructor() {
+    void this.ai.load();
     let wasAuthenticated = false;
     effect(() => {
       const isAuthenticated = this.session.isAuthenticated();
@@ -85,7 +91,7 @@ export class ForgePageComponent {
     // The day may have turned over while the tab sat in the background; re-reading is
     // also what settles any days that closed in the meantime.
     this.sync.refreshes.pipe(takeUntilDestroyed()).subscribe(() => {
-      if (!this.quizOpen()) {
+      if (!this.quizOpen() && !this.interviewOpen()) {
         void this.load();
       }
     });
@@ -111,9 +117,14 @@ export class ForgePageComponent {
     this.quizOpen.set(true);
   }
 
+  protected openInterview(): void {
+    this.interviewOpen.set(true);
+  }
+
   protected onStarted(overview: ForgeOverview): void {
     this.overview.set(overview);
     this.quizOpen.set(false);
+    this.interviewOpen.set(false);
     this.toasts.show('Your 66 days start today.');
   }
 

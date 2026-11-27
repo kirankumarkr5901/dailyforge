@@ -38,6 +38,17 @@ interface NativeBarcodeDetector {
   detect(source: HTMLVideoElement): Promise<{ rawValue: string }[]>;
 }
 
+interface NativeBarcodeDetectorClass {
+  new (o: { formats: string[] }): NativeBarcodeDetector;
+  getSupportedFormats?(): Promise<string[]>;
+}
+
+/**
+ * How long the built-in reader gets before ZXing takes over. Some Android phones have
+ * the reader but lack the Google module behind it, so it runs and never finds anything.
+ */
+const NATIVE_GRACE_MS = 4000;
+
 const FORMATS = ['ean_13', 'ean_8', 'upc_a', 'upc_e'];
 
 /**
@@ -49,7 +60,13 @@ const FORMATS = ['ean_13', 'ean_8', 'upc_a', 'upc_e'];
  */
 @Component({
   selector: 'df-barcode-scanner',
-  imports: [FormsModule, DfButtonComponent, DfInputComponent, DfSheetComponent, DfStepperInputComponent],
+  imports: [
+    FormsModule,
+    DfButtonComponent,
+    DfInputComponent,
+    DfSheetComponent,
+    DfStepperInputComponent,
+  ],
   templateUrl: './barcode-scanner.component.html',
   styleUrl: './barcode-scanner.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -68,7 +85,9 @@ export class BarcodeScannerComponent {
 
   private readonly video = viewChild<ElementRef<HTMLVideoElement>>('video');
 
-  protected readonly status = signal<'starting' | 'scanning' | 'looking' | 'found' | 'missing' | 'nocamera'>('starting');
+  protected readonly status = signal<
+    'starting' | 'scanning' | 'looking' | 'found' | 'missing' | 'nocamera'
+  >('starting');
   protected readonly product = signal<Product | null>(null);
   protected readonly servingG = signal(100);
   protected readonly manualCode = signal('');
@@ -106,7 +125,7 @@ export class BarcodeScannerComponent {
     this.manualCode.set('');
     this.status.set('starting');
     try {
-      this.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+      this.stream = await openCamera();
     } catch {
       this.status.set('nocamera');
       return;
@@ -119,11 +138,13 @@ export class BarcodeScannerComponent {
     await video.play().catch(() => {});
     this.status.set('scanning');
 
-    const Detector = (window as unknown as { BarcodeDetector?: new (o: { formats: string[] }) => NativeBarcodeDetector })
-      .BarcodeDetector;
-    if (Detector) {
-      const detector = new Detector({ formats: FORMATS });
+    const formats = await nativeFormats();
+    if (formats.length) {
+      const Detector = (window as unknown as { BarcodeDetector: NativeBarcodeDetectorClass })
+        .BarcodeDetector;
+      const detector = new Detector({ formats });
       let running = true;
+      const startedAt = Date.now();
       const loop = async () => {
         while (running && this.status() === 'scanning') {
           try {
@@ -135,22 +156,34 @@ export class BarcodeScannerComponent {
           } catch {
             // A frame that could not be read; try the next one.
           }
-          await new Promise((r) => setTimeout(r, 250));
+          if (Date.now() - startedAt > NATIVE_GRACE_MS) {
+            // Nothing yet: the built-in reader may not work on this phone. ZXing reads too.
+            running = false;
+            void this.startZxing(video);
+            return;
+          }
+          await new Promise((r) => setTimeout(r, 200));
         }
       };
       this.stopScan = () => (running = false);
       void loop();
     } else {
-      // iPhone and others: ZXing, loaded on first use only.
-      const { BrowserMultiFormatReader } = await import('@zxing/browser');
-      const reader = new BrowserMultiFormatReader();
-      const controls = await reader.decodeFromVideoElement(video, (result) => {
-        if (result && this.status() === 'scanning') {
-          void this.lookup(result.getText());
-        }
-      });
-      this.stopScan = () => controls.stop();
+      await this.startZxing(video);
     }
+  }
+
+  /** ZXing, loaded on first use only: iPhone, and Android where the built-in reader fails. */
+  private async startZxing(video: HTMLVideoElement): Promise<void> {
+    if (this.status() !== 'scanning') return;
+    const { BrowserMultiFormatReader } = await import('@zxing/browser');
+    if (this.status() !== 'scanning') return;
+    const reader = new BrowserMultiFormatReader();
+    const controls = await reader.decodeFromVideoElement(video, (result) => {
+      if (result && this.status() === 'scanning') {
+        void this.lookup(result.getText());
+      }
+    });
+    this.stopScan = () => controls.stop();
   }
 
   private stopCamera(): void {
@@ -182,7 +215,14 @@ export class BarcodeScannerComponent {
       this.product.set({
         code: p.code,
         name: p.name,
-        per100: { grams: p.proteinG, kcal: p.kcal, fatG: p.fatG, carbsG: p.carbsG, fiberG: p.fiberG, sugarG: p.sugarG },
+        per100: {
+          grams: p.proteinG,
+          kcal: p.kcal,
+          fatG: p.fatG,
+          carbsG: p.carbsG,
+          fiberG: p.fiberG,
+          sugarG: p.sugarG,
+        },
         servingG: p.servingG,
       });
       this.servingG.set(Math.round(p.servingG ?? 100) || 100);
@@ -195,7 +235,8 @@ export class BarcodeScannerComponent {
       const message =
         error instanceof HttpErrorResponse && error.status === 0
           ? 'No connection. Check your signal and try again.'
-          : ((error as HttpErrorResponse)?.error?.message ?? 'Could not look that up. Try again in a minute.');
+          : ((error as HttpErrorResponse)?.error?.message ??
+            'Could not look that up. Try again in a minute.');
       this.toasts.show(message, { tone: 'penalty' });
       this.status.set('missing');
     }
@@ -209,12 +250,16 @@ export class BarcodeScannerComponent {
     const amounts = this.serving();
     if (!amounts || this.busy()) return;
     if (!amounts.grams && !amounts.kcal && !amounts.fatG) {
-      this.toasts.show('This product has no nutrition values on record. Add it as "Something else".');
+      this.toasts.show(
+        'This product has no nutrition values on record. Add it as "Something else".',
+      );
       return;
     }
     this.busy.set(true);
     try {
-      this.logged.emit(await firstValueFrom(this.api.log(this.date(), this.nameWithServing(), amounts)));
+      this.logged.emit(
+        await firstValueFrom(this.api.log(this.date(), this.nameWithServing(), amounts)),
+      );
       this.closed.emit();
     } catch {
       this.toasts.show('That did not save. Try again.', { tone: 'penalty' });
@@ -228,7 +273,7 @@ export class BarcodeScannerComponent {
     if (!amounts || this.busy()) return;
     this.busy.set(true);
     try {
-      await firstValueFrom(this.api.addFood(this.nameWithServing(), amounts));
+      await firstValueFrom(this.api.addFood(this.nameWithServing(), amounts, 'BARCODE'));
       this.foodSaved.emit();
       this.toasts.show('Saved to your foods.');
     } catch {
@@ -241,5 +286,48 @@ export class BarcodeScannerComponent {
   protected close(): void {
     this.stopCamera();
     this.closed.emit();
+  }
+}
+
+/**
+ * The back camera, sharp enough to read a barcode held close: a higher resolution than
+ * the default 640x480 and continuous autofocus where the phone offers it.
+ */
+async function openCamera(): Promise<MediaStream> {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } },
+      audio: false,
+    });
+    const track = stream.getVideoTracks()[0];
+    const caps = (track?.getCapabilities?.() ?? {}) as { focusMode?: string[] };
+    if (caps.focusMode?.includes('continuous')) {
+      await track
+        .applyConstraints({ advanced: [{ focusMode: 'continuous' } as MediaTrackConstraintSet] })
+        .catch(() => {});
+    }
+    return stream;
+  } catch (e) {
+    // A camera that refuses those sizes: ask for any back camera.
+    if (e instanceof DOMException && e.name === 'OverconstrainedError') {
+      return navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' },
+        audio: false,
+      });
+    }
+    throw e;
+  }
+}
+
+/** The barcode formats the built-in reader says it can read, or none when it can't. */
+async function nativeFormats(): Promise<string[]> {
+  const Detector = (window as unknown as { BarcodeDetector?: NativeBarcodeDetectorClass })
+    .BarcodeDetector;
+  if (!Detector) return [];
+  try {
+    const supported = (await Detector.getSupportedFormats?.()) ?? FORMATS;
+    return FORMATS.filter((f) => supported.includes(f));
+  } catch {
+    return [];
   }
 }

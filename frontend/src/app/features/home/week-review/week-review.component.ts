@@ -2,7 +2,8 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, input, si
 import { firstValueFrom } from 'rxjs';
 
 import { HomeApi } from '../../../core/home/home.api';
-import { WeekReview } from '../../../core/home/home.types';
+import { WeekReview, WeeklyCoachReview } from '../../../core/home/home.types';
+import { AiStatusService } from '../../../core/ai/ai-status.service';
 import { LogicalDate } from '../../../core/time/logical-date';
 import { DfCardComponent } from '../../../shared/ui/df-card/df-card.component';
 import { SessionStore } from '../../../core/auth/session.store';
@@ -31,7 +32,11 @@ export class WeekReviewComponent {
   /** Today, in the user's own time zone. */
   readonly today = input.required<LogicalDate>();
 
+  private readonly ai = inject(AiStatusService);
+
   protected readonly review = signal<WeekReview | null>(null);
+  /** The AI coach's words on the week, under the numbers. */
+  protected readonly coach = signal<WeeklyCoachReview | null>(null);
 
   /** Sunday reviews this week; Monday reviews last week; other days show nothing. */
   private readonly target = computed<{ date: LogicalDate; title: string } | null>(() => {
@@ -56,11 +61,20 @@ export class WeekReviewComponent {
 
   private async load(date: LogicalDate | null): Promise<void> {
     this.review.set(null);
+    this.coach.set(null);
     if (!date) return;
     try {
       this.review.set(await firstValueFrom(this.api.week(date)));
     } catch {
       // A review is a nice-to-have; Home works without it.
+      return;
+    }
+    if (await this.ai.load()) {
+      try {
+        this.coach.set(await firstValueFrom(this.api.coach(date)));
+      } catch {
+        // The numbers stand on their own.
+      }
     }
   }
 

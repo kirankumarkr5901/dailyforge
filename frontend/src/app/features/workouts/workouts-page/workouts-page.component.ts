@@ -3,6 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { LucideAngularModule, Plus, Settings2, Target, TimerReset, StretchHorizontal } from 'lucide-angular';
+import { WorkoutCoachComponent } from '../workout-coach/workout-coach.component';
 
 import { AuthSheetService } from '../../../core/auth/auth-sheet.service';
 import { PendingActionService } from '../../../core/auth/pending-action.service';
@@ -78,6 +79,7 @@ const DAY_PICK_KEY = 'dailyforge.workout-day-pick';
 @Component({
   selector: 'df-workouts-page',
   imports: [
+    WorkoutCoachComponent,
     FormsModule,
     LucideAngularModule,
     DayDetailSheetComponent,

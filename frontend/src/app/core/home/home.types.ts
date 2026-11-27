@@ -60,3 +60,11 @@ export interface WeekReview {
   weightChangeKg: number | null;
   points: number;
 }
+
+/** The AI coach's review of one week: written once the week reaches its Sunday. */
+export interface WeeklyCoachReview {
+  weekStart: LogicalDate;
+  summary: string;
+  wins: string[];
+  focus: string;
+}

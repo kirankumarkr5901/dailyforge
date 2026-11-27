@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } 
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
 import { LucideAngularModule, Quote as QuoteIcon, Target } from 'lucide-angular';
+import { ToastService } from '../../../shared/ui/df-toast/toast.service';
 
 import { AuthSheetService } from '../../../core/auth/auth-sheet.service';
 import { SessionStore } from '../../../core/auth/session.store';
@@ -206,6 +207,22 @@ export class HomePageComponent {
 
   protected signIn(): void {
     this.authSheet.open('manual');
+  }
+
+  protected readonly demoBusy = signal(false);
+  private readonly toasts = inject(ToastService);
+
+  /** One tap into the shared demo account: a filled sample week, reset every night. */
+  protected async tryDemo(): Promise<void> {
+    if (this.demoBusy()) return;
+    this.demoBusy.set(true);
+    try {
+      await this.session.loginDemo();
+    } catch {
+      this.toasts.show('The demo could not be opened. Check your connection and try again.', { tone: 'penalty' });
+    } finally {
+      this.demoBusy.set(false);
+    }
   }
 
   protected barWidth(value: number): string {

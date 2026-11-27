@@ -47,6 +47,18 @@ public class ForgeProgram {
     @Column(name = "answers_json", nullable = false, length = 2000)
     private String answersJson;
 
+    /** What the AI interview found out; null for a questionnaire program. */
+    @Column(name = "ai_profile", length = 4000)
+    private String aiProfile;
+
+    /** The three phases' themes, one per line. */
+    @Column(name = "ai_outline", length = 2000)
+    private String aiOutline;
+
+    /** The last day an AI program has quests for; the next week is written before it runs out. */
+    @Column(name = "planned_through")
+    private LocalDate plannedThrough;
+
     @Column(name = "ended_on")
     private LocalDate endedOn;
 
@@ -172,5 +184,30 @@ public class ForgeProgram {
 
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    public boolean isAi() {
+        return aiProfile != null;
+    }
+
+    public void makeAi(String profile, String outline) {
+        this.aiProfile = profile;
+        this.aiOutline = outline;
+    }
+
+    public String getAiProfile() {
+        return aiProfile;
+    }
+
+    public String getAiOutline() {
+        return aiOutline;
+    }
+
+    public LocalDate getPlannedThrough() {
+        return plannedThrough;
+    }
+
+    public void setPlannedThrough(LocalDate plannedThrough) {
+        this.plannedThrough = plannedThrough;
     }
 }

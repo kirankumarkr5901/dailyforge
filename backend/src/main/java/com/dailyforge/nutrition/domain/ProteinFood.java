@@ -46,11 +46,18 @@ public class ProteinFood {
     @Column(name = "sort_order", nullable = false)
     private int sortOrder;
 
+    /** LIST, PHOTO or BARCODE: where the food came from. */
+    @Column(name = "source", nullable = false, length = 10)
+    private String source = SOURCE_LIST;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
+
+    public static final String SOURCE_LIST = "LIST";
+    public static final java.util.Set<String> SOURCES = java.util.Set.of(SOURCE_LIST, "PHOTO", "BARCODE");
 
     protected ProteinFood() {
         // for JPA
@@ -131,5 +138,13 @@ public class ProteinFood {
 
     public int getSortOrder() {
         return sortOrder;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    void setSource(String source) {
+        this.source = source;
     }
 }

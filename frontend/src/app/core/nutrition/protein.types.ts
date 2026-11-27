@@ -13,6 +13,8 @@ export interface ProteinFood {
   carbsG: number;
   fiberG: number;
   sugarG: number;
+  /** LIST (starter foods and Settings), or saved from a meal PHOTO or a BARCODE scan. */
+  source: 'LIST' | 'PHOTO' | 'BARCODE';
 }
 
 export interface ProteinEntry {
@@ -31,6 +33,19 @@ export interface ProteinEntry {
 export interface MealPhotoDish {
   name: string;
   portionG: number;
+  proteinG: number;
+  kcal: number;
+  fatG: number;
+  carbsG: number;
+  fiberG: number;
+  sugarG: number;
+}
+
+/** "What should I eat to hit protein?": `foodId` is set when it's one of the user's foods. */
+export interface ProteinSuggestion {
+  name: string;
+  foodId: string | null;
+  why: string;
   proteinG: number;
   kcal: number;
   fatG: number;

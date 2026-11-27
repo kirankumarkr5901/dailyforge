@@ -54,8 +54,9 @@ public class ForgeQuestReconciliationCalculator implements ReconciliationCalcula
         if (amount <= 0) {
             return List.of();
         }
-        String title =
-                templates.findByCode(quest.getTemplateCode()).map(ForgeQuestTemplate::getTitle).orElse("Quest");
+        String title = quest.isCustom()
+                ? quest.getTitle()
+                : templates.findByCode(quest.getTemplateCode()).map(ForgeQuestTemplate::getTitle).orElse("Quest");
         return List.of(
                 new DesiredEntry(
                         quest.getQuestDate(),

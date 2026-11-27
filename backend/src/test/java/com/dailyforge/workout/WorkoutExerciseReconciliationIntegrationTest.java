@@ -51,7 +51,7 @@ class WorkoutExerciseReconciliationIntegrationTest {
     }
 
     @Test
-    void loggingAHeavierSetOvertakesTheOldRecordAndReversesItsBonus() {
+    void aHeavierSetIsANewRecordAndTheOldRecordKeepsItsBonus() {
         setToday(TODAY);
         UUID user = TestUsers.create(users, settings);
         Exercise benchPress = exerciseService.create(user, "Bench press", ExerciseKind.STRENGTH, Equipment.BARBELL, List.of("chest"), false);
@@ -61,14 +61,29 @@ class WorkoutExerciseReconciliationIntegrationTest {
         assertThat(entries.sumAmountForUser(user)).isEqualTo(13);
 
         setService.logSet(user, TODAY, benchPress.getId(), null, null, new BigDecimal("60"), WeightMode.COMBINED, null, 5);
-        // +1 (new set) -12 (old PR reversed) +round(1.2*(60/5))=14 (new PR) = +3 -> running total 16
-        assertThat(entries.sumAmountForUser(user)).isEqualTo(16);
+        // +1 (new set) +round(1.2*(60/5))=14 (new record); the 50 kg record keeps its 12 -> 28
+        assertThat(entries.sumAmountForUser(user)).isEqualTo(28);
 
         long activePrEntries =
                 entries.findAllByUserIdAndSourceTypeAndReversedFalseAndReversesIdIsNull(user, "WORKOUT_SET").stream()
                         .filter(e -> e.getRuleCode().equals("WORKOUT_PR"))
                         .count();
-        assertThat(activePrEntries).isEqualTo(1); // only the 60kg set holds it now
+        assertThat(activePrEntries).isEqualTo(2); // each record keeps its own
+    }
+
+    /** Owner-reported: a set at the record weight but fewer reps took record points away. */
+    @Test
+    void aSetThatIsNotARecordNeverTakesRecordPointsAway() {
+        setToday(TODAY);
+        UUID user = TestUsers.create(users, settings);
+        Exercise row = exerciseService.create(user, "Row", ExerciseKind.STRENGTH, Equipment.BARBELL, List.of("back"), false);
+
+        setService.logSet(user, TODAY, row.getId(), null, null, new BigDecimal("40"), WeightMode.COMBINED, null, 10);
+        int afterFirst = entries.sumAmountForUser(user);
+
+        setService.logSet(user, TODAY, row.getId(), null, null, new BigDecimal("40"), WeightMode.COMBINED, null, 8);
+        setService.logSet(user, TODAY, row.getId(), null, null, new BigDecimal("35"), WeightMode.COMBINED, null, 12);
+        assertThat(entries.sumAmountForUser(user)).isEqualTo(afterFirst + 2); // just the two set points
     }
 
     @Test
@@ -81,8 +96,8 @@ class WorkoutExerciseReconciliationIntegrationTest {
         int afterFirst = entries.sumAmountForUser(user); // 1 + 14 = 15
 
         setService.logSet(user, TODAY, squat.getId(), null, null, new BigDecimal("60"), WeightMode.COMBINED, null, 8);
-        // +1 (new set) -14 (old PR reversed) +5 (reps-only bonus) = -8
-        assertThat(entries.sumAmountForUser(user)).isEqualTo(afterFirst - 8);
+        // +1 (new set) +5 (reps-only record); the first record keeps its 14
+        assertThat(entries.sumAmountForUser(user)).isEqualTo(afterFirst + 6);
     }
 
     @Test

@@ -1,4 +1,4 @@
-<df-sheet [open]="open()" (openChange)="$event ? null : close()" heading="Snap a meal">
+<df-sheet [open]="open()" (openChange)="$event ? null : close()" heading="Log a meal">
   <div class="snap">
     @if (preview(); as src) {
       <img class="snap__photo" [src]="src" alt="Your meal photo" />
@@ -24,12 +24,41 @@
           Choose from gallery
           <input class="snap__file" type="file" accept="image/*" (change)="onFile($event)" />
         </label>
+        <button type="button" class="snap__pick" (click)="status.set('describe')">
+          Describe it
+        </button>
+      }
+      @case ('describe') {
+        <label class="snap__label" for="snap-describe">What did you eat?</label>
+        <textarea
+          id="snap-describe"
+          class="snap__text"
+          rows="3"
+          maxlength="400"
+          placeholder="e.g. 2 idli, sambar and a filter coffee"
+          [ngModel]="description()"
+          (ngModelChange)="description.set($event)"
+        ></textarea>
+        <p class="snap__muted">
+          Amounts help ("a bowl of dal", "3 chapati"). Your keyboard's mic works too.
+        </p>
+        <button
+          dfButton
+          type="button"
+          variant="primary"
+          [fullWidth]="true"
+          [disabled]="!description().trim()"
+          (click)="readDescription()"
+        >
+          Read it
+        </button>
+        <button dfButton type="button" variant="ghost" (click)="tryAgain()">Back</button>
       }
       @case ('reading') {
-        <p class="snap__muted" role="status">Looking at your meal…</p>
+        <p class="snap__muted" role="status">Working out your meal…</p>
       }
       @case ('empty') {
-        <p class="snap__muted" role="status">No food found in that photo.</p>
+        <p class="snap__muted" role="status">No food found in that.</p>
         <button dfButton type="button" variant="secondary" (click)="tryAgain()">
           Try another photo
         </button>
@@ -100,13 +129,12 @@
         >
           Add {{ chosen().length }} to today
         </button>
-        <button dfButton type="button" variant="ghost" (click)="tryAgain()">
-          Use another photo
-        </button>
+        <button dfButton type="button" variant="ghost" (click)="tryAgain()">Start again</button>
       }
     }
     <p class="snap__source">
-      Photos are read by Google Gemini. Google may use them to improve its products.
+      Photos and descriptions are read by Google Gemini. Google may use them to improve its
+      products.
     </p>
   </div>
 </df-sheet>

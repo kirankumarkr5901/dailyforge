@@ -1,4 +1,4 @@
-package com.dailyforge.nutrition.domain;
+package com.dailyforge.ai;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
