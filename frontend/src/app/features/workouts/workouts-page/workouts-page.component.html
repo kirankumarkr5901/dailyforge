@@ -116,6 +116,10 @@
     </div>
   }
 
+  @if (selectedPlan(); as plan) {
+    <df-workout-coach class="workouts-page__coach" [planId]="plan.id" [dayIndex]="selectedDayIndex()" [date]="viewedDate()" />
+  }
+
   @if (todayDate()) {
     <df-card class="workouts-page__calendar-card">
       <df-month-calendar

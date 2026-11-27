@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Observable, firstValueFrom } from 'rxjs';
 import { Beef, LucideAngularModule, Trash2 } from 'lucide-angular';
+import { AiStatusService } from '../../../core/ai/ai-status.service';
 
 import { AuthSheetService } from '../../../core/auth/auth-sheet.service';
 import { SessionStore } from '../../../core/auth/session.store';
@@ -54,6 +55,7 @@ import { ToastService } from '../../../shared/ui/df-toast/toast.service';
 })
 export class NutritionPageComponent {
   private readonly api = inject(ProteinApi);
+  private readonly ai = inject(AiStatusService);
   private readonly toasts = inject(ToastService);
   private readonly points = inject(PointsStore);
   private readonly sync = inject(SyncStore);
@@ -199,7 +201,7 @@ export class NutritionPageComponent {
 
   private async loadMealPhotoStatus(): Promise<void> {
     try {
-      this.mealPhotoEnabled.set((await firstValueFrom(this.api.mealPhotoStatus())).enabled);
+      this.mealPhotoEnabled.set(await this.ai.load());
     } catch {
       // Without it the button just stays hidden.
     }

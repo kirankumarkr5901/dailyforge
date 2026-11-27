@@ -1,0 +1,49 @@
+@if (ai.enabled()) {
+  <df-card class="coach">
+    <h2 class="coach__title">Coach</h2>
+    @if (loading()) {
+      <p class="coach__muted" role="status">Reading your last sessions…</p>
+    } @else if (error(); as message) {
+      <p class="coach__muted">{{ message }}</p>
+      <button dfButton type="button" variant="ghost" (click)="retry()">Try again</button>
+    } @else if (coaching(); as c) {
+      @if (c.note) {
+        <p class="coach__note">{{ c.note }}</p>
+      }
+      @if (c.alerts.length > 0) {
+        <ul class="coach__list">
+          @for (alert of c.alerts; track alert.exerciseId + alert.type) {
+            <li class="coach__item">
+              <span class="coach__tag" [class.coach__tag--ease]="alert.type === 'DELOAD'">{{
+                label(alert.type)
+              }}</span>
+              <span>
+                <strong>{{ alert.exercise }}</strong>: {{ alert.message }}
+                @if (alert.swapTo) {
+                  Try <strong>{{ alert.swapTo }}</strong>.
+                }
+              </span>
+            </li>
+          }
+        </ul>
+      }
+      @if (c.gaps.length > 0) {
+        <h3 class="coach__subtitle">Short this week</h3>
+        <ul class="coach__list">
+          @for (gap of c.gaps; track gap.muscle) {
+            <li class="coach__item">
+              <span class="coach__tag">{{ gap.sets }}/10</span>
+              <span
+                ><strong class="coach__muscle">{{ gap.muscle }}</strong
+                >: {{ gap.message }}</span
+              >
+            </li>
+          }
+        </ul>
+      }
+      @if (!c.note && c.alerts.length === 0 && c.gaps.length === 0) {
+        <p class="coach__muted">Nothing to flag today. Train as planned.</p>
+      }
+    }
+  </df-card>
+}

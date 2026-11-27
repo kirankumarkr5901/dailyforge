@@ -48,6 +48,7 @@ public class WorkoutController {
     private final WorkoutCompletionService completionService;
     private final com.dailyforge.workout.domain.WeeklyVolumeService weeklyVolume;
     private final com.dailyforge.workout.domain.DeloadService deload;
+    private final com.dailyforge.workout.domain.WorkoutCoachService coach;
 
     public WorkoutController(
             WorkoutSetService setService,
@@ -57,7 +58,8 @@ public class WorkoutController {
             IdentityService identity,
             WorkoutCompletionService completionService,
             com.dailyforge.workout.domain.WeeklyVolumeService weeklyVolume,
-            com.dailyforge.workout.domain.DeloadService deload) {
+            com.dailyforge.workout.domain.DeloadService deload,
+            com.dailyforge.workout.domain.WorkoutCoachService coach) {
         this.setService = setService;
         this.board = board;
         this.currentUser = currentUser;
@@ -66,6 +68,16 @@ public class WorkoutController {
         this.completionService = completionService;
         this.weeklyVolume = weeklyVolume;
         this.deload = deload;
+        this.coach = coach;
+    }
+
+    /** The AI coach for a plan day: a pre-workout note, plateau/deload/swap alerts, muscle gaps. */
+    @GetMapping("/coach")
+    public com.dailyforge.workout.domain.WorkoutCoachService.Coaching coach(
+            @RequestParam UUID planId, @RequestParam int dayIndex, @RequestParam(required = false) LocalDate date) {
+        UUID userId = currentUser.require();
+        LocalDate resolved = date != null ? date : dayService.today(dayService.zoneOf(identity.requireSettings(userId).getTimeZone()));
+        return coach.coach(userId, planId, dayIndex, resolved);
     }
 
     /**
