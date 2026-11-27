@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { LogicalDate } from '../time/logical-date';
-import { BarcodeProduct, Meal, MealItem, MealPhotoDish, NutritionAmounts, ProteinDay, ProteinDayWrite, ProteinFood } from './protein.types';
+import { BarcodeProduct, Meal, MealItem, MealPhotoDish, ProteinSuggestion, NutritionAmounts, ProteinDay, ProteinDayWrite, ProteinFood } from './protein.types';
 
 @Injectable({ providedIn: 'root' })
 export class ProteinApi {
@@ -28,6 +28,11 @@ export class ProteinApi {
   /** Whether "Snap a meal" is set up on the server (it needs a Gemini key). */
   mealPhotoStatus(): Observable<{ enabled: boolean }> {
     return this.http.get<{ enabled: boolean }>(`${this.base}/protein/meal-photo`);
+  }
+
+  /** Two or three options that fit what's left of the day's protein and calories. */
+  suggestions(date: LogicalDate): Observable<{ suggestions: ProteinSuggestion[] }> {
+    return this.http.post<{ suggestions: ProteinSuggestion[] }>(`${this.base}/protein/suggestions`, { date });
   }
 
   /** What the user ate, in their own words; the answer is estimates, nothing is logged. */

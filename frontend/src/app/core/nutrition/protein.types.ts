@@ -41,6 +41,19 @@ export interface MealPhotoDish {
   sugarG: number;
 }
 
+/** "What should I eat to hit protein?": `foodId` is set when it's one of the user's foods. */
+export interface ProteinSuggestion {
+  name: string;
+  foodId: string | null;
+  why: string;
+  proteinG: number;
+  kcal: number;
+  fatG: number;
+  carbsG: number;
+  fiberG: number;
+  sugarG: number;
+}
+
 export interface NutritionAmounts {
   grams: number;
   kcal: number;

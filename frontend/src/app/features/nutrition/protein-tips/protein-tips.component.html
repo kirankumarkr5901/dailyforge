@@ -1,0 +1,37 @@
+@if (tips(); as list) {
+  <ul class="tips">
+    @for (tip of list; track tip.name) {
+      <li class="tips__item">
+        <div class="tips__main">
+          <span class="tips__name">{{ tip.name }}</span>
+          <span class="tips__numbers">{{ tip.proteinG }} g protein · {{ tip.kcal }} kcal</span>
+          @if (tip.why) {
+            <span class="tips__why">{{ tip.why }}</span>
+          }
+          @if (!tip.foodId) {
+            <span class="tips__why">Not on your list: the numbers are an estimate.</span>
+          }
+        </div>
+        <button dfButton type="button" variant="secondary" [disabled]="busy()" (click)="add(tip)">
+          Add
+        </button>
+      </li>
+    } @empty {
+      <li class="tips__why">No suggestions this time.</li>
+    }
+  </ul>
+  <button dfButton type="button" variant="ghost" [disabled]="loading()" (click)="ask()">
+    {{ loading() ? 'Thinking…' : 'Other ideas' }}
+  </button>
+} @else {
+  <button
+    dfButton
+    type="button"
+    variant="secondary"
+    [fullWidth]="true"
+    [disabled]="loading()"
+    (click)="ask()"
+  >
+    {{ loading() ? 'Thinking…' : 'What should I eat to hit protein?' }}
+  </button>
+}

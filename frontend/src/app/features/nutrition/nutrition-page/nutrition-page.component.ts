@@ -12,6 +12,7 @@ import { Meal, ProteinDay, ProteinDayWrite, ProteinEntry, ProteinFood } from '..
 import { DfSheetComponent } from '../../../shared/ui/df-sheet/df-sheet.component';
 import { BarcodeScannerComponent } from '../barcode-scanner/barcode-scanner.component';
 import { FoodListComponent } from '../food-list/food-list.component';
+import { ProteinTipsComponent } from '../protein-tips/protein-tips.component';
 import { MealPhotoComponent } from '../meal-photo/meal-photo.component';
 import { PointsStore } from '../../../core/points/points.store';
 import { SyncStore } from '../../../core/sync/sync.store';
@@ -45,6 +46,7 @@ import { ToastService } from '../../../shared/ui/df-toast/toast.service';
     BarcodeScannerComponent,
     MealPhotoComponent,
     FoodListComponent,
+    ProteinTipsComponent,
   ],
   templateUrl: './nutrition-page.component.html',
   styleUrl: './nutrition-page.component.scss',
@@ -69,7 +71,7 @@ export class NutritionPageComponent {
 
   protected readonly meals = signal<Meal[]>([]);
   protected readonly scannerOpen = signal(false);
-  /** "Snap a meal" shows only when the server has a Gemini key. */
+  /** The AI features (Log a meal, protein tips) show only when the server has a Gemini key. */
   protected readonly mealPhotoEnabled = signal(false);
   protected readonly mealPhotoOpen = signal(false);
 
