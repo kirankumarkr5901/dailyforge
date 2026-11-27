@@ -30,6 +30,11 @@ export class ProteinApi {
     return this.http.get<{ enabled: boolean }>(`${this.base}/protein/meal-photo`);
   }
 
+  /** What the user ate, in their own words; the answer is estimates, nothing is logged. */
+  readMealText(description: string): Observable<{ dishes: MealPhotoDish[] }> {
+    return this.http.post<{ dishes: MealPhotoDish[] }>(`${this.base}/protein/meal-text`, { description });
+  }
+
   /** A JPEG as base64; the answer is estimates, nothing is logged. */
   readMealPhoto(photo: string): Observable<{ dishes: MealPhotoDish[] }> {
     return this.http.post<{ dishes: MealPhotoDish[] }>(`${this.base}/protein/meal-photo`, { photo });

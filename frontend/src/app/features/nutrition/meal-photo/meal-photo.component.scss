@@ -41,6 +41,7 @@
   border-radius: var(--radius-control, 10px);
   background: var(--surface-sunken);
   color: var(--ink);
+  font: inherit;
   font-weight: 600;
   cursor: pointer;
 }
@@ -111,4 +112,28 @@
 /* Secondary to adding: tucked to the left under the dish's numbers. */
 .snap__save {
   align-self: flex-start;
+}
+
+.snap__label {
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+/* 16px text so phones don't zoom into the field. */
+.snap__text {
+  width: 100%;
+  min-height: 96px;
+  padding: var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control, 10px);
+  background: var(--surface-sunken);
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;
+  resize: vertical;
+}
+
+.snap__text:focus-visible {
+  outline: 2px solid var(--heat-2);
+  outline-offset: 2px;
 }

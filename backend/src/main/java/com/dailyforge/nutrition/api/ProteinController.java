@@ -60,6 +60,15 @@ public class ProteinController {
     /** {@code photo} is a JPEG, base64 (a data: URL prefix is fine). */
     public record MealPhotoRequest(@jakarta.validation.constraints.NotBlank String photo) {}
 
+    public record MealTextRequest(
+            @jakarta.validation.constraints.NotBlank @jakarta.validation.constraints.Size(max = 400) String description) {}
+
+    /** The same estimates, from what the user typed or said ("2 idli, sambar and coffee"). */
+    @PostMapping("/meal-text")
+    public MealPhotoResponse readMealText(@Valid @RequestBody MealTextRequest request) {
+        return new MealPhotoResponse(mealPhotos.describe(currentUser.require(), request.description()));
+    }
+
     public record MealPhotoResponse(java.util.List<com.dailyforge.nutrition.domain.MealPhotoService.Dish> dishes) {}
 
     /** Whether "Snap a meal" is set up on this server. */
