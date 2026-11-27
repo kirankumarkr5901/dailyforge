@@ -16,7 +16,7 @@
       [attr.aria-valuemax]="target()"
       [attr.aria-label]="litres(ml()) + ' of ' + litres(target()) + ' litres of water'"
     >
-      <span class="water__fill" [style.width.%]="percent()"></span>
+      <span class="water__fill" [style.transform]="'scaleX(' + percent() / 100 + ')'"></span>
     </div>
     <div class="water__buttons">
       <button dfButton type="button" variant="primary" [disabled]="busy()" (click)="add(250)">+250 ml</button>

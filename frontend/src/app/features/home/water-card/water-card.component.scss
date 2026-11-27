@@ -38,10 +38,12 @@
 
 .water__fill {
   display: block;
+  width: 100%;
   height: 100%;
-  border-radius: inherit;
   background: var(--heat-1, var(--heat-2));
-  transition: width var(--duration-base) var(--ease-out);
+  /* Grows by scaling, not by width: the meter's rounded ends clip it either way. */
+  transform-origin: left center;
+  transition: transform var(--duration-base) var(--ease-out);
 }
 
 .water__meter--reached .water__fill {
