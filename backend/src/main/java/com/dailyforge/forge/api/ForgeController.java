@@ -33,10 +33,46 @@ public class ForgeController {
     private final ForgeSettingsProvider settings;
     private final CurrentUser currentUser;
 
-    public ForgeController(ForgeService forge, ForgeSettingsProvider settings, CurrentUser currentUser) {
+    private final com.dailyforge.forge.domain.ForgeAiPlanner ai;
+
+    public ForgeController(
+            ForgeService forge,
+            ForgeSettingsProvider settings,
+            CurrentUser currentUser,
+            com.dailyforge.forge.domain.ForgeAiPlanner ai) {
         this.forge = forge;
         this.settings = settings;
         this.currentUser = currentUser;
+        this.ai = ai;
+    }
+
+    public record AiTurn(
+            @jakarta.validation.constraints.Size(max = 300) String question,
+            @jakarta.validation.constraints.Size(max = 500) String answer) {}
+
+    public record AiInterviewRequest(
+            @jakarta.validation.constraints.NotNull @jakarta.validation.constraints.Size(max = 30) java.util.List<@Valid AiTurn> turns) {}
+
+    public record AiStartRequest(
+            @jakarta.validation.constraints.NotNull @jakarta.validation.constraints.Size(max = 30) java.util.List<@Valid AiTurn> turns,
+            @jakarta.validation.constraints.NotNull com.dailyforge.forge.domain.ForgeMode mode) {}
+
+    private static java.util.List<com.dailyforge.forge.domain.ForgeAiPlanner.Turn> turns(java.util.List<AiTurn> turns) {
+        return turns.stream().map(t -> new com.dailyforge.forge.domain.ForgeAiPlanner.Turn(t.question(), t.answer())).toList();
+    }
+
+    /** The AI interview: the answers so far in, the next question (or done) out. Nothing is stored. */
+    @PostMapping("/ai/interview")
+    public com.dailyforge.forge.domain.ForgeAiPlanner.NextQuestion interview(@Valid @RequestBody AiInterviewRequest request) {
+        return ai.nextQuestion(currentUser.require(), turns(request.turns()));
+    }
+
+    /** Starts a program the AI plans from the interview, a week at a time. */
+    @PostMapping("/ai/program")
+    @ResponseStatus(HttpStatus.CREATED)
+    @StructuralChange
+    public OverviewResponse startAi(@Valid @RequestBody AiStartRequest request) {
+        return OverviewResponse.of(forge.startAi(currentUser.require(), turns(request.turns()), request.mode()));
     }
 
     @GetMapping("/questionnaire")

@@ -1,0 +1,49 @@
+/* On top of the quiz's look: the free-text answer, quiet links, and the data note. */
+.interview__label {
+  margin-top: var(--space-2);
+  color: var(--forge-muted);
+  font-size: var(--text-sm);
+}
+
+/* 16px text so phones don't zoom into the field. */
+.interview__text {
+  width: 100%;
+  min-height: 72px;
+  padding: var(--space-3);
+  border: 1px solid var(--forge-line);
+  border-radius: var(--radius-card);
+  background: var(--forge-panel);
+  color: var(--forge-ink);
+  font: inherit;
+  font-size: 16px;
+  resize: vertical;
+
+  &:focus-visible {
+    outline: 2px solid var(--forge-gold);
+    outline-offset: 2px;
+  }
+}
+
+.interview__link {
+  align-self: center;
+  min-height: var(--tap-min);
+  padding: 0 var(--space-3);
+  border: 0;
+  background: none;
+  color: var(--forge-muted);
+  font: inherit;
+  font-size: var(--text-sm);
+  text-decoration: underline;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+.interview__note {
+  margin: var(--space-2) 0 0;
+  color: var(--forge-muted);
+  font-size: var(--text-xs);
+}

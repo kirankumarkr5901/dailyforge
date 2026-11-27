@@ -185,6 +185,18 @@ public final class ForgeDtos {
         }
 
         private static QuestResponse questOf(ForgeQuest q, ForgeQuestTemplate t, ForgeSettings settings) {
+            if (q.isCustom() || t == null) {
+                return new QuestResponse(
+                        q.getId(),
+                        "AI",
+                        q.getTitle() == null ? "Quest" : q.getTitle(),
+                        q.getDescription() == null ? "" : q.getDescription(),
+                        q.getArea() == null ? ForgeArea.MINDSET : q.getArea(),
+                        q.getTier() == null ? 1 : q.getTier(),
+                        q.getXp(),
+                        settings.pointsFor(q.getXp()),
+                        q.isDone());
+            }
             return new QuestResponse(
                     q.getId(),
                     t.getCode(),

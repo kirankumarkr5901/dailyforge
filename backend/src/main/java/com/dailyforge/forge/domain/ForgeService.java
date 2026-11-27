@@ -45,6 +45,8 @@ public class ForgeService {
     private final DayService dayService;
     private final IdentityService identity;
     private final ObjectMapper objectMapper;
+    private final ForgeAiPlanner ai;
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ForgeService.class);
 
     public ForgeService(
             ForgeProgramRepository programs,
@@ -54,7 +56,8 @@ public class ForgeService {
             PointsService points,
             DayService dayService,
             IdentityService identity,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper,
+            ForgeAiPlanner ai) {
         this.programs = programs;
         this.quests = quests;
         this.templates = templates;
@@ -63,6 +66,7 @@ public class ForgeService {
         this.dayService = dayService;
         this.identity = identity;
         this.objectMapper = objectMapper;
+        this.ai = ai;
     }
 
     /** Everything the Forge 66 screen shows, in one read. */
@@ -113,6 +117,132 @@ public class ForgeService {
         planQuests(program, today, settings, scores);
 
         return buildOverview(userId, today);
+    }
+
+    /**
+     * Starts a program from the AI interview: the AI writes the person's profile, focus
+     * areas, phases and first week; later weeks are written as the program runs.
+     */
+    @Transactional
+    public Overview startAi(UUID userId, List<ForgeAiPlanner.Turn> turns, ForgeMode mode) {
+        if (mode == null) {
+            throw ApiException.outOfRange("mode", "Choose Normal or Hard mode.");
+        }
+        LocalDate today = todayFor(userId);
+        settle(userId, today);
+        if (programs.findFirstByUserIdAndStatus(userId, ForgeProgramStatus.ACTIVE).isPresent()) {
+            throw alreadyRunning();
+        }
+        ForgeSettings settings = settingsProvider.current();
+        ForgeAiPlanner.Plan plan = ai.buildPlan(userId, turns, settings, mode);
+
+        ForgeProgram program = ForgeProgram.start(userId, today, settings.lengthDays(), mode, plan.focusAreas(), "{}");
+        program.makeAi(plan.profile().isBlank() ? "(no profile)" : plan.profile(), plan.outline());
+        try {
+            // A new entity with its own id is merged: carry on with the managed copy.
+            program = programs.saveAndFlush(program);
+        } catch (DataIntegrityViolationException raced) {
+            throw alreadyRunning();
+        }
+        saveDays(program, today, 1, Math.min(ForgeAiPlanner.WEEK, settings.lengthDays()), plan.days(), settings);
+        return buildOverview(userId, today);
+    }
+
+    /**
+     * An AI program writes its next week before the planned days run out, re-tuned from
+     * what was done. If the AI can't be reached, the last week's quests repeat, so a day
+     * is never left empty.
+     */
+    private void ensurePlanned(UUID userId, LocalDate today) {
+        ForgeProgram program = programs.findFirstByUserIdAndStatus(userId, ForgeProgramStatus.ACTIVE)
+                .filter(ForgeProgram::isAi)
+                .orElse(null);
+        if (program == null) {
+            return;
+        }
+        LocalDate planned = program.getPlannedThrough();
+        LocalDate needed = today.plusDays(1).isAfter(program.getEndDate()) ? program.getEndDate() : today.plusDays(1);
+        if (planned != null && !planned.isBefore(needed)) {
+            return;
+        }
+        LocalDate from = planned == null || planned.isBefore(today) ? today : planned.plusDays(1);
+        if (from.isBefore(program.getStartDate())) {
+            from = program.getStartDate();
+        }
+        int firstDay = (int) (from.toEpochDay() - program.getStartDate().toEpochDay()) + 1;
+        int days = (int) Math.min(ForgeAiPlanner.WEEK, program.getEndDate().toEpochDay() - from.toEpochDay() + 1);
+        if (days <= 0) {
+            return;
+        }
+        ForgeSettings settings = settingsProvider.current();
+
+        List<ForgeQuest> recent = quests.findAllByUserIdOrderByQuestDateAsc(userId).stream()
+                .filter(q -> !q.getQuestDate().isBefore(today.minusDays(14)) && q.getQuestDate().isBefore(today))
+                .toList();
+        Map<String, ForgeQuestTemplate> byCode = templatesByCode();
+        List<String> history = recent.stream()
+                .map(q -> q.getQuestDate() + " " + titleOf(byCode, q) + ": " + (q.isDone() ? "done" : "missed"))
+                .toList();
+
+        List<ForgeAiPlanner.DayPlan> plan;
+        try {
+            plan = ai.nextWeek(userId, program, firstDay, days, history.isEmpty() ? List.of("(nothing yet)") : history, settings);
+        } catch (RuntimeException e) {
+            log.warn("Forge week plan for {} failed, repeating last week: {}", userId, e.toString());
+            plan = List.of();
+        }
+        if (plan.isEmpty()) {
+            plan = repeatLastWeek(userId, from, days, byCode);
+        }
+        saveDays(program, from, firstDay, days, plan, settings);
+    }
+
+    /** The fallback: each new day gets the quests of the same weekday a week before. */
+    private List<ForgeAiPlanner.DayPlan> repeatLastWeek(
+            UUID userId, LocalDate from, int days, Map<String, ForgeQuestTemplate> byCode) {
+        Map<LocalDate, List<ForgeQuest>> byDay = quests.findAllByUserIdOrderByQuestDateAsc(userId).stream()
+                .filter(q -> q.isCustom())
+                .collect(Collectors.groupingBy(ForgeQuest::getQuestDate));
+        List<ForgeAiPlanner.DayPlan> out = new java.util.ArrayList<>();
+        for (int i = 0; i < days; i++) {
+            LocalDate source = from.plusDays(i).minusDays(ForgeAiPlanner.WEEK);
+            for (int back = 0; back < 4 && !byDay.containsKey(source); back++) {
+                source = source.minusDays(ForgeAiPlanner.WEEK);
+            }
+            List<ForgeQuest> same = byDay.getOrDefault(source, List.of());
+            if (!same.isEmpty()) {
+                out.add(new ForgeAiPlanner.DayPlan(i, same.stream()
+                        .map(q -> new ForgeAiPlanner.QuestDraft(q.getTitle(), q.getDescription(), q.getArea(), q.getTier()))
+                        .toList()));
+            }
+        }
+        return out;
+    }
+
+    private void saveDays(
+            ForgeProgram program, LocalDate from, int firstDay, int days, List<ForgeAiPlanner.DayPlan> plan, ForgeSettings settings) {
+        List<ForgeQuest> rows = new java.util.ArrayList<>();
+        for (ForgeAiPlanner.DayPlan day : plan) {
+            if (day.offset() < 0 || day.offset() >= days) {
+                continue;
+            }
+            for (ForgeAiPlanner.QuestDraft q : day.quests()) {
+                rows.add(ForgeQuest.custom(
+                        program.getId(), program.getUserId(), from.plusDays(day.offset()), firstDay + day.offset(),
+                        q.title(), q.description(), q.area(), q.tier(), ForgeAiPlanner.xpFor(q.tier(), program.getMode(), settings)));
+            }
+        }
+        quests.saveAll(rows);
+        program.setPlannedThrough(from.plusDays(days - 1L));
+        programs.saveAndFlush(program);
+    }
+
+    private static String titleOf(Map<String, ForgeQuestTemplate> byCode, ForgeQuest q) {
+        if (q.isCustom()) {
+            return q.getTitle();
+        }
+        ForgeQuestTemplate t = byCode.get(q.getTemplateCode());
+        return t == null ? "Quest" : t.getTitle();
     }
 
     /** Ends the running program from today. Closed days keep their history and XP. */
@@ -219,6 +349,12 @@ public class ForgeService {
         Map<ForgeArea, Integer> scores = ForgeQuestionnaire.score(answers);
         ForgeProgram next = ForgeProgram.start(
                 userId, today, settings.lengthDays(), ForgeMode.HARD, program.getFocusAreas(), program.getAnswersJson());
+        if (program.isAi()) {
+            // The same person and plan; the next week is written (re-tuned) by ensurePlanned.
+            next.makeAi(program.getAiProfile(), program.getAiOutline());
+            programs.saveAndFlush(next);
+            return;
+        }
         programs.saveAndFlush(next);
         planQuests(next, today, settings, scores);
     }
@@ -244,6 +380,7 @@ public class ForgeService {
     private void settle(UUID userId, LocalDate today) {
         restartIfHardModeFailed(userId, today);
         closeIfFinished(userId, today);
+        ensurePlanned(userId, today);
     }
 
     /** Marks a program whose last day has passed as completed. Lazy — no job needed. */
@@ -288,6 +425,9 @@ public class ForgeService {
     }
 
     private static ForgeArea areaOf(Map<String, ForgeQuestTemplate> byCode, ForgeQuest quest) {
+        if (quest.isCustom()) {
+            return quest.getArea();
+        }
         ForgeQuestTemplate template = byCode.get(quest.getTemplateCode());
         if (template == null) {
             throw new IllegalStateException("No quest template '" + quest.getTemplateCode() + "'");
