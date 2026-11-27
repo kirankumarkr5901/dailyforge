@@ -143,23 +143,43 @@
         <button dfButton type="button" variant="secondary" (click)="scannerOpen.set(true)">Scan barcode</button>
       </div>
       @if (d.foods.length > 0) {
-        <df-input
-          class="nutrition__search"
-          label="Search foods"
-          placeholder="e.g. paneer"
-          [ngModel]="search()"
-          (ngModelChange)="search.set($event)"
-        />
-        <div class="nutrition__foods">
-          @for (food of visibleFoods(); track food.id) {
-            <button type="button" class="nutrition__food" [disabled]="busy()" (click)="eat(food)">
-              {{ food.name }}
-              <span class="nutrition__food-grams">{{ food.grams }} g · {{ food.kcal }} kcal</span>
-            </button>
-          } @empty {
-            <p class="nutrition__muted">No food matches "{{ search() }}". Add it below as something else.</p>
-          }
-        </div>
+        <button
+          type="button"
+          class="nutrition__toggle"
+          [attr.aria-expanded]="foodsOpen()"
+          aria-controls="nutrition-foods"
+          (click)="toggleFoods()"
+        >
+          <span>Your foods ({{ d.foods.length }})</span>
+          <lucide-icon
+            class="nutrition__chevron"
+            [class.nutrition__chevron--open]="foodsOpen()"
+            [img]="chevronIcon"
+            [size]="18"
+            aria-hidden="true"
+          />
+        </button>
+        @if (foodsOpen()) {
+          <div id="nutrition-foods">
+            <df-input
+              class="nutrition__search"
+              label="Search foods"
+              placeholder="e.g. paneer"
+              [ngModel]="search()"
+              (ngModelChange)="search.set($event)"
+            />
+            <div class="nutrition__foods">
+              @for (food of visibleFoods(); track food.id) {
+                <button type="button" class="nutrition__food" [disabled]="busy()" (click)="eat(food)">
+                  {{ food.name }}
+                  <span class="nutrition__food-grams">{{ food.grams }} g · {{ food.kcal }} kcal</span>
+                </button>
+              } @empty {
+                <p class="nutrition__muted">No food matches "{{ search() }}". Add it below as something else.</p>
+              }
+            </div>
+          </div>
+        }
       } @else {
         <p class="nutrition__muted">No foods yet. Add some in <a routerLink="/settings" fragment="nutrition">Settings</a>.</p>
       }
