@@ -336,6 +336,16 @@ public class ProteinService {
 
     @Transactional
     public ProteinFood addFood(UUID userId, String name, Amounts amounts) {
+        return addFood(userId, name, amounts, ProteinFood.SOURCE_LIST);
+    }
+
+    /** {@code source}: LIST, or PHOTO / BARCODE for a food saved from a meal photo or a scan. */
+    @Transactional
+    public ProteinFood addFood(UUID userId, String name, Amounts amounts, String source) {
+        String from = source == null || source.isBlank() ? ProteinFood.SOURCE_LIST : source.trim().toUpperCase();
+        if (!ProteinFood.SOURCES.contains(from)) {
+            throw ApiException.outOfRange("source", "A food comes from the list, a photo or a barcode.");
+        }
         requireAmounts(amounts);
         settings(userId);
         int next = foods.findAllByUserIdOrderBySortOrderAscNameAsc(userId).stream()
@@ -344,6 +354,7 @@ public class ProteinService {
                 .orElse(-1) + 1;
         ProteinFood food = ProteinFood.create(userId, name.trim(), amounts.proteinG(), amounts.kcal(), amounts.fatG(), next);
         food.updateMore(amounts.carbsG(), amounts.fiberG(), amounts.sugarG());
+        food.setSource(from);
         return foods.save(food);
     }
 

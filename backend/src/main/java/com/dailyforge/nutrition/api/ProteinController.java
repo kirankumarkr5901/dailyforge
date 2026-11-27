@@ -164,7 +164,8 @@ public class ProteinController {
                         orZero(request.fatG()),
                         orZero(request.carbsG()),
                         orZero(request.fiberG()),
-                        orZero(request.sugarG()))));
+                        orZero(request.sugarG())),
+                request.source()));
     }
 
     @PatchMapping("/foods/{id}")

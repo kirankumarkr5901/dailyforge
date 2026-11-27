@@ -13,6 +13,8 @@ export interface ProteinFood {
   carbsG: number;
   fiberG: number;
   sugarG: number;
+  /** LIST (starter foods and Settings), or saved from a meal PHOTO or a BARCODE scan. */
+  source: 'LIST' | 'PHOTO' | 'BARCODE';
 }
 
 export interface ProteinEntry {

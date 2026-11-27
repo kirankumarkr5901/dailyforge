@@ -177,7 +177,7 @@ export class MealPhotoComponent {
     this.busy.set(true);
     try {
       const { foodName, ...amounts } = a;
-      await firstValueFrom(this.api.addFood(`${foodName} ${row.portionG} g`.slice(0, 60), amounts));
+      await firstValueFrom(this.api.addFood(`${foodName} ${row.portionG} g`.slice(0, 60), amounts, 'PHOTO'));
       this.update(index, { saved: true });
       this.foodSaved.emit();
       this.toasts.show('Saved to your foods.');

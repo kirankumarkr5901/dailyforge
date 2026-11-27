@@ -266,6 +266,19 @@ class ProteinAndDeloadIntegrationTest {
         mockMvc.perform(auth(get("/api/v1/protein/barcode/abcdefghij"))).andExpect(status().is4xxClientError());
     }
 
+    /** A food saved from a photo or a scan says so; one added in Settings is on the list. */
+    @Test
+    void aFoodRemembersWhereItWasSavedFrom() throws Exception {
+        assertThat(call(post("/api/v1/protein/foods").content("{\"name\":\"Dal 150 g\",\"grams\":9,\"source\":\"PHOTO\"}"))
+                        .get("source").asString())
+                .isEqualTo("PHOTO");
+        assertThat(call(post("/api/v1/protein/foods").content("{\"name\":\"Lentils\",\"grams\":9}"))
+                        .get("source").asString())
+                .isEqualTo("LIST");
+        mockMvc.perform(auth(post("/api/v1/protein/foods")).content("{\"name\":\"X\",\"grams\":9,\"source\":\"MAGIC\"}"))
+                .andExpect(status().is4xxClientError());
+    }
+
     /** Without GEMINI_API_KEY the feature says it is off, and never calls out. */
     @Test
     void mealPhotosAreOffWithoutAKey() throws Exception {

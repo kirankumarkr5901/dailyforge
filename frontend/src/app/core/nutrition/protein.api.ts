@@ -53,8 +53,9 @@ export class ProteinApi {
   }
 
   /** Food list changes are structural: they need "Enable edit". */
-  addFood(name: string, amounts: NutritionAmounts): Observable<ProteinFood> {
-    return this.http.post<ProteinFood>(`${this.base}/protein/foods`, { name, ...amounts });
+  /** `source`: PHOTO or BARCODE when saved from a meal photo or a scan; the list otherwise. */
+  addFood(name: string, amounts: NutritionAmounts, source?: 'PHOTO' | 'BARCODE'): Observable<ProteinFood> {
+    return this.http.post<ProteinFood>(`${this.base}/protein/foods`, { name, ...amounts, source });
   }
 
   updateFood(id: string, patch: { name?: string } & Partial<NutritionAmounts>): Observable<ProteinFood> {
