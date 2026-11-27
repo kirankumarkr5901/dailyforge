@@ -1,0 +1,27 @@
+@if (loaded()) {
+  <df-card class="water">
+    <div class="water__head">
+      <h2 class="water__title">Water</h2>
+      <span class="water__total">
+        <span class="water__value">{{ litres(ml()) }}</span>
+        <span class="water__target">/ {{ litres(target()) }} L</span>
+      </span>
+    </div>
+    <div
+      class="water__meter"
+      [class.water__meter--reached]="reached()"
+      role="progressbar"
+      [attr.aria-valuenow]="ml()"
+      aria-valuemin="0"
+      [attr.aria-valuemax]="target()"
+      [attr.aria-label]="litres(ml()) + ' of ' + litres(target()) + ' litres of water'"
+    >
+      <span class="water__fill" [style.width.%]="percent()"></span>
+    </div>
+    <div class="water__buttons">
+      <button dfButton type="button" variant="primary" [disabled]="busy()" (click)="add(250)">+250 ml</button>
+      <button dfButton type="button" variant="secondary" [disabled]="busy()" (click)="add(500)">+500 ml</button>
+      <button dfButton type="button" variant="ghost" [disabled]="busy() || ml() === 0" (click)="add(-250)">−250</button>
+    </div>
+  </df-card>
+}
