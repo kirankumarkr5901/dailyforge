@@ -107,3 +107,8 @@
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
+
+/* Secondary to adding: tucked to the left under the dish's numbers. */
+.snap__save {
+  align-self: flex-start;
+}

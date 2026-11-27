@@ -73,6 +73,16 @@
                   {{ a.grams }} g protein · {{ a.kcal }} kcal · {{ a.carbsG }} g carbs ·
                   {{ a.fatG }} g fat · {{ a.fiberG }} g fiber · {{ a.sugarG }} g sugar
                 </p>
+                <button
+                  dfButton
+                  type="button"
+                  variant="ghost"
+                  class="snap__save"
+                  [disabled]="busy() || row.saved || !row.name.trim()"
+                  (click)="saveAsFood(i)"
+                >
+                  {{ row.saved ? 'Saved to your foods' : 'Save as a food' }}
+                </button>
               }
             </li>
           }

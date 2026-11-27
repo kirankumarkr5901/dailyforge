@@ -148,9 +148,12 @@ public class ProteinController {
                         request.waterTargetMl()));
     }
 
+    /**
+     * Adding a food always works (owner request: saving a dish from a photo or a scan
+     * shouldn't need "Enable edit"). Changing or deleting one is still structural.
+     */
     @PostMapping("/foods")
     @ResponseStatus(HttpStatus.CREATED)
-    @StructuralChange
     public FoodResponse addFood(@Valid @RequestBody CreateFoodRequest request) {
         return FoodResponse.of(protein.addFood(
                 currentUser.require(),

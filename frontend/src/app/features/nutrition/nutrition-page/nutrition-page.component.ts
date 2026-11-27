@@ -3,7 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Observable, firstValueFrom } from 'rxjs';
-import { Beef, LucideAngularModule, Plus, Trash2 } from 'lucide-angular';
+import { Beef, ChevronDown, LucideAngularModule, Plus, Trash2 } from 'lucide-angular';
 
 import { AuthSheetService } from '../../../core/auth/auth-sheet.service';
 import { SessionStore } from '../../../core/auth/session.store';
@@ -29,6 +29,17 @@ import { ToastService } from '../../../shared/ui/df-toast/toast.service';
  * target pays points once a day; a day that ends within the calorie budget pays once it
  * is over. The targets and the food list live in Settings.
  */
+/** Whether the food list on Nutrition is unfolded. Folded until opened the first time. */
+const FOODS_OPEN_KEY = 'dailyforge.nutrition-foods-open';
+
+function readFoodsOpen(): boolean {
+  try {
+    return localStorage.getItem(FOODS_OPEN_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
 @Component({
   selector: 'df-nutrition-page',
   imports: [
@@ -61,6 +72,7 @@ export class NutritionPageComponent {
   protected readonly foodIcon = Beef;
   protected readonly plusIcon = Plus;
   protected readonly deleteIcon = Trash2;
+  protected readonly chevronIcon = ChevronDown;
 
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
@@ -95,6 +107,19 @@ export class NutritionPageComponent {
   protected readonly mealPicks = signal<ReadonlySet<string>>(new Set());
 
   protected readonly search = signal('');
+  /** The one-tap food list folds away (owner request); the choice is remembered. */
+  protected readonly foodsOpen = signal(readFoodsOpen());
+
+  protected toggleFoods(): void {
+    const open = !this.foodsOpen();
+    this.foodsOpen.set(open);
+    try {
+      localStorage.setItem(FOODS_OPEN_KEY, open ? '1' : '0');
+    } catch {
+      // Storage blocked: it still folds for this visit.
+    }
+  }
+
   protected readonly visibleFoods = computed(() => {
     const foods = this.day()?.foods ?? [];
     const q = this.search().trim().toLowerCase();

@@ -16,7 +16,6 @@ import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 
-import { SessionStore } from '../../../core/auth/session.store';
 import { ProteinApi } from '../../../core/nutrition/protein.api';
 import { NutritionAmounts, ProteinDayWrite } from '../../../core/nutrition/protein.types';
 import { LogicalDate } from '../../../core/time/logical-date';
@@ -58,7 +57,6 @@ const FORMATS = ['ean_13', 'ean_8', 'upc_a', 'upc_e'];
 export class BarcodeScannerComponent {
   private readonly api = inject(ProteinApi);
   private readonly toasts = inject(ToastService);
-  protected readonly session = inject(SessionStore);
 
   readonly open = input.required<boolean>();
   readonly date = input.required<LogicalDate>();

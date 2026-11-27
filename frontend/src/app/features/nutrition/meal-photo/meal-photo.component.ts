@@ -30,6 +30,8 @@ interface Row {
   name: string;
   portionG: number;
   include: boolean;
+  /** Saved to the food list as it stands; a new name or portion can be saved again. */
+  saved: boolean;
 }
 
 /** Gemini doesn't need a big photo to see a plate; a small one is quicker on a phone network. */
@@ -62,6 +64,8 @@ export class MealPhotoComponent {
   readonly closed = output<void>();
   /** Dishes were added: the page applies the day and points. */
   readonly logged = output<ProteinDayWrite>();
+  /** A dish was saved as a food: the page reloads its food list. */
+  readonly foodSaved = output<void>();
 
   protected readonly status = signal<'pick' | 'reading' | 'review' | 'empty' | 'error'>('pick');
   protected readonly error = signal('');
@@ -120,6 +124,7 @@ export class MealPhotoComponent {
           name: d.name,
           portionG: Math.max(1, d.portionG || 100),
           include: true,
+          saved: false,
         })),
       );
       this.status.set(dishes.length ? 'review' : 'empty');
@@ -130,7 +135,11 @@ export class MealPhotoComponent {
   }
 
   protected update(index: number, change: Partial<Row>): void {
-    this.rows.update((rows) => rows.map((r, i) => (i === index ? { ...r, ...change } : r)));
+    // A new name or portion is a different food, so it can be saved again.
+    const resave = 'name' in change || 'portionG' in change ? { saved: false } : {};
+    this.rows.update((rows) =>
+      rows.map((r, i) => (i === index ? { ...r, ...resave, ...change } : r)),
+    );
   }
 
   /** The estimate scaled to the portion the user set. */
@@ -151,6 +160,29 @@ export class MealPhotoComponent {
       this.close();
     } catch (e) {
       this.toasts.show(messageFor(e), { tone: 'penalty' });
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
+  /**
+   * Saves a dish to the food list at the portion set, named with that portion
+   * ("Chicken biryani 300 g"), so next time it's one tap.
+   */
+  protected async saveAsFood(index: number): Promise<void> {
+    const row = this.rows()[index];
+    if (!row || this.busy()) return;
+    const a = this.amounts(row);
+    if (!a.foodName || a.grams + a.kcal + a.fatG === 0) return;
+    this.busy.set(true);
+    try {
+      const { foodName, ...amounts } = a;
+      await firstValueFrom(this.api.addFood(`${foodName} ${row.portionG} g`.slice(0, 60), amounts));
+      this.update(index, { saved: true });
+      this.foodSaved.emit();
+      this.toasts.show('Saved to your foods.');
+    } catch {
+      this.toasts.show('Could not save it as a food. Try again.', { tone: 'penalty' });
     } finally {
       this.busy.set(false);
     }
