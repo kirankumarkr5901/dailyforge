@@ -104,6 +104,9 @@
       </div>
 
       <div class="home-page__col-side">
+        @if (session.featureEnabled('NUTRITION')) {
+          <df-water-card class="home-page__water" />
+        }
         <df-card class="home-page__heatmap-card">
           <h2 class="home-page__section-title">Activity</h2>
           <df-heatmap [today]="home.date" (cellSelected)="openDay($event)" />

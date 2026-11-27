@@ -91,6 +91,21 @@ public interface WorkoutSetRepository extends JpaRepository<WorkoutSet, UUID> {
     List<WorkoutSet> findOnDate(
             @Param("userId") UUID userId, @Param("exerciseId") UUID exerciseId, @Param("date") LocalDate date);
 
+    /**
+     * The plan days this user logged live sets on, latest first: [occurredOn, dayIndex].
+     * Only the first row is ever used; ordering does the "most recent" work.
+     */
+    @Query(
+            "select sess.occurredOn, sess.dayIndex from WorkoutSet s, WorkoutSession sess "
+                    + "where sess.id = s.sessionId and sess.userId = :userId and sess.planId = :planId "
+                    + "and sess.dayIndex is not null and s.deletedAt is null and sess.occurredOn <= :onOrBefore "
+                    + "order by sess.occurredOn desc, s.loggedAt desc")
+    List<Object[]> findLoggedPlanDays(
+            @Param("userId") UUID userId,
+            @Param("planId") UUID planId,
+            @Param("onOrBefore") LocalDate onOrBefore,
+            org.springframework.data.domain.Pageable page);
+
     /** The days in a range on which this user logged at least one live set. */
     @Query(
             "select distinct sess.occurredOn from WorkoutSet s, WorkoutSession sess "

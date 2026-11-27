@@ -72,6 +72,9 @@ const RANK: Record<ExerciseStatus, number> = { 'in-progress': 0, todo: 1, done: 
  * for it as a log card. The board's own data decides everything shown — PRs, sets,
  * completion — this component only renders it and issues the writes.
  */
+/** Where a plan day picked by hand is remembered, for the date it was picked on. */
+const DAY_PICK_KEY = 'dailyforge.workout-day-pick';
+
 @Component({
   selector: 'df-workouts-page',
   imports: [
@@ -370,6 +373,7 @@ export class WorkoutsPageComponent {
       this.plans.set(plans);
       const active = plans.find((p) => p.isActive) ?? plans[0] ?? null;
       this.selectedPlanId.set(active?.id ?? null);
+      await this.resolveDay(this.viewedDate() ?? undefined);
       await this.refreshSession();
       if (this.todayDate()) {
         void this.loadWorkoutDates(this.todayDate()!);
@@ -416,9 +420,49 @@ export class WorkoutsPageComponent {
     }
   }
 
+  /**
+   * Which plan day to show (owner request): a day picked by hand stays picked for that
+   * date; otherwise the server's suggestion, the day trained that date or the one after
+   * the last day trained. Rest days have no logs, so they never move it.
+   */
+  private async resolveDay(date?: LogicalDate): Promise<void> {
+    const plan = this.selectedPlan();
+    if (!plan) return;
+    try {
+      const suggestion = await firstValueFrom(this.api.suggestedDay(plan.id, date));
+      const pick = this.readDayPick();
+      const day =
+        pick && pick.planId === plan.id && pick.date === suggestion.date ? pick.dayIndex : suggestion.dayIndex;
+      this.selectedDayIndex.set(Math.min(Math.max(1, day), plan.dayCount));
+    } catch {
+      // No suggestion (offline): keep whatever day is showing.
+    }
+  }
+
+  private readDayPick(): { date: LogicalDate; planId: string; dayIndex: number } | null {
+    try {
+      const raw = localStorage.getItem(DAY_PICK_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private saveDayPick(dayIndex: number): void {
+    const date = this.viewedDate();
+    const planId = this.selectedPlanId();
+    if (!date || !planId) return;
+    try {
+      localStorage.setItem(DAY_PICK_KEY, JSON.stringify({ date, planId, dayIndex }));
+    } catch {
+      // Storage blocked: the pick still holds for this visit.
+    }
+  }
+
   protected async changeDate(date: LogicalDate): Promise<void> {
     this.viewedDate.set(date);
     this.muscleFilter.set(null);
+    await this.resolveDay(date);
     await this.refreshSession(date);
   }
 
@@ -426,11 +470,14 @@ export class WorkoutsPageComponent {
     this.selectedPlanId.set(planId || null);
     this.selectedDayIndex.set(1);
     this.muscleFilter.set(null);
+    await this.resolveDay(this.viewedDate() ?? undefined);
     await this.refreshSession();
   }
 
+  /** Picked by hand: it stays for this date, whatever the suggestion says. */
   protected async changeDay(dayIndex: string): Promise<void> {
     this.selectedDayIndex.set(Number(dayIndex));
+    this.saveDayPick(Number(dayIndex));
     this.muscleFilter.set(null);
     await this.refreshSession();
   }
