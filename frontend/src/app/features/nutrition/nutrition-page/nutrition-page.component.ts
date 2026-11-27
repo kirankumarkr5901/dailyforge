@@ -11,6 +11,7 @@ import { ProteinApi } from '../../../core/nutrition/protein.api';
 import { Meal, ProteinDay, ProteinDayWrite, ProteinEntry, ProteinFood } from '../../../core/nutrition/protein.types';
 import { DfSheetComponent } from '../../../shared/ui/df-sheet/df-sheet.component';
 import { BarcodeScannerComponent } from '../barcode-scanner/barcode-scanner.component';
+import { MealPhotoComponent } from '../meal-photo/meal-photo.component';
 import { PointsStore } from '../../../core/points/points.store';
 import { SyncStore } from '../../../core/sync/sync.store';
 import { DfButtonComponent } from '../../../shared/ui/df-button/df-button.component';
@@ -43,6 +44,7 @@ import { ToastService } from '../../../shared/ui/df-toast/toast.service';
     DfStepperInputComponent,
     DfSheetComponent,
     BarcodeScannerComponent,
+    MealPhotoComponent,
   ],
   templateUrl: './nutrition-page.component.html',
   styleUrl: './nutrition-page.component.scss',
@@ -68,6 +70,9 @@ export class NutritionPageComponent {
 
   protected readonly meals = signal<Meal[]>([]);
   protected readonly scannerOpen = signal(false);
+  /** "Snap a meal" shows only when the server has a Gemini key. */
+  protected readonly mealPhotoEnabled = signal(false);
+  protected readonly mealPhotoOpen = signal(false);
 
   /** A scanned product was added: same bookkeeping as any other write. */
   protected onScanned(result: ProteinDayWrite): void {
@@ -193,11 +198,25 @@ export class NutritionPageComponent {
     try {
       this.day.set(await firstValueFrom(this.api.day()));
       void this.loadMeals();
+      void this.loadMealPhotoStatus();
     } catch {
       this.error.set('Could not load your protein for today. Check your connection and try again.');
     } finally {
       this.loading.set(false);
     }
+  }
+
+  private async loadMealPhotoStatus(): Promise<void> {
+    try {
+      this.mealPhotoEnabled.set((await firstValueFrom(this.api.mealPhotoStatus())).enabled);
+    } catch {
+      // Without it the button just stays hidden.
+    }
+  }
+
+  /** Dishes from a meal photo were added. */
+  protected onMealPhoto(result: ProteinDayWrite): void {
+    this.onScanned(result);
   }
 
   private async loadMeals(): Promise<void> {

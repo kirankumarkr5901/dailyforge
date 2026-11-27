@@ -303,3 +303,12 @@
 .nutrition__meter--water.nutrition__meter--reached .nutrition__meter-fill {
   background: var(--done);
 }
+
+/* Phone first: the photo and barcode buttons share a row, each half the width. */
+.nutrition__capture {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}

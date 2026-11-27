@@ -135,8 +135,11 @@
     }
 
     <df-card class="nutrition__foods-card">
-      <div class="nutrition__eaten-head">
-        <h2 class="nutrition__section-title">Tap what you ate</h2>
+      <h2 class="nutrition__section-title">Tap what you ate</h2>
+      <div class="nutrition__capture">
+        @if (mealPhotoEnabled()) {
+          <button dfButton type="button" variant="primary" (click)="mealPhotoOpen.set(true)">Snap a meal</button>
+        }
         <button dfButton type="button" variant="secondary" (click)="scannerOpen.set(true)">Scan barcode</button>
       </div>
       @if (d.foods.length > 0) {
@@ -241,5 +244,11 @@
     (closed)="scannerOpen.set(false)"
     (logged)="onScanned($event)"
     (foodSaved)="reload()"
+  />
+  <df-meal-photo
+    [open]="mealPhotoOpen()"
+    [date]="d.date"
+    (closed)="mealPhotoOpen.set(false)"
+    (logged)="onMealPhoto($event)"
   />
 }

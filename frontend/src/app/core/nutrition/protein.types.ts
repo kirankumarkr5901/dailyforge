@@ -27,6 +27,18 @@ export interface ProteinEntry {
 }
 
 /** What one entry or food adds. At least one must be above zero. */
+/** One dish read from a meal photo by Gemini: estimates for the portion in the photo. */
+export interface MealPhotoDish {
+  name: string;
+  portionG: number;
+  proteinG: number;
+  kcal: number;
+  fatG: number;
+  carbsG: number;
+  fiberG: number;
+  sugarG: number;
+}
+
 export interface NutritionAmounts {
   grams: number;
   kcal: number;

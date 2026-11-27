@@ -58,6 +58,12 @@ dailyforge:
     secret-access-key: ${R2_SECRET_ACCESS_KEY:}
     bucket: ${R2_BUCKET:}
 
+  # Meal photos read by Google Gemini (free tier). A blank key switches them off; see
+  # docs/meal-photos.md. GEMINI_MODEL is optional.
+  gemini:
+    api-key: ${GEMINI_API_KEY:}
+    model: ${GEMINI_MODEL:}
+
   push:
     vapid-public-key: ${VAPID_PUBLIC_KEY:}
     vapid-private-key: ${VAPID_PRIVATE_KEY:}
