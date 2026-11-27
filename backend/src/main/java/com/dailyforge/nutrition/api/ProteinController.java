@@ -37,12 +37,28 @@ public class ProteinController {
     private final ProteinService protein;
     private final CurrentUser currentUser;
     private final com.dailyforge.nutrition.domain.MealService meals;
+    private final com.dailyforge.nutrition.domain.BarcodeLookupService barcodes;
 
     public ProteinController(
-            ProteinService protein, CurrentUser currentUser, com.dailyforge.nutrition.domain.MealService meals) {
+            ProteinService protein,
+            CurrentUser currentUser,
+            com.dailyforge.nutrition.domain.MealService meals,
+            com.dailyforge.nutrition.domain.BarcodeLookupService barcodes) {
         this.protein = protein;
         this.currentUser = currentUser;
         this.meals = meals;
+        this.barcodes = barcodes;
+    }
+
+    /** A packaged food by barcode, from Open Food Facts via the server. 404 when unknown. */
+    @GetMapping("/barcode/{code}")
+    public com.dailyforge.nutrition.domain.BarcodeLookupService.Product barcode(@PathVariable String code) {
+        currentUser.require();
+        var product = barcodes.lookup(code);
+        if (product == null) {
+            throw com.dailyforge.common.error.ApiException.notFound("That barcode");
+        }
+        return product;
     }
 
     /** {@code date} is optional: omitted means "today" in the user's own time zone. */

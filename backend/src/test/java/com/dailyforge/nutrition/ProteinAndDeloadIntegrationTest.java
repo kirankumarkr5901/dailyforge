@@ -260,6 +260,13 @@ class ProteinAndDeloadIntegrationTest {
                 .isEqualTo(2000);
     }
 
+    /** Checked before anything is sent to Open Food Facts. */
+    @Test
+    void aBarcodeThatIsNotOneIsRefusedWithoutLookingItUp() throws Exception {
+        mockMvc.perform(auth(get("/api/v1/protein/barcode/123"))).andExpect(status().is4xxClientError());
+        mockMvc.perform(auth(get("/api/v1/protein/barcode/abcdefghij"))).andExpect(status().is4xxClientError());
+    }
+
     @Test
     void anEntryWithNothingInItIsRefused() throws Exception {
         mockMvc.perform(auth(post("/api/v1/protein/logs"))

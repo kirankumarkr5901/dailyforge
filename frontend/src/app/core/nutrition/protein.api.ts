@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { LogicalDate } from '../time/logical-date';
-import { Meal, MealItem, NutritionAmounts, ProteinDay, ProteinDayWrite, ProteinFood } from './protein.types';
+import { BarcodeProduct, Meal, MealItem, NutritionAmounts, ProteinDay, ProteinDayWrite, ProteinFood } from './protein.types';
 
 @Injectable({ providedIn: 'root' })
 export class ProteinApi {
@@ -49,6 +49,11 @@ export class ProteinApi {
   /** +250, +500, or -250 to undo a tap. Pays points the day the target is reached. */
   addWater(date: LogicalDate, deltaMl: number): Observable<ProteinDayWrite> {
     return this.http.post<ProteinDayWrite>(`${this.base}/protein/water`, { date, deltaMl });
+  }
+
+  /** A packaged food by barcode (Open Food Facts, via the server). 404 when unknown. */
+  barcode(code: string): Observable<BarcodeProduct> {
+    return this.http.get<BarcodeProduct>(`${this.base}/protein/barcode/${encodeURIComponent(code)}`);
   }
 
   meals(): Observable<Meal[]> {

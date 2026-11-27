@@ -13,6 +13,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 
 import { SessionStore } from '../../../core/auth/session.store';
@@ -44,8 +45,8 @@ const FORMATS = ['ean_13', 'ean_8', 'upc_a', 'upc_e'];
  * Scan a packaged food's barcode and log it from Open Food Facts, a free, open food
  * database. The camera reads the barcode with the browser's built-in detector where it
  * exists (Android Chrome) and otherwise with ZXing, loaded only when the scanner opens
- * (iPhone). The lookup goes straight from the phone to Open Food Facts with plain
- * fetch, so no DailyForge login ever travels with it. Typing the digits is the fallback.
+ * (iPhone). The lookup goes through the DailyForge API, which asks Open Food Facts;
+ * the phone never calls it directly. Typing the digits is the fallback.
  */
 @Component({
   selector: 'df-barcode-scanner',
@@ -178,36 +179,26 @@ export class BarcodeScannerComponent {
     this.stopCamera();
     this.status.set('looking');
     try {
-      // Plain fetch, not HttpClient: the auth interceptor must never see this request.
-      const res = await fetch(
-        `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(code)}.json?fields=product_name,brands,nutriments,serving_quantity`,
-      );
-      const body = await res.json();
-      if (body.status !== 1 || !body.product) {
+      // Through our own API: the phone only ever talks to the server it already reaches.
+      const p = await firstValueFrom(this.api.barcode(code));
+      this.product.set({
+        code: p.code,
+        name: p.name,
+        per100: { grams: p.proteinG, kcal: p.kcal, fatG: p.fatG, carbsG: p.carbsG, fiberG: p.fiberG, sugarG: p.sugarG },
+        servingG: p.servingG,
+      });
+      this.servingG.set(Math.round(p.servingG ?? 100) || 100);
+      this.status.set('found');
+    } catch (error) {
+      if (error instanceof HttpErrorResponse && error.status === 404) {
         this.status.set('missing');
         return;
       }
-      const p = body.product;
-      const n = p.nutriments ?? {};
-      const num = (v: unknown) => (typeof v === 'number' && isFinite(v) ? v : Number(v) || 0);
-      const name = [p.brands?.split(',')[0]?.trim(), p.product_name?.trim()].filter(Boolean).join(' ') || `Product ${code}`;
-      this.product.set({
-        code,
-        name: name.slice(0, 50),
-        per100: {
-          grams: num(n['proteins_100g']),
-          kcal: num(n['energy-kcal_100g']),
-          fatG: num(n['fat_100g']),
-          carbsG: num(n['carbohydrates_100g']),
-          fiberG: num(n['fiber_100g']),
-          sugarG: num(n['sugars_100g']),
-        },
-        servingG: p.serving_quantity ? num(p.serving_quantity) : null,
-      });
-      this.servingG.set(Math.round(p.serving_quantity ? num(p.serving_quantity) : 100) || 100);
-      this.status.set('found');
-    } catch {
-      this.toasts.show('Could not reach Open Food Facts. Check your connection.', { tone: 'penalty' });
+      const message =
+        error instanceof HttpErrorResponse && error.status === 0
+          ? 'No connection. Check your signal and try again.'
+          : ((error as HttpErrorResponse)?.error?.message ?? 'Could not look that up. Try again in a minute.');
+      this.toasts.show(message, { tone: 'penalty' });
       this.status.set('missing');
     }
   }

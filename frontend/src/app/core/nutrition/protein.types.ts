@@ -76,3 +76,17 @@ export interface Meal {
   kcal: number;
   items: MealItem[];
 }
+
+/** A packaged food from Open Food Facts: values per 100 g. */
+export interface BarcodeProduct {
+  code: string;
+  name: string;
+  proteinG: number;
+  kcal: number;
+  fatG: number;
+  carbsG: number;
+  fiberG: number;
+  sugarG: number;
+  /** The product's own serving size in grams, when it has one. */
+  servingG: number | null;
+}
