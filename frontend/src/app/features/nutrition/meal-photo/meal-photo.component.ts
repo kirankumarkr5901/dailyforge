@@ -13,7 +13,6 @@ import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 
-import { SessionStore } from '../../../core/auth/session.store';
 import { ProteinApi } from '../../../core/nutrition/protein.api';
 import { MealItem, MealPhotoDish, ProteinDayWrite } from '../../../core/nutrition/protein.types';
 import { shrink } from '../../../core/photos/photos.api';
@@ -59,8 +58,6 @@ const PHOTO_SIDE = 1024;
 export class MealPhotoComponent {
   private readonly api = inject(ProteinApi);
   private readonly toasts = inject(ToastService);
-  /** Saving a food is a structural change: it needs "Enable edit", like everywhere else. */
-  protected readonly session = inject(SessionStore);
 
   readonly open = input.required<boolean>();
   readonly date = input.required<LogicalDate>();

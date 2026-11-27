@@ -42,9 +42,7 @@
             Add to today
           </button>
           <div class="scan__row">
-            @if (session.editingEnabled()) {
-              <button dfButton type="button" variant="ghost" [disabled]="busy()" (click)="saveAsFood()">Save as a food</button>
-            }
+            <button dfButton type="button" variant="ghost" [disabled]="busy()" (click)="saveAsFood()">Save as a food</button>
             <button dfButton type="button" variant="ghost" (click)="scanAgain()">Scan another</button>
           </div>
         }

@@ -121,17 +121,16 @@ class ProteinAndDeloadIntegrationTest {
     }
 
     @Test
-    void theFoodListIsLockedButLoggingAndTheTargetAreNot() throws Exception {
-        mockMvc.perform(auth(post("/api/v1/protein/foods")).content("{\"name\":\"Lentils\",\"grams\":9}"))
+    void addingAFoodIsOpenButChangingOrDeletingOneIsLocked() throws Exception {
+        JsonNode food = call(post("/api/v1/protein/foods").content("{\"name\":\"Lentils\",\"grams\":9}"));
+        assertThat(food.get("name").asString()).isEqualTo("Lentils");
+
+        mockMvc.perform(auth(delete("/api/v1/protein/foods/" + food.get("id").asString())))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value("EDITING_LOCKED"));
 
         eat("Chicken 100 g", 31);
         call(put("/api/v1/protein/target").content("{\"targetG\":150}"));
-
-        setEditing(true);
-        JsonNode food = call(post("/api/v1/protein/foods").content("{\"name\":\"Lentils\",\"grams\":9}"));
-        assertThat(food.get("name").asString()).isEqualTo("Lentils");
     }
 
     @Test
