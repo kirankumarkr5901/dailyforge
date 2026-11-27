@@ -8,9 +8,15 @@
   <df-empty-state
     [icon]="targetIcon"
     title="You are browsing as a guest"
-    body="Sign in to see your score, your streak history, and everything you've logged."
+    body="Sign in to see your score, your streak history, and everything you've logged. Or look around first: the demo is a sample week, no account needed."
   >
-    <button dfButton type="button" variant="primary" (click)="signIn()">Sign in</button>
+    <div class="home-page__guest-actions">
+      <button dfButton type="button" variant="primary" [disabled]="demoBusy()" (click)="tryDemo()">
+        {{ demoBusy() ? 'Opening the demo…' : 'Try the demo' }}
+      </button>
+      <button dfButton type="button" variant="secondary" (click)="signIn()">Sign in</button>
+    </div>
+    <p class="home-page__guest-note">The demo is shared and resets every night. Sign out to leave it.</p>
   </df-empty-state>
 } @else {
   @if (error(); as message) {

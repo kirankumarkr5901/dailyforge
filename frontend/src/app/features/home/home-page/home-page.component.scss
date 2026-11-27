@@ -299,3 +299,18 @@
   display: block;
   margin-bottom: var(--space-4);
 }
+
+/* Phone first: the two guest buttons side by side, the demo first. */
+.home-page__guest-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+  width: 100%;
+  max-width: 360px;
+}
+
+.home-page__guest-note {
+  margin: var(--space-2) 0 0;
+  color: var(--ink-muted);
+  font-size: var(--text-xs);
+}

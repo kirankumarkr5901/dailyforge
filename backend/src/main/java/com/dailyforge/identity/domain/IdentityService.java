@@ -170,6 +170,39 @@ public class IdentityService {
         return googleVerifier.isEnabled() ? googleVerifier.clientId() : null;
     }
 
+    /**
+     * The shared demo account ("Try the demo"). Its address uses the reserved .invalid
+     * domain, so no mailbox or Google account can ever claim it, and its password is
+     * random and never stored anywhere readable: the only way in is the demo button.
+     */
+    public static final String DEMO_EMAIL = "demo@dailyforge.invalid";
+
+    public record DemoSession(Session session, boolean created) {}
+
+    @Transactional
+    public DemoSession demoSession(String device) {
+        Optional<User> found = users.findByEmail(DEMO_EMAIL);
+        if (found.isPresent()) {
+            return new DemoSession(startSession(found.get(), device), false);
+        }
+        User user = User.withPassword(DEMO_EMAIL, "Demo", passwordEncoder.encode(UUID.randomUUID().toString()));
+        user = users.saveAndFlush(user);
+        UserSettings s = UserSettings.forUser(user.getId(), "Asia/Kolkata");
+        s.setEditingEnabled(true);
+        s.setOnboardingCompletedAt(java.time.Instant.now());
+        settings.save(s);
+        log.info("Created the demo account {}", user.getId());
+        return new DemoSession(startSession(user, device), true);
+    }
+
+    public boolean isDemo(UUID userId) {
+        return users.findById(userId).map(u -> DEMO_EMAIL.equals(u.getEmail())).orElse(false);
+    }
+
+    public Optional<UUID> demoUserId() {
+        return users.findByEmail(DEMO_EMAIL).map(User::getId);
+    }
+
     private Session startSession(User user, String device) {
         AccessTokenService.IssuedAccessToken access = accessTokens.issue(user);
         String refresh = refreshTokens.issue(user.getId(), device);
