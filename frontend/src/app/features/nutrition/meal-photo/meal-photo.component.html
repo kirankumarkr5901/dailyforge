@@ -40,6 +40,9 @@
       }
       @case ('review') {
         <p class="snap__muted">Estimates. Fix a name or portion, or leave a dish out.</p>
+        @if (!session.editingEnabled()) {
+          <p class="snap__muted">Turn on "Enable edit" to save a dish to your foods.</p>
+        }
         <ul class="snap__dishes">
           @for (row of rows(); track $index; let i = $index) {
             <li class="snap__dish" [class.snap__dish--out]="!row.include">
@@ -73,6 +76,18 @@
                   {{ a.grams }} g protein · {{ a.kcal }} kcal · {{ a.carbsG }} g carbs ·
                   {{ a.fatG }} g fat · {{ a.fiberG }} g fiber · {{ a.sugarG }} g sugar
                 </p>
+                @if (session.editingEnabled()) {
+                  <button
+                    dfButton
+                    type="button"
+                    variant="ghost"
+                    class="snap__save"
+                    [disabled]="busy() || row.saved || !row.name.trim()"
+                    (click)="saveAsFood(i)"
+                  >
+                    {{ row.saved ? 'Saved to your foods' : 'Save as a food' }}
+                  </button>
+                }
               }
             </li>
           }

@@ -250,5 +250,6 @@
     [date]="d.date"
     (closed)="mealPhotoOpen.set(false)"
     (logged)="onMealPhoto($event)"
+    (foodSaved)="reload()"
   />
 }
