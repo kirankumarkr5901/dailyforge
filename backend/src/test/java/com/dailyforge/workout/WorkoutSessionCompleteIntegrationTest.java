@@ -142,6 +142,28 @@ class WorkoutSessionCompleteIntegrationTest {
         assertThat(completedAfterSecond).isFalse();
     }
 
+    /** Day 1, stays on today's day, moves on the next day, ignores rest days, wraps after the last. */
+    @Test
+    void theSuggestedDayFollowsWhatWasTrained() {
+        setToday(TODAY);
+        UUID user = TestUsers.create(users, settings);
+        WorkoutPlan plan = plans.create(user, "PPL", 3);
+        Exercise bench = exerciseService.create(user, "Bench", ExerciseKind.STRENGTH, Equipment.BARBELL, List.of(), false);
+        assertThat(plans.suggestedDay(plan.getId(), user, TODAY)).isEqualTo(1);
+
+        setService.logSet(user, TODAY, bench.getId(), plan.getId(), 1, new BigDecimal("40"), WeightMode.COMBINED, null, 5);
+        assertThat(plans.suggestedDay(plan.getId(), user, TODAY)).isEqualTo(1);
+        assertThat(plans.suggestedDay(plan.getId(), user, TODAY.plusDays(1))).isEqualTo(2);
+        // A rest day in between changes nothing.
+        assertThat(plans.suggestedDay(plan.getId(), user, TODAY.plusDays(2))).isEqualTo(2);
+
+        // Picked day 3 by hand two days later and trained it: the day after wraps to Day 1.
+        setToday(TODAY.plusDays(2));
+        setService.logSet(user, TODAY.plusDays(2), bench.getId(), plan.getId(), 3, new BigDecimal("40"), WeightMode.COMBINED, null, 5);
+        assertThat(plans.suggestedDay(plan.getId(), user, TODAY.plusDays(2))).isEqualTo(3);
+        assertThat(plans.suggestedDay(plan.getId(), user, TODAY.plusDays(3))).isEqualTo(1);
+    }
+
     @Test
     void aFreeformSessionWithNoPlanNeverCompletes() {
         setToday(TODAY);

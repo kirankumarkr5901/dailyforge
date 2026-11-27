@@ -20,6 +20,8 @@ import com.dailyforge.workout.domain.WorkoutPlanService;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
+import java.time.LocalDate;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -39,8 +41,17 @@ public class WorkoutPlanController {
     private final WorkoutPlanService plans;
     private final ExerciseService exercises;
     private final CurrentUser currentUser;
+    private final com.dailyforge.common.time.DayService dayService;
+    private final com.dailyforge.identity.domain.IdentityService identity;
 
-    public WorkoutPlanController(WorkoutPlanService plans, ExerciseService exercises, CurrentUser currentUser) {
+    public WorkoutPlanController(
+            WorkoutPlanService plans,
+            ExerciseService exercises,
+            CurrentUser currentUser,
+            com.dailyforge.common.time.DayService dayService,
+            com.dailyforge.identity.domain.IdentityService identity) {
+        this.dayService = dayService;
+        this.identity = identity;
         this.plans = plans;
         this.exercises = exercises;
         this.currentUser = currentUser;
@@ -121,6 +132,15 @@ public class WorkoutPlanController {
     @StructuralChange
     public void removeExercise(@PathVariable UUID id, @PathVariable UUID planExerciseId) {
         plans.removeExercise(id, currentUser.require(), planExerciseId);
+    }
+
+    /** The plan day to preselect for {@code date}: today's day if trained, else the next after the last trained. */
+    @GetMapping("/{id}/suggested-day")
+    public java.util.Map<String, Object> suggestedDay(@PathVariable UUID id, @RequestParam(required = false) LocalDate date) {
+        UUID userId = currentUser.require();
+        // No date: today, in the user's own time zone (only the server knows it for sure).
+        LocalDate resolved = date != null ? date : dayService.today(dayService.zoneOf(identity.requireSettings(userId).getTimeZone()));
+        return java.util.Map.of("dayIndex", plans.suggestedDay(id, userId, resolved), "date", resolved);
     }
 
     @PatchMapping("/{id}/exercises/{planExerciseId}")

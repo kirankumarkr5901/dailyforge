@@ -4,6 +4,7 @@ import com.dailyforge.common.error.ApiException;
 import com.dailyforge.workout.repo.PlanExerciseRepository;
 import com.dailyforge.workout.repo.WorkoutPlanRepository;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
@@ -16,12 +17,16 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class WorkoutPlanService {
 
+    private final com.dailyforge.workout.repo.WorkoutSetRepository sets;
+
     private final WorkoutPlanRepository plans;
     private final PlanExerciseRepository planExercises;
     private final ExerciseService exerciseService;
 
     public WorkoutPlanService(
-            WorkoutPlanRepository plans, PlanExerciseRepository planExercises, ExerciseService exerciseService) {
+            WorkoutPlanRepository plans, PlanExerciseRepository planExercises, ExerciseService exerciseService,
+            com.dailyforge.workout.repo.WorkoutSetRepository sets) {
+        this.sets = sets;
         this.plans = plans;
         this.planExercises = planExercises;
         this.exerciseService = exerciseService;
@@ -175,6 +180,27 @@ public class WorkoutPlanService {
         pe.updateRestSeconds(restSeconds);
         pe.updateTargetRepsMax(targetReps == null ? null : max);
         return planExercises.save(pe);
+    }
+
+    /**
+     * Which plan day to show for {@code date}: the day already trained on that date if
+     * any; otherwise the day after the last one trained (wrapping after the last day);
+     * Day 1 for a plan never trained. Rest days have no logs, so they never move it.
+     */
+    @Transactional(readOnly = true)
+    public int suggestedDay(UUID planId, UUID userId, LocalDate date) {
+        WorkoutPlan plan = requireOwned(planId, userId);
+        var rows = sets.findLoggedPlanDays(userId, planId, date, org.springframework.data.domain.PageRequest.of(0, 1));
+        if (rows.isEmpty()) {
+            return 1;
+        }
+        LocalDate lastDate = (LocalDate) rows.get(0)[0];
+        int lastDay = ((Number) rows.get(0)[1]).intValue();
+        if (lastDate.equals(date)) {
+            return lastDay;
+        }
+        // Extras (day 0) are not a plan day; the next real day after it is Day 1.
+        return lastDay <= 0 || lastDay >= plan.getDayCount() ? 1 : lastDay + 1;
     }
 
     /** Reorders every exercise on one day to match the given sequence (keyboard-reachable per spec §8.2). */

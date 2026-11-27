@@ -64,6 +64,15 @@ export class WorkoutsApi {
     return this.http.get<WeeklyVolume>(`${this.base}/workouts/weekly-volume`, { params });
   }
 
+  /**
+   * The plan day to preselect: the day trained on `date` if any, else the one after
+   * the last day trained. Without a date the server uses today and says which day that is.
+   */
+  suggestedDay(planId: string, date?: LogicalDate): Observable<{ dayIndex: number; date: LogicalDate }> {
+    const params = date ? new HttpParams().set('date', date) : undefined;
+    return this.http.get<{ dayIndex: number; date: LogicalDate }>(`${this.base}/workout-plans/${planId}/suggested-day`, { params });
+  }
+
   plans(): Observable<WorkoutPlan[]> {
     return this.http.get<WorkoutPlan[]>(`${this.base}/workout-plans`);
   }
