@@ -40,5 +40,21 @@
         <dd>{{ r.points }}</dd>
       </div>
     </dl>
+    @if (coach(); as c) {
+      <div class="review__coach">
+        <h3 class="review__coach-title">Coach</h3>
+        <p class="review__coach-text">{{ c.summary }}</p>
+        @if (c.wins.length > 0) {
+          <ul class="review__wins">
+            @for (win of c.wins; track win) {
+              <li>{{ win }}</li>
+            }
+          </ul>
+        }
+        @if (c.focus) {
+          <p class="review__coach-text"><strong>Next week:</strong> {{ c.focus }}</p>
+        }
+      </div>
+    }
   </df-card>
 }
