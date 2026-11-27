@@ -13,7 +13,7 @@ import tools.jackson.databind.json.JsonMapper;
 class MealPhotoServiceTest {
 
     private final ObjectMapper json = JsonMapper.builder().build();
-    private final MealPhotoService service = new MealPhotoService(new GeminiProperties("test-key", null), json);
+    private final MealPhotoService service = new MealPhotoService(new GeminiProperties("test-key", null, null), json);
 
     @Test
     void readsTheDishesFromOutputText() {
@@ -56,8 +56,19 @@ class MealPhotoServiceTest {
 
     @Test
     void withoutAKeyItIsOff() {
-        var off = new MealPhotoService(new GeminiProperties("  ", ""), json);
+        var off = new MealPhotoService(new GeminiProperties("  ", "", ""), json);
         assertThat(off.enabled()).isFalse();
-        assertThat(new GeminiProperties("k", "").model()).isEqualTo(GeminiProperties.DEFAULT_MODEL);
+        assertThat(new GeminiProperties("k", "", null).model()).isEqualTo(GeminiProperties.DEFAULT_MODEL);
+    }
+
+    /** A busy model falls back to the other one, never to itself; only server trouble is retried. */
+    @Test
+    void theFallbackIsTheOtherModel() {
+        assertThat(new GeminiProperties("k", null, null).fallbackModel()).isEqualTo(GeminiProperties.DEFAULT_FALLBACK_MODEL);
+        assertThat(new GeminiProperties("k", "gemini-3.8-flash", null).fallbackModel()).isEqualTo(GeminiProperties.DEFAULT_MODEL);
+        assertThat(new GeminiProperties("k", "a", "b").fallbackModel()).isEqualTo("b");
+        assertThat(MealPhotoService.retryable(503)).isTrue();
+        assertThat(MealPhotoService.retryable(429)).isFalse();
+        assertThat(MealPhotoService.retryable(400)).isFalse();
     }
 }

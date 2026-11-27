@@ -19,6 +19,11 @@ hidden.
    `gemini-3.5-flash-lite`, the model Google suggests for new projects. `gemini-3.8-flash`
    may read busy plates better, and it is also free.
 
+4. Optional: `GEMINI_FALLBACK_MODEL`. When Gemini says the model is overloaded (503,
+   "high demand"), the API tries once more after a short pause, then asks this model
+   instead. Unset, it is whichever of `gemini-3.5-flash-lite` and `gemini-3.8-flash`
+   isn't the main model.
+
 Never commit the key or paste it anywhere else.
 
 ## What to know

@@ -74,27 +74,63 @@ public class MealPhotoService {
         }
         byte[] photo = decodeJpeg(photoBase64);
         countAgainstDailyLimit(userId);
-        JsonNode body;
+        // Gemini answers 503 when a model is overloaded, and free-tier calls are turned away
+        // first. So: the chosen model, once more after a short pause, then the fallback model.
+        List<String> attempts = new ArrayList<>(List.of(props.model(), props.model()));
+        if (!props.fallbackModel().equals(props.model())) {
+            attempts.add(props.fallbackModel());
+        }
+        JsonNode body = null;
+        for (int i = 0; i < attempts.size() && body == null; i++) {
+            if (i > 0) {
+                pause(i == 1 ? 1500 : 500);
+            }
+            body = call(attempts.get(i), photo, i == attempts.size() - 1);
+        }
+        return parse(body);
+    }
+
+    /** The answer, or null when the model is busy (or unreachable) and another try is left. */
+    private JsonNode call(String model, byte[] photo, boolean lastTry) {
         try {
             HttpResponse<String> res = http.send(
                     HttpRequest.newBuilder(URI.create(ENDPOINT))
-                            .timeout(Duration.ofSeconds(60))
+                            .timeout(Duration.ofSeconds(30))
                             .header("Content-Type", "application/json")
                             .header("x-goog-api-key", props.apiKey())
-                            .POST(HttpRequest.BodyPublishers.ofString(requestBody(photo)))
+                            .POST(HttpRequest.BodyPublishers.ofString(requestBody(model, photo)))
                             .build(),
                     HttpResponse.BodyHandlers.ofString());
             if (res.statusCode() >= 300) {
+                if (!lastTry && retryable(res.statusCode())) {
+                    log.info("Gemini {} answered {}; trying again", model, res.statusCode());
+                    return null;
+                }
                 throw failure(res.statusCode(), res.body());
             }
-            body = json.readTree(res.body());
+            return json.readTree(res.body());
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
-            log.warn("Gemini call failed: {}", e.toString());
+            log.warn("Gemini call to {} failed: {}", model, e.toString());
+            if (!lastTry) {
+                return null;
+            }
             throw unavailable();
         }
-        return parse(body);
+    }
+
+    /** Overloaded or a passing server error: worth another try. */
+    static boolean retryable(int status) {
+        return status == 500 || status == 502 || status == 503 || status == 504;
+    }
+
+    private static void pause(long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     private static byte[] decodeJpeg(String base64) {
@@ -126,7 +162,7 @@ public class MealPhotoService {
         }
     }
 
-    private String requestBody(byte[] photo) throws Exception {
+    private String requestBody(String model, byte[] photo) throws Exception {
         Map<String, Object> number = Map.of("type", "integer");
         Map<String, Object> dish = Map.of(
                 "type", "object",
@@ -145,7 +181,7 @@ public class MealPhotoService {
                 "properties", Map.of("dishes", Map.of("type", "array", "maxItems", MAX_DISHES, "items", dish)),
                 "required", List.of("dishes"));
         Map<String, Object> request = Map.of(
-                "model", props.model(),
+                "model", model,
                 "input", List.of(
                         Map.of("type", "text", "text", INSTRUCTION),
                         Map.of("type", "image", "mime_type", "image/jpeg", "data", Base64.getEncoder().encodeToString(photo))),
@@ -217,6 +253,10 @@ public class MealPhotoService {
         if (status == 401 || status == 403) {
             return new ApiException(
                     ErrorCode.CONFLICT, HttpStatus.SERVICE_UNAVAILABLE, "The meal-photo key on the server isn't accepted. Check GEMINI_API_KEY.");
+        }
+        if (retryable(status)) {
+            return new ApiException(
+                    ErrorCode.CONFLICT, HttpStatus.SERVICE_UNAVAILABLE, "Gemini is busy right now. Try again in a minute, or log it by hand.");
         }
         return unavailable();
     }
