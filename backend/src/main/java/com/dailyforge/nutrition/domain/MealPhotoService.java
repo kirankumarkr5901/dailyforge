@@ -29,20 +29,21 @@ public class MealPhotoService {
     public static final int MAX_PHOTO_BYTES = 4 * 1024 * 1024;
     public static final int DAILY_LIMIT_PER_USER = 30;
     public static final int MAX_DESCRIPTION = 400;
-    private static final int MAX_DISHES = 8;
+    /** Not a product limit (owner request: no cap); only a guard against a runaway answer. */
+    private static final int MAX_DISHES = 40;
 
     private static final String TASK = """
-            list each distinct dish or food (at most 8). For each one, estimate the portion in \
+            list every distinct dish or food you can see. For each one, estimate the portion in \
             grams, and the nutrition for that portion: protein, calories (kcal), fat, \
             carbohydrates, fiber and sugar. Many meals will be Indian home food (dal, rice, roti, \
             biryani, dosa, idli, sambar, curries); use typical home-cooked recipes. Give short, \
-            plain dish names such as "Chicken biryani" or "2 chapati". Round to whole numbers.""";
+            plain dish names such as "Chicken biryani" or "2 chapati". Grams to one decimal; calories whole.""";
 
     static final String PHOTO_PROMPT = "You are a nutrition assistant. Look at this photo of a meal and " + TASK
             + " If the photo shows no food, return an empty list.";
 
     /** One dish, for the portion estimated. Whole numbers, already inside the app's limits. */
-    public record Dish(String name, int portionG, int proteinG, int kcal, int fatG, int carbsG, int fiberG, int sugarG) {}
+    public record Dish(String name, double portionG, double proteinG, int kcal, double fatG, double carbsG, double fiberG, double sugarG) {}
 
     private final GeminiClient gemini;
 
@@ -82,13 +83,13 @@ public class MealPhotoService {
     static Map<String, Object> schema() {
         Map<String, Object> dish = new LinkedHashMap<>();
         dish.put("name", string());
-        dish.put("portionG", integer());
-        dish.put("proteinG", integer());
+        dish.put("portionG", Map.of("type", "number"));
+        dish.put("proteinG", Map.of("type", "number"));
         dish.put("kcal", integer());
-        dish.put("fatG", integer());
-        dish.put("carbsG", integer());
-        dish.put("fiberG", integer());
-        dish.put("sugarG", integer());
+        dish.put("fatG", Map.of("type", "number"));
+        dish.put("carbsG", Map.of("type", "number"));
+        dish.put("fiberG", Map.of("type", "number"));
+        dish.put("sugarG", Map.of("type", "number"));
         return object(Map.of("dishes", array(object(dish), MAX_DISHES)));
     }
 
@@ -102,18 +103,24 @@ public class MealPhotoService {
             }
             dishes.add(new Dish(
                     name.length() > 60 ? name.substring(0, 60).strip() : name,
-                    clamp(d.path("portionG"), 5000),
-                    clamp(d.path("proteinG"), ProteinService.MAX_FOOD_G),
+                    clamp1(d.path("portionG"), 5000),
+                    clamp1(d.path("proteinG"), ProteinService.MAX_FOOD_G),
                     clamp(d.path("kcal"), ProteinService.MAX_KCAL),
-                    clamp(d.path("fatG"), ProteinService.MAX_FAT_G),
-                    clamp(d.path("carbsG"), 500),
-                    clamp(d.path("fiberG"), 100),
-                    clamp(d.path("sugarG"), 300)));
+                    clamp1(d.path("fatG"), ProteinService.MAX_FAT_G),
+                    clamp1(d.path("carbsG"), 500),
+                    clamp1(d.path("fiberG"), 100),
+                    clamp1(d.path("sugarG"), 300)));
             if (dishes.size() == MAX_DISHES) {
                 break;
             }
         }
         return dishes;
+    }
+
+    /** One decimal, inside 0..max. */
+    static double clamp1(JsonNode value, int max) {
+        double v = Math.round(value.asDouble(0) * 10) / 10.0;
+        return Math.max(0, Math.min(max, v));
     }
 
     static int clamp(JsonNode value, int max) {

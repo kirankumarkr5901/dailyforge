@@ -90,6 +90,7 @@
               @if (row.include) {
                 <df-stepper-input
                   label="Portion"
+                  [decimals]="1"
                   suffix="g"
                   [min]="5"
                   [max]="2000"

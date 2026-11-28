@@ -19,11 +19,11 @@ class MealPhotoServiceTest {
             new MealPhotoService(new GeminiClient(new GeminiProperties("test-key", null, null), json));
 
     @Test
-    void readsTheDishes() {
+    void readsTheDishesKeepingOneDecimal() {
         var dishes = MealPhotoService.dishes(json.readTree("""
                 {"dishes":[{"name":"Dal tadka","portionG":150,"proteinG":9.4,"kcal":180,"fatG":6,"carbsG":22,"fiberG":5,"sugarG":2}]}
                 """));
-        assertThat(dishes).containsExactly(new MealPhotoService.Dish("Dal tadka", 150, 9, 180, 6, 22, 5, 2));
+        assertThat(dishes).containsExactly(new MealPhotoService.Dish("Dal tadka", 150, 9.4, 180, 6, 22, 5, 2));
     }
 
     @Test

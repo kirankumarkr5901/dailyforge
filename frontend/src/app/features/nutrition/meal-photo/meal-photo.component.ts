@@ -78,14 +78,15 @@ export class MealPhotoComponent {
   protected readonly busy = signal(false);
 
   protected readonly chosen = computed(() => this.rows().filter((r) => r.include && r.name.trim()));
-  protected readonly totals = computed(() =>
-    this.chosen()
+  protected readonly totals = computed(() => {
+    const t = this.chosen()
       .map((r) => this.amounts(r))
       .reduce((a, b) => ({ grams: a.grams + b.grams, kcal: a.kcal + b.kcal }), {
         grams: 0,
         kcal: 0,
-      }),
-  );
+      });
+    return { grams: Math.round(t.grams * 10) / 10, kcal: Math.round(t.kcal) };
+  });
 
   constructor() {
     // Each opening starts fresh.

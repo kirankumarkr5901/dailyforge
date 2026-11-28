@@ -68,12 +68,12 @@ public class AssistantService {
             ActionType type,
             String summary,
             String name,
-            int proteinG,
+            double proteinG,
             int kcal,
-            int fatG,
-            int carbsG,
-            int fiberG,
-            int sugarG,
+            double fatG,
+            double carbsG,
+            double fiberG,
+            double sugarG,
             int amount,
             double weightKg,
             List<Integer> reps,
@@ -170,8 +170,11 @@ public class AssistantService {
         action.put("type", enumOf(java.util.Arrays.stream(ActionType.values()).map(Enum::name).toList()));
         action.put("summary", string());
         action.put("name", string());
-        for (String f : List.of("proteinG", "kcal", "fatG", "carbsG", "fiberG", "sugarG", "amount", "minutes")) {
+        for (String f : List.of("kcal", "amount", "minutes")) {
             action.put(f, integer());
+        }
+        for (String f : List.of("proteinG", "fatG", "carbsG", "fiberG", "sugarG")) {
+            action.put(f, Map.of("type", "number"));
         }
         action.put("weightKg", Map.of("type", "number"));
         action.put("reps", array(integer(), 10));
@@ -200,8 +203,8 @@ public class AssistantService {
             });
             String summary = trim(n.path("summary").asString(""), 120);
             actions.add(new Action(type, summary.isEmpty() ? type.name() : summary, trim(n.path("name").asString(""), 60),
-                    n.path("proteinG").asInt(0), n.path("kcal").asInt(0), n.path("fatG").asInt(0), n.path("carbsG").asInt(0),
-                    n.path("fiberG").asInt(0), n.path("sugarG").asInt(0), n.path("amount").asInt(0), n.path("weightKg").asDouble(0),
+                    n.path("proteinG").asDouble(0), n.path("kcal").asInt(0), n.path("fatG").asDouble(0), n.path("carbsG").asDouble(0),
+                    n.path("fiberG").asDouble(0), n.path("sugarG").asDouble(0), n.path("amount").asInt(0), n.path("weightKg").asDouble(0),
                     reps, n.path("distanceKm").asDouble(0), n.path("minutes").asInt(0), trim(n.path("date").asString(""), 10)));
         }
         String answer = trim(a.path("answer").asString(""), 2000);
@@ -214,14 +217,14 @@ public class AssistantService {
         try {
             ProteinService.Day d = protein.day(userId, today);
             s.append(String.format(Locale.ROOT,
-                    "NUTRITION TODAY: protein %d/%d g, calories %d/%d kcal, fat %d/%d g, carbs %d/%d g, fiber %d/%d g, sugar %d (limit %d) g, water %d/%d ml%n",
+                    "NUTRITION TODAY: protein %.1f/%d g, calories %d/%d kcal, fat %.1f/%d g, carbs %.1f/%d g, fiber %.1f/%d g, sugar %.1f (limit %d) g, water %d/%d ml%n",
                     d.totalG(), d.targetG(), d.totalKcal(), d.calorieBudget(), d.totalFatG(), d.fatTargetG(), d.totalCarbsG(),
                     d.carbsTargetG(), d.totalFiberG(), d.fiberTargetG(), d.totalSugarG(), d.sugarLimitG(), d.waterMl(), d.waterTargetMl()));
             s.append("Eaten today: ").append(d.logs().stream().map(ProteinLog::getFoodName).collect(Collectors.joining(", "))).append('\n');
             for (int i = 1; i <= 6; i++) {
                 ProteinService.Day p = protein.day(userId, today.minusDays(i));
                 if (!p.logs().isEmpty()) {
-                    s.append(String.format(Locale.ROOT, "- %s: protein %d g, %d kcal, fiber %d g, water %d ml%n",
+                    s.append(String.format(Locale.ROOT, "- %s: protein %.1f g, %d kcal, fiber %.1f g, water %d ml%n",
                             p.date(), p.totalG(), p.totalKcal(), p.totalFiberG(), p.waterMl()));
                 }
             }
@@ -299,8 +302,8 @@ public class AssistantService {
                     throw ApiException.outOfRange("name", "Which food?");
                 }
                 protein.log(userId, today, name, new ProteinService.Amounts(
-                        clamp(a.proteinG(), ProteinService.MAX_FOOD_G), clamp(a.kcal(), ProteinService.MAX_KCAL),
-                        clamp(a.fatG(), ProteinService.MAX_FAT_G), clamp(a.carbsG(), 500), clamp(a.fiberG(), 100), clamp(a.sugarG(), 300)));
+                        clamp1(a.proteinG(), ProteinService.MAX_FOOD_G), clamp(a.kcal(), ProteinService.MAX_KCAL),
+                        clamp1(a.fatG(), ProteinService.MAX_FAT_G), clamp1(a.carbsG(), 500), clamp1(a.fiberG(), 100), clamp1(a.sugarG(), 300)));
                 return "Logged " + name + ".";
             }
             case ADD_WATER -> {
@@ -391,6 +394,10 @@ public class AssistantService {
             }
         }
         throw ApiException.outOfRange("name", "I couldn't find one " + what + " called \"" + wanted + "\".");
+    }
+
+    private static double clamp1(double v, int max) {
+        return Math.max(0, Math.min(max, Math.round(v * 10) / 10.0));
     }
 
     private static int clamp(int v, int max) {

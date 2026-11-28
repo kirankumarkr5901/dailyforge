@@ -98,7 +98,7 @@ export class BarcodeScannerComponent {
     const p = this.product();
     if (!p) return null;
     const f = this.servingG() / 100;
-    const r = (v: number) => Math.round(v * f);
+    const r = (v: number) => Math.round(v * f * 10) / 10;
     return {
       grams: r(p.per100.grams),
       kcal: r(p.per100.kcal),
@@ -252,7 +252,7 @@ export class BarcodeScannerComponent {
         },
         servingG: p.servingG,
       });
-      this.servingG.set(Math.round(p.servingG ?? 100) || 100);
+      this.servingG.set(Math.round((p.servingG ?? 100) * 10) / 10 || 100);
       this.status.set('found');
     } catch (error) {
       if (error instanceof HttpErrorResponse && error.status === 404) {

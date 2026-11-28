@@ -100,12 +100,12 @@
               @if (editingId() === food.id) {
                 <div class="protein-settings__edit">
                   <df-input label="Name" [ngModel]="editName()" (ngModelChange)="editName.set($event)" />
-                  <df-stepper-input label="Protein" suffix="g" [min]="0" [max]="200" [ngModel]="editGrams()" (ngModelChange)="editGrams.set($event)" />
+                  <df-stepper-input label="Protein" suffix="g" [decimals]="1" [min]="0" [max]="200" [ngModel]="editGrams()" (ngModelChange)="editGrams.set($event)" />
                   <df-stepper-input label="Calories" suffix="kcal" [min]="0" [max]="3000" [step]="10" [ngModel]="editKcal()" (ngModelChange)="editKcal.set($event)" />
-                  <df-stepper-input label="Fat" suffix="g" [min]="0" [max]="300" [ngModel]="editFat()" (ngModelChange)="editFat.set($event)" />
-                  <df-stepper-input label="Carbs" suffix="g" [min]="0" [max]="500" [ngModel]="editCarbs()" (ngModelChange)="editCarbs.set($event)" />
-                  <df-stepper-input label="Fiber" suffix="g" [min]="0" [max]="100" [ngModel]="editFiber()" (ngModelChange)="editFiber.set($event)" />
-                  <df-stepper-input label="Sugar" suffix="g" [min]="0" [max]="300" [ngModel]="editSugar()" (ngModelChange)="editSugar.set($event)" />
+                  <df-stepper-input label="Fat" suffix="g" [decimals]="1" [min]="0" [max]="300" [ngModel]="editFat()" (ngModelChange)="editFat.set($event)" />
+                  <df-stepper-input label="Carbs" suffix="g" [decimals]="1" [min]="0" [max]="500" [ngModel]="editCarbs()" (ngModelChange)="editCarbs.set($event)" />
+                  <df-stepper-input label="Fiber" suffix="g" [decimals]="1" [min]="0" [max]="100" [ngModel]="editFiber()" (ngModelChange)="editFiber.set($event)" />
+                  <df-stepper-input label="Sugar" suffix="g" [decimals]="1" [min]="0" [max]="300" [ngModel]="editSugar()" (ngModelChange)="editSugar.set($event)" />
                   <div class="protein-settings__edit-actions">
                     <button dfButton type="button" variant="primary" (click)="saveEdit()">Save</button>
                     <button dfButton type="button" variant="ghost" (click)="editingId.set(null)">Cancel</button>
@@ -145,12 +145,12 @@
 
         <div class="protein-settings__add">
           <df-input label="New food" [ngModel]="newName()" (ngModelChange)="newName.set($event)" />
-          <df-stepper-input label="Protein" suffix="g" [min]="0" [max]="200" [ngModel]="newGrams()" (ngModelChange)="newGrams.set($event)" />
+          <df-stepper-input label="Protein" suffix="g" [decimals]="1" [min]="0" [max]="200" [ngModel]="newGrams()" (ngModelChange)="newGrams.set($event)" />
           <df-stepper-input label="Calories" suffix="kcal" [min]="0" [max]="3000" [step]="10" [ngModel]="newKcal()" (ngModelChange)="newKcal.set($event)" />
-          <df-stepper-input label="Fat" suffix="g" [min]="0" [max]="300" [ngModel]="newFat()" (ngModelChange)="newFat.set($event)" />
-          <df-stepper-input label="Carbs" suffix="g" [min]="0" [max]="500" [ngModel]="newCarbs()" (ngModelChange)="newCarbs.set($event)" />
-          <df-stepper-input label="Fiber" suffix="g" [min]="0" [max]="100" [ngModel]="newFiber()" (ngModelChange)="newFiber.set($event)" />
-          <df-stepper-input label="Sugar" suffix="g" [min]="0" [max]="300" [ngModel]="newSugar()" (ngModelChange)="newSugar.set($event)" />
+          <df-stepper-input label="Fat" suffix="g" [decimals]="1" [min]="0" [max]="300" [ngModel]="newFat()" (ngModelChange)="newFat.set($event)" />
+          <df-stepper-input label="Carbs" suffix="g" [decimals]="1" [min]="0" [max]="500" [ngModel]="newCarbs()" (ngModelChange)="newCarbs.set($event)" />
+          <df-stepper-input label="Fiber" suffix="g" [decimals]="1" [min]="0" [max]="100" [ngModel]="newFiber()" (ngModelChange)="newFiber.set($event)" />
+          <df-stepper-input label="Sugar" suffix="g" [decimals]="1" [min]="0" [max]="300" [ngModel]="newSugar()" (ngModelChange)="newSugar.set($event)" />
           <button dfButton type="button" variant="secondary" (click)="addFood()">
             <lucide-icon [img]="plusIcon" [size]="16" aria-hidden="true" />
             Add

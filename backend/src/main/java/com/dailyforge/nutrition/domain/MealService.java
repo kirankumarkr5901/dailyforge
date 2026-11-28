@@ -35,8 +35,8 @@ public class MealService {
     public record Item(String foodName, ProteinService.Amounts amounts) {}
 
     public record Meal(UUID id, String name, List<Item> items) {
-        public int proteinG() {
-            return items.stream().mapToInt(i -> i.amounts().proteinG()).sum();
+        public double proteinG() {
+            return ProteinService.round1(items.stream().mapToDouble(i -> i.amounts().proteinG()).sum());
         }
 
         public int kcal() {
@@ -61,7 +61,7 @@ public class MealService {
                 rs -> {
                     items.get(rs.getObject(1, UUID.class)).add(new Item(
                             rs.getString(2),
-                            new ProteinService.Amounts(rs.getInt(3), rs.getInt(4), rs.getInt(5), rs.getInt(6), rs.getInt(7), rs.getInt(8))));
+                            new ProteinService.Amounts(rs.getDouble(3), rs.getInt(4), rs.getDouble(5), rs.getDouble(6), rs.getDouble(7), rs.getDouble(8))));
                 },
                 userId);
         return names.entrySet().stream().map(e -> new Meal(e.getKey(), e.getValue(), items.get(e.getKey()))).toList();
