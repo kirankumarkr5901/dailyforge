@@ -3,9 +3,46 @@
   display: block;
 }
 
+.coach__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.coach__toggle:focus-visible {
+  outline: 2px solid var(--heat-2);
+  outline-offset: 2px;
+}
+
 .coach__title {
-  margin: 0 0 var(--space-2);
   font-size: var(--text-lg);
+  font-weight: 700;
+}
+
+.coach__chevron {
+  transition: transform var(--duration-base) var(--ease-out);
+}
+
+.coach__chevron--open {
+  transform: rotate(180deg);
+}
+
+.coach__body {
+  margin-top: var(--space-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .coach__chevron {
+    transition: none;
+  }
 }
 
 .coach__subtitle {
