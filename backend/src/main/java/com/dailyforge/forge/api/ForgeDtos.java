@@ -125,11 +125,25 @@ public final class ForgeDtos {
             /** Hard mode restart: the day number that was missed or left partial; null otherwise. */
             Integer failedDayNumber) {}
 
+    /** This week's boss: beat it by finishing every quest in its area this week. */
+    public record BossResponse(
+            String name,
+            String description,
+            ForgeArea area,
+            int level,
+            int rewardXp,
+            int rewardPoints,
+            String status,
+            int questsDone,
+            int questsTotal,
+            LocalDate weekEnd) {}
+
     public record OverviewResponse(
             LocalDate today,
             ProfileResponse profile,
             ProgramResponse program,
-            FinishedProgramResponse lastProgram) {
+            FinishedProgramResponse lastProgram,
+            BossResponse boss) {
 
         public static OverviewResponse of(Overview overview) {
             Progress progress = overview.progress();
@@ -156,7 +170,20 @@ public final class ForgeDtos {
                                     })
                             .orElse(null);
 
-            return new OverviewResponse(overview.today(), ProfileResponse.of(progress), program, last);
+            BossResponse boss = overview.boss()
+                    .map(f -> new BossResponse(
+                            f.boss().name(),
+                            f.boss().description(),
+                            f.boss().area(),
+                            f.boss().level(),
+                            f.boss().rewardXp(),
+                            settings.pointsFor(f.boss().rewardXp()),
+                            f.boss().status().name(),
+                            f.questsDone(),
+                            f.questsTotal(),
+                            f.boss().weekStart().plusDays(6)))
+                    .orElse(null);
+            return new OverviewResponse(overview.today(), ProfileResponse.of(progress), program, last, boss);
         }
 
         private static ProgramResponse programOf(

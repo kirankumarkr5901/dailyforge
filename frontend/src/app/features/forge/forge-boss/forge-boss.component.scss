@@ -1,0 +1,83 @@
+/* Colours come from the --forge-* tokens on the Forge page root; the area accent from --area. */
+@use '../forge-areas';
+
+:host {
+  display: block;
+  --area: var(--forge-ember);
+}
+
+.boss {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border: 1px solid var(--area);
+  border-radius: var(--radius-card);
+  background: var(--forge-panel);
+}
+
+.boss--defeated {
+  border-color: var(--forge-gold);
+  background: var(--forge-gold-wash);
+}
+
+.boss__eyebrow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  color: var(--forge-muted);
+  font-size: var(--text-xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.boss__returned {
+  padding: 1px var(--space-2);
+  border: 1px solid var(--forge-ember);
+  border-radius: var(--radius-pill);
+  color: var(--forge-ember);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.boss__name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-variation-settings: 'wdth' var(--display-width);
+  line-height: var(--leading-display);
+}
+
+.boss__text {
+  margin: 0;
+  color: var(--forge-muted);
+  font-size: var(--text-sm);
+}
+
+.boss__bar {
+  height: 8px;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--forge-line);
+}
+
+.boss__fill {
+  height: 100%;
+  background: var(--area);
+  transform-origin: left center;
+  transition: transform var(--duration-base) var(--ease-out);
+}
+
+.boss__result {
+  margin: 0;
+  color: var(--forge-gold);
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .boss__fill {
+    transition: none;
+  }
+}

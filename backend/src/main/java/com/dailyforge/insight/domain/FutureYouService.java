@@ -114,7 +114,7 @@ public class FutureYouService {
         Projection p = parse(today, gemini.generate(prompt, null, object(props)));
         try {
             jdbc.update(
-                    "INSERT INTO future_you (user_id, month, headline, lines, reality, lever, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    "INSERT INTO future_you (user_id, month_start, headline, projections, reality, lever, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
                     userId, Date.valueOf(today), p.headline(), String.join("\n", p.lines()), p.reality(), p.lever(),
                     Timestamp.from(Instant.now(clock)));
         } catch (DuplicateKeyException raced) {
@@ -125,7 +125,7 @@ public class FutureYouService {
 
     private Projection stored(UUID userId, LocalDate month) {
         List<Projection> rows = jdbc.query(
-                "SELECT headline, lines, reality, lever FROM future_you WHERE user_id = ? AND month = ?",
+                "SELECT headline, projections, reality, lever FROM future_you WHERE user_id = ? AND month_start = ?",
                 (rs, i) -> new Projection(month, rs.getString(1),
                         rs.getString(2).isBlank() ? List.of() : List.of(rs.getString(2).split("\n")), rs.getString(3), rs.getString(4)),
                 userId, Date.valueOf(month));

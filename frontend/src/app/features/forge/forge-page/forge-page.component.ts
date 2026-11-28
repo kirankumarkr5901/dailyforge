@@ -5,6 +5,7 @@ import { firstValueFrom } from 'rxjs';
 import { Flame, LucideAngularModule, Swords, Trophy } from 'lucide-angular';
 import { AiStatusService } from '../../../core/ai/ai-status.service';
 import { ForgeInterviewComponent } from '../forge-interview/forge-interview.component';
+import { ForgeBossComponent } from '../forge-boss/forge-boss.component';
 
 import { AuthSheetService } from '../../../core/auth/auth-sheet.service';
 import { SessionStore } from '../../../core/auth/session.store';
@@ -29,7 +30,7 @@ import { ForgeStatsComponent } from '../forge-stats/forge-stats.component';
  */
 @Component({
   selector: 'df-forge-page',
-  imports: [LucideAngularModule, RouterLink, ForgeQuizComponent, ForgeInterviewComponent, ForgeCalendarComponent, ForgeQuestComponent, ForgeStatsComponent],
+  imports: [LucideAngularModule, RouterLink, ForgeQuizComponent, ForgeInterviewComponent, ForgeBossComponent, ForgeCalendarComponent, ForgeQuestComponent, ForgeStatsComponent],
   templateUrl: './forge-page.component.html',
   styleUrl: './forge-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
