@@ -68,11 +68,25 @@
 } @else {
   <div class="tips__start" [class.tips__start--single]="reached()">
     @if (!reached()) {
-      <button dfButton type="button" variant="secondary" [disabled]="loading()" (click)="ask()">
+      <button
+        dfButton
+        type="button"
+        variant="secondary"
+        [fullWidth]="true"
+        [disabled]="loading()"
+        (click)="ask()"
+      >
         {{ loading() && asking() === 'tips' ? 'Thinking…' : 'What to eat for protein?' }}
       </button>
     }
-    <button dfButton type="button" variant="secondary" [disabled]="loading()" (click)="fillDay()">
+    <button
+      dfButton
+      type="button"
+      variant="secondary"
+      [fullWidth]="true"
+      [disabled]="loading()"
+      (click)="fillDay()"
+    >
       {{ loading() && asking() === 'meal' ? 'Thinking…' : 'Fill my day' }}
     </button>
   </div>
