@@ -148,8 +148,11 @@ public class MeController {
             }
         }
 
-        settingsRepository.save(settings);
-        return SettingsResponse.of(settings);
+        // Flush before answering: the version only goes up when the row is written, and the
+        // phone sends this version back with its next change. Answering with the old one
+        // made every second toggle fail as a "stale" write until the page was reloaded.
+        UserSettings saved = settingsRepository.saveAndFlush(settings);
+        return SettingsResponse.of(saved);
     }
 
     private void requireOneOf(String value, Set<String> allowed, String field, String message) {
