@@ -17,9 +17,10 @@ export interface BodyMetric {
   armCm: number | null;
   hipsCm: number | null;
   thighCm: number | null;
+  neckCm: number | null;
 }
 
-export type MeasurementKey = 'waistCm' | 'chestCm' | 'armCm' | 'hipsCm' | 'thighCm';
+export type MeasurementKey = 'waistCm' | 'chestCm' | 'armCm' | 'hipsCm' | 'thighCm' | 'neckCm';
 
 export const MEASUREMENTS: readonly { key: MeasurementKey; label: string; min: number; max: number }[] = [
   { key: 'waistCm', label: 'Waist', min: 20, max: 250 },
@@ -27,6 +28,7 @@ export const MEASUREMENTS: readonly { key: MeasurementKey; label: string; min: n
   { key: 'armCm', label: 'Arm', min: 10, max: 100 },
   { key: 'hipsCm', label: 'Hips', min: 20, max: 250 },
   { key: 'thighCm', label: 'Thigh', min: 10, max: 150 },
+  { key: 'neckCm', label: 'Neck', min: 15, max: 80 },
 ];
 
 export interface LogWeightPayload {
@@ -40,6 +42,24 @@ export interface LogWeightPayload {
   armCm?: number;
   hipsCm?: number;
   thighCm?: number;
+  neckCm?: number;
+}
+
+export type BodySex = 'MALE' | 'FEMALE';
+export type BodyGoal = 'LOSE_FAT' | 'BUILD_MUSCLE' | 'RECOMP' | 'MAINTAIN';
+
+/** Which body-fat formula, what the person is aiming for, and the estimates so far. */
+export interface BodyProfile {
+  sex: BodySex | null;
+  goal: BodyGoal | null;
+  bodyFat: { date: LogicalDate; pct: number }[];
+}
+
+/** The AI's read of the last eight weeks against the goal. */
+export interface BodyDirection {
+  verdict: 'ON_TRACK' | 'MIXED' | 'OFF_TRACK' | 'NOT_ENOUGH_DATA';
+  summary: string;
+  points: string[];
 }
 
 export interface MovingAveragePoint {

@@ -1,0 +1,77 @@
+@if (profile(); as p) {
+  <df-card>
+    <h2 class="dir__title">Body fat &amp; direction</h2>
+
+    <div class="dir__fields">
+      <df-select
+        label="Body-fat formula"
+        [options]="sexes"
+        [ngModel]="p.sex ?? ''"
+        (ngModelChange)="save($event, null)"
+      />
+      <df-select
+        label="Aiming to"
+        [options]="goals"
+        [ngModel]="p.goal ?? ''"
+        (ngModelChange)="save(null, $event)"
+      />
+    </div>
+
+    @if (p.sex) {
+      @if (latest(); as l) {
+        <p class="dir__fat">
+          <span class="dir__fat-value">{{ l.pct }}%</span>
+          <span class="dir__muted">
+            estimated body fat
+            @if (change() !== null) {
+              · {{ change()! > 0 ? '+' : '' }}{{ change() }} since {{ p.bodyFat[0].date }}
+            }
+          </span>
+        </p>
+      } @else {
+        <p class="dir__muted">
+          Log your waist and neck{{ p.sex === 'FEMALE' ? ', hips' : '' }} (and height once) to see
+          an estimate.
+        </p>
+      }
+    }
+
+    @if (ai.enabled()) {
+      @if (direction(); as d) {
+        <div class="dir__verdict" [attr.data-verdict]="d.verdict">
+          <strong>{{ verdictLabel(d.verdict) }}</strong>
+          @if (d.summary) {
+            <p class="dir__text">{{ d.summary }}</p>
+          }
+          @if (d.points.length > 0) {
+            <ul class="dir__points">
+              @for (point of d.points; track point) {
+                <li>{{ point }}</li>
+              }
+            </ul>
+          }
+        </div>
+      } @else {
+        <button
+          dfButton
+          type="button"
+          variant="secondary"
+          [fullWidth]="true"
+          [disabled]="checking() || !p.goal"
+          (click)="check()"
+        >
+          {{
+            checking()
+              ? 'Reading your trends…'
+              : p.goal
+                ? 'Am I heading the right way?'
+                : 'Choose what you are aiming for first'
+          }}
+        </button>
+      }
+    }
+    @if (error(); as message) {
+      <p class="dir__muted" role="alert">{{ message }}</p>
+    }
+  </df-card>
+}

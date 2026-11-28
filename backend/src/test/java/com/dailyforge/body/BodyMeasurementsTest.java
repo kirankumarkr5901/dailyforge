@@ -42,7 +42,7 @@ class BodyMeasurementsTest {
     void measurementsAreSavedAndASecondLogThatDayKeepsThem() {
         UUID user = TestUsers.create(users, settings);
         body.upsert(user, TODAY, new BigDecimal("80"), null, null, null,
-                new BodyMetric.Measurements(new BigDecimal("84.5"), new BigDecimal("100"), null, null, null));
+                new BodyMetric.Measurements(new BigDecimal("84.5"), new BigDecimal("100"), null, null, null, null));
 
         // Later that day: weight again, no tape.
         BodyMetric metric = body.upsert(user, TODAY, new BigDecimal("79.8"), null, null, null, BodyMetric.Measurements.NONE);

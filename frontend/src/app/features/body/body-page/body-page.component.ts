@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@ang
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
 import { ArrowDown, ArrowUp, LucideAngularModule, Minus, Plus, Scale, Trash2 } from 'lucide-angular';
+import { BodyDirectionComponent } from '../body-direction/body-direction.component';
 
 import { AuthApi } from '../../../core/auth/auth.api';
 import { AuthSheetService } from '../../../core/auth/auth-sheet.service';
@@ -35,6 +36,7 @@ const BAND_LABELS: Record<BmiBand, string> = {
 @Component({
   selector: 'df-body-page',
   imports: [
+    BodyDirectionComponent,
     LucideAngularModule,
     DfButtonComponent,
     DfCardComponent,

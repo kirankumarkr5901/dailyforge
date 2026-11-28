@@ -28,7 +28,11 @@ public class BodyController {
     private final BodyMetricService metrics;
     private final CurrentUser currentUser;
 
-    public BodyController(BodyMetricService metrics, CurrentUser currentUser) {
+    private final com.dailyforge.body.domain.BodyInsightService insights;
+
+    public BodyController(
+            BodyMetricService metrics, CurrentUser currentUser, com.dailyforge.body.domain.BodyInsightService insights) {
+        this.insights = insights;
         this.metrics = metrics;
         this.currentUser = currentUser;
     }
@@ -57,7 +61,7 @@ public class BodyController {
                 request.bodyFatPct(),
                 request.note(),
                 new com.dailyforge.body.domain.BodyMetric.Measurements(
-                        request.waistCm(), request.chestCm(), request.armCm(), request.hipsCm(), request.thighCm()));
+                        request.waistCm(), request.chestCm(), request.armCm(), request.hipsCm(), request.thighCm(), request.neckCm()));
         return MetricResponse.of(metric);
     }
 
@@ -65,5 +69,36 @@ public class BodyController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable UUID id) {
         metrics.delete(id, currentUser.require());
+    }
+
+    public record ProfileRequest(
+            com.dailyforge.body.domain.BodyInsightService.Sex sex,
+            com.dailyforge.body.domain.BodyInsightService.Goal goal) {}
+
+    /** Which body-fat formula, what the person is aiming for, and the estimates so far (last 6 months). */
+    public record ProfileResponse(
+            com.dailyforge.body.domain.BodyInsightService.Sex sex,
+            com.dailyforge.body.domain.BodyInsightService.Goal goal,
+            List<com.dailyforge.body.domain.BodyInsightService.FatPoint> bodyFat) {}
+
+    @GetMapping("/profile")
+    public ProfileResponse profile() {
+        UUID userId = currentUser.require();
+        var p = insights.profile(userId);
+        java.time.LocalDate today = java.time.LocalDate.now();
+        return new ProfileResponse(p.sex(), p.goal(), insights.bodyFat(userId, today.minusMonths(6), today.plusDays(1)));
+    }
+
+    @org.springframework.web.bind.annotation.PutMapping("/profile")
+    public ProfileResponse saveProfile(@RequestBody ProfileRequest request) {
+        UUID userId = currentUser.require();
+        insights.saveProfile(userId, request.sex(), request.goal());
+        return profile();
+    }
+
+    /** "Am I heading the right way?" from the last eight weeks against the goal; kept for the day. */
+    @GetMapping("/direction")
+    public com.dailyforge.body.domain.BodyInsightService.Direction direction() {
+        return insights.direction(currentUser.require());
     }
 }

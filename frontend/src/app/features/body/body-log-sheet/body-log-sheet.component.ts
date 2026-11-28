@@ -36,7 +36,7 @@ export class BodyLogSheetComponent {
   /** Folded by default: most days are a weigh-in only. 0 means "not measured". */
   protected readonly showTape = signal(false);
   protected readonly measurements = MEASUREMENTS;
-  protected readonly tape = signal<Record<MeasurementKey, number>>({ waistCm: 0, chestCm: 0, armCm: 0, hipsCm: 0, thighCm: 0 });
+  protected readonly tape = signal<Record<MeasurementKey, number>>({ waistCm: 0, chestCm: 0, armCm: 0, hipsCm: 0, thighCm: 0, neckCm: 0 });
 
   protected setTape(key: MeasurementKey, value: number): void {
     this.tape.update((t) => ({ ...t, [key]: value }));
@@ -63,7 +63,7 @@ export class BodyLogSheetComponent {
       );
       this.saved.emit(metric);
       this.note.set('');
-      this.tape.set({ waistCm: 0, chestCm: 0, armCm: 0, hipsCm: 0, thighCm: 0 });
+      this.tape.set({ waistCm: 0, chestCm: 0, armCm: 0, hipsCm: 0, thighCm: 0, neckCm: 0 });
       this.showTape.set(false);
     } catch (error) {
       this.error.set(this.messageFor(error));

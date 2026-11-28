@@ -1,0 +1,70 @@
+/* Phone first: the two choices stack; side by side from 520px. */
+:host {
+  display: block;
+}
+
+.dir__title {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-lg);
+}
+
+.dir__fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+@media (min-width: 520px) {
+  .dir__fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.dir__fat {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-3);
+}
+
+.dir__fat-value {
+  font-size: var(--text-xl, 1.5rem);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.dir__muted {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+}
+
+.dir__verdict {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+}
+
+.dir__verdict[data-verdict='ON_TRACK'] {
+  border-color: var(--done);
+}
+
+.dir__verdict[data-verdict='OFF_TRACK'] {
+  border-color: var(--heat-2);
+}
+
+.dir__text {
+  margin: 0;
+  font-size: var(--text-sm);
+}
+
+.dir__points {
+  margin: 0;
+  padding-left: var(--space-4);
+  font-size: var(--text-sm);
+}
