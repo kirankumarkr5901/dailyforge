@@ -47,6 +47,9 @@ export class ProteinTipsComponent {
   protected readonly asking = signal<'tips' | 'meal' | null>(null);
   protected readonly tips = signal<ProteinSuggestion[] | null>(null);
   protected readonly meal = signal<MealIdea | null>(null);
+  /** What was already shown, sent with the next ask so it brings something new. */
+  private shownTips: string[] = [];
+  private shownMeals: string[] = [];
 
   protected readonly mealTotals = computed(() => {
     const t = (this.meal()?.items ?? []).reduce(
@@ -72,7 +75,10 @@ export class ProteinTipsComponent {
     this.loading.set(true);
     this.asking.set('tips');
     try {
-      const { suggestions } = await firstValueFrom(this.api.suggestions(this.date()));
+      const { suggestions } = await firstValueFrom(
+        this.api.suggestions(this.date(), this.shownTips),
+      );
+      this.shownTips = [...this.shownTips, ...suggestions.map((s) => s.name)].slice(-20);
       this.tips.set(suggestions);
       this.meal.set(null);
     } catch (e) {
@@ -91,7 +97,11 @@ export class ProteinTipsComponent {
     this.loading.set(true);
     this.asking.set('meal');
     try {
-      this.meal.set(await firstValueFrom(this.api.fillDay(this.date())));
+      const meal = await firstValueFrom(this.api.fillDay(this.date(), this.shownMeals));
+      this.shownMeals = [...this.shownMeals, meal.title, ...meal.items.map((i) => i.name)].slice(
+        -20,
+      );
+      this.meal.set(meal);
       this.tips.set(null);
     } catch (e) {
       this.toasts.show(errorMessage(e) ?? "Couldn't get a meal idea right now. Try again.", {

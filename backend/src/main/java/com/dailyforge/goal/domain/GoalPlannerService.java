@@ -1,6 +1,7 @@
 package com.dailyforge.goal.domain;
 
 import static com.dailyforge.ai.GeminiClient.array;
+import static com.dailyforge.ai.GeminiClient.arrayOf;
 import static com.dailyforge.ai.GeminiClient.enumOf;
 import static com.dailyforge.ai.GeminiClient.integer;
 import static com.dailyforge.ai.GeminiClient.object;
@@ -204,7 +205,7 @@ public class GoalPlannerService {
         skill.put("name", string());
         skill.put("when", string());
         skill.put("safety", string());
-        skill.put("levels", array(object(level), 3));
+        skill.put("levels", arrayOf(object(level)));
         Map<String, Object> add = new LinkedHashMap<>();
         add.put("exerciseName", string());
         add.put("planDay", integer());
@@ -214,11 +215,11 @@ public class GoalPlannerService {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("summary", string());
         props.put("goal", object(goal));
-        props.put("milestones", array(object(milestone), MAX_MILESTONES));
-        props.put("habits", array(object(habit), 3));
+        props.put("milestones", arrayOf(object(milestone)));
+        props.put("habits", arrayOf(object(habit)));
         props.put("needsSkill", Map.of("type", "boolean"));
         props.put("skill", object(skill));
-        props.put("workoutAdds", array(object(add), 4));
+        props.put("workoutAdds", arrayOf(object(add)));
 
         JsonNode a = gemini.generate(prompt, null, object(props));
         Map<String, Exercise> byName = exercises.findAllVisible(userId).stream()
@@ -467,7 +468,7 @@ public class GoalPlannerService {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("note", string());
         props.put("change", Map.of("type", "boolean"));
-        props.put("milestones", array(object(milestone), MAX_MILESTONES));
+        props.put("milestones", arrayOf(object(milestone)));
         JsonNode a = gemini.generate(prompt, null, object(props));
 
         List<DraftMilestone> proposal = new ArrayList<>();

@@ -56,7 +56,10 @@ public class ProteinController {
         this.suggestions = suggestions;
     }
 
-    public record SuggestionsRequest(@jakarta.validation.constraints.NotNull LocalDate date) {}
+    /** {@code exclude}: what was already shown, so asking again gives new ideas. */
+    public record SuggestionsRequest(
+            @jakarta.validation.constraints.NotNull LocalDate date,
+            @jakarta.validation.constraints.Size(max = 40) java.util.List<String> exclude) {}
 
     public record SuggestionsResponse(java.util.List<com.dailyforge.nutrition.domain.ProteinSuggestionService.Suggestion> suggestions) {}
 
@@ -64,13 +67,13 @@ public class ProteinController {
     @PostMapping("/fill-day")
     public com.dailyforge.nutrition.domain.ProteinSuggestionService.MealIdea fillDay(
             @Valid @RequestBody SuggestionsRequest request) {
-        return suggestions.fillDay(currentUser.require(), request.date());
+        return suggestions.fillDay(currentUser.require(), request.date(), request.exclude());
     }
 
     /** "What should I eat to hit protein?": two or three options that fit what's left today. */
     @PostMapping("/suggestions")
     public SuggestionsResponse suggestions(@Valid @RequestBody SuggestionsRequest request) {
-        return new SuggestionsResponse(suggestions.suggest(currentUser.require(), request.date()));
+        return new SuggestionsResponse(suggestions.suggest(currentUser.require(), request.date(), request.exclude()));
     }
 
     // ------------------------------------------------------------------ meal photos

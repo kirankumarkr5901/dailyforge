@@ -1,6 +1,7 @@
 package com.dailyforge.workout.domain;
 
 import static com.dailyforge.ai.GeminiClient.array;
+import static com.dailyforge.ai.GeminiClient.arrayOf;
 import static com.dailyforge.ai.GeminiClient.enumOf;
 import static com.dailyforge.ai.GeminiClient.integer;
 import static com.dailyforge.ai.GeminiClient.object;
@@ -150,7 +151,7 @@ public class MuscleTargetService {
         target.put("min", integer());
         target.put("max", integer());
         Map<String, Object> props = new LinkedHashMap<>();
-        props.put("targets", array(object(target), MainMuscles.ALL.size()));
+        props.put("targets", arrayOf(object(target)));
         props.put("note", string());
         apply(userId, gemini.generate(prompt, null, object(props)));
     }
