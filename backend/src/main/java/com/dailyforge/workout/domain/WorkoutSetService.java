@@ -145,7 +145,8 @@ public class WorkoutSetService {
 
         PointsResult reconciled = points.reconcile(userId, new ReconcileScope.ExercisePr(userId, exerciseId));
         PointsResult completion = completeOnTarget(session, exerciseId, setNumber, userId);
-        return new SetWrite(set, PointsResult.combine(List.of(reconciled, completion)));
+        PointsResult week = points.reconcile(userId, muscleWeek(userId, session.getOccurredOn()));
+        return new SetWrite(set, PointsResult.combine(List.of(reconciled, completion, week)));
     }
 
     @Transactional
@@ -162,7 +163,8 @@ public class WorkoutSetService {
         sets.save(set);
 
         PointsResult result = points.reconcile(userId, new ReconcileScope.ExercisePr(userId, set.getExerciseId()));
-        return new SetWrite(set, result);
+        PointsResult week = points.reconcile(userId, muscleWeek(userId, dateOf(set)));
+        return new SetWrite(set, PointsResult.combine(List.of(result, week)));
     }
 
     @Transactional
@@ -174,7 +176,18 @@ public class WorkoutSetService {
         set.softDelete(Instant.now());
         sets.save(set);
 
-        return points.reconcile(userId, new ReconcileScope.ExercisePr(userId, set.getExerciseId()));
+        PointsResult pr = points.reconcile(userId, new ReconcileScope.ExercisePr(userId, set.getExerciseId()));
+        PointsResult week = points.reconcile(userId, muscleWeek(userId, dateOf(set)));
+        return PointsResult.combine(List.of(pr, week));
+    }
+
+    /** The weekly sets-per-muscle targets for the week a set falls in. */
+    private static ReconcileScope.MuscleWeek muscleWeek(UUID userId, java.time.LocalDate date) {
+        return new ReconcileScope.MuscleWeek(userId, WeeklyVolumeService.mondayOf(date));
+    }
+
+    private java.time.LocalDate dateOf(WorkoutSet set) {
+        return sessions.findById(set.getSessionId()).map(WorkoutSession::getOccurredOn).orElseThrow();
     }
 
     /**

@@ -78,14 +78,15 @@ export class MealPhotoComponent {
   protected readonly busy = signal(false);
 
   protected readonly chosen = computed(() => this.rows().filter((r) => r.include && r.name.trim()));
-  protected readonly totals = computed(() =>
-    this.chosen()
+  protected readonly totals = computed(() => {
+    const t = this.chosen()
       .map((r) => this.amounts(r))
       .reduce((a, b) => ({ grams: a.grams + b.grams, kcal: a.kcal + b.kcal }), {
         grams: 0,
         kcal: 0,
-      }),
-  );
+      });
+    return { grams: Math.round(t.grams * 10) / 10, kcal: Math.round(t.kcal) };
+  });
 
   constructor() {
     // Each opening starts fresh.
@@ -158,6 +159,45 @@ export class MealPhotoComponent {
     this.rows.update((rows) =>
       rows.map((r, i) => (i === index ? { ...r, ...resave, ...change } : r)),
     );
+  }
+
+  /** Rows whose nutrition is being looked up again after a rename. */
+  protected readonly refreshing = signal<ReadonlySet<number>>(new Set());
+
+  /**
+   * The name was corrected: ask again for this dish by its new name and portion, and
+   * use the new numbers (owner request: a renamed dish kept the old dish's nutrition).
+   */
+  protected async refreshNutrition(index: number): Promise<void> {
+    const row = this.rows()[index];
+    if (!row || !row.name.trim() || this.refreshing().has(index)) return;
+    this.refreshing.update((s) => new Set(s).add(index));
+    try {
+      const { dishes } = await firstValueFrom(
+        this.api.readMealText(`${row.name.trim()}, ${row.portionG} g`),
+      );
+      const d = dishes[0];
+      if (d) {
+        this.update(index, {
+          estimate: { ...d, name: row.name.trim(), portionG: d.portionG || row.portionG },
+        });
+      } else {
+        this.toasts.show(`Couldn't find nutrition for "${row.name.trim()}".`, { tone: 'penalty' });
+      }
+    } catch (e) {
+      this.toasts.show(messageFor(e), { tone: 'penalty' });
+    } finally {
+      this.refreshing.update((s) => {
+        const next = new Set(s);
+        next.delete(index);
+        return next;
+      });
+    }
+  }
+
+  /** The name no longer matches what the numbers were estimated for. */
+  protected renamed(row: Row): boolean {
+    return row.name.trim().toLowerCase() !== row.estimate.name.trim().toLowerCase();
   }
 
   /** The estimate scaled to the portion the user set. */

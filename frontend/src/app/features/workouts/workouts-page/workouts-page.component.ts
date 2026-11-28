@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { LucideAngularModule, Plus, Settings2, Target, TimerReset, StretchHorizontal } from 'lucide-angular';
 import { WorkoutCoachComponent } from '../workout-coach/workout-coach.component';
+import { AiStatusService } from '../../../core/ai/ai-status.service';
 
 import { AuthSheetService } from '../../../core/auth/auth-sheet.service';
 import { PendingActionService } from '../../../core/auth/pending-action.service';
@@ -115,6 +116,7 @@ export class WorkoutsPageComponent {
   private readonly pendingAction = inject(PendingActionService);
 
   private readonly sync = inject(SyncStore);
+  protected readonly ai = inject(AiStatusService);
   protected readonly session = inject(SessionStore);
   protected readonly authSheet = inject(AuthSheetService);
 
@@ -339,6 +341,7 @@ export class WorkoutsPageComponent {
   }
 
   constructor() {
+    void this.ai.load();
     let wasAuthenticated = false;
     effect(() => {
       const isAuthenticated = this.session.isAuthenticated();

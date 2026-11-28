@@ -17,7 +17,7 @@
       hint="Leave at 0 to use the height in Settings."
       [min]="0"
       [max]="250"
-      [decimals]="0"
+      [decimals]="1"
       [ngModel]="heightCm()"
       (ngModelChange)="heightCm.set($event)"
     />

@@ -35,7 +35,7 @@ public class ProteinSuggestionService {
      * numbers are the food's own, not the AI's.
      */
     public record Suggestion(
-            String name, UUID foodId, String why, int proteinG, int kcal, int fatG, int carbsG, int fiberG, int sugarG) {}
+            String name, UUID foodId, String why, double proteinG, int kcal, double fatG, double carbsG, double fiberG, double sugarG) {}
 
     private final GeminiClient gemini;
     private final ProteinService protein;
@@ -95,11 +95,11 @@ public class ProteinSuggestionService {
     /** Today's totals against targets, what was eaten, and the food list. */
     static String facts(ProteinService.Day d) {
         StringBuilder p = new StringBuilder();
-        p.append(String.format(Locale.ROOT, "Protein: %d of %d g eaten (%d g to go).%n",
+        p.append(String.format(Locale.ROOT, "Protein: %.1f of %d g eaten (%.1f g to go).%n",
                 d.totalG(), d.targetG(), Math.max(0, d.targetG() - d.totalG())));
         p.append(String.format(Locale.ROOT, "Calories: %d of a %d kcal budget (%d left).%n",
                 d.totalKcal(), d.calorieBudget(), Math.max(0, d.calorieBudget() - d.totalKcal())));
-        p.append(String.format(Locale.ROOT, "Fat: %d of %d g. Carbs: %d of %d g. Fiber: %d of %d g. Sugar: %d, limit %d g.%n",
+        p.append(String.format(Locale.ROOT, "Fat: %.1f of %d g. Carbs: %.1f of %d g. Fiber: %.1f of %d g. Sugar: %.1f, limit %d g.%n",
                 d.totalFatG(), d.fatTargetG(), d.totalCarbsG(), d.carbsTargetG(), d.totalFiberG(), d.fiberTargetG(),
                 d.totalSugarG(), d.sugarLimitG()));
         p.append("\nEATEN TODAY:\n");
@@ -111,7 +111,7 @@ public class ProteinSuggestionService {
         }
         p.append("\nTHEIR FOODS (name: protein g, kcal, fat g per serving):\n");
         d.foods().stream().limit(MAX_FOODS_SENT).forEach(f -> p.append(String.format(Locale.ROOT,
-                "- %s: %d g, %d kcal, %d g%n", f.getName(), f.getGrams(), f.getKcal(), f.getFatG())));
+                "- %s: %.1f g, %d kcal, %.1f g%n", f.getName(), f.getGrams(), f.getKcal(), f.getFatG())));
         return p.toString();
     }
 
@@ -124,12 +124,12 @@ public class ProteinSuggestionService {
         item.put("name", string());
         item.put("fromTheirFoods", Map.of("type", "boolean"));
         item.put("why", string());
-        item.put("proteinG", integer());
+        item.put("proteinG", Map.of("type", "number"));
         item.put("kcal", integer());
-        item.put("fatG", integer());
-        item.put("carbsG", integer());
-        item.put("fiberG", integer());
-        item.put("sugarG", integer());
+        item.put("fatG", Map.of("type", "number"));
+        item.put("carbsG", Map.of("type", "number"));
+        item.put("fiberG", Map.of("type", "number"));
+        item.put("sugarG", Map.of("type", "number"));
         return item;
     }
 
@@ -154,15 +154,15 @@ public class ProteinSuggestionService {
                 out.add(new Suggestion(food.getName(), food.getId(), why, food.getGrams(), food.getKcal(), food.getFatG(),
                         food.getCarbsG(), food.getFiberG(), food.getSugarG()));
             } else {
-                int proteinG = MealPhotoService.clamp(s.path("proteinG"), ProteinService.MAX_FOOD_G);
+                double proteinG = MealPhotoService.clamp1(s.path("proteinG"), ProteinService.MAX_FOOD_G);
                 int kcal = MealPhotoService.clamp(s.path("kcal"), ProteinService.MAX_KCAL);
-                int fatG = MealPhotoService.clamp(s.path("fatG"), ProteinService.MAX_FAT_G);
+                double fatG = MealPhotoService.clamp1(s.path("fatG"), ProteinService.MAX_FAT_G);
                 if (proteinG + kcal + fatG == 0) {
                     continue;
                 }
                 out.add(new Suggestion(name.length() > 60 ? name.substring(0, 60).strip() : name, null, why, proteinG, kcal,
-                        fatG, MealPhotoService.clamp(s.path("carbsG"), 500), MealPhotoService.clamp(s.path("fiberG"), 100),
-                        MealPhotoService.clamp(s.path("sugarG"), 300)));
+                        fatG, MealPhotoService.clamp1(s.path("carbsG"), 500), MealPhotoService.clamp1(s.path("fiberG"), 100),
+                        MealPhotoService.clamp1(s.path("sugarG"), 300)));
             }
             if (out.size() == max) {
                 break;

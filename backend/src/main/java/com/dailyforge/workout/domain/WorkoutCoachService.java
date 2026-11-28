@@ -36,7 +36,6 @@ public class WorkoutCoachService {
 
     public static final int DAILY_LIMIT_PER_USER = 12;
     /** Weekly sets per muscle below which it counts as short (the app's 10–20 band). */
-    static final int MIN_WEEKLY_SETS = 10;
     private static final int SESSIONS_SHOWN = 5;
     /** This many sessions without a heavier weight or more reps counts as stalled. */
     static final int STALL_SESSIONS = 3;
@@ -58,6 +57,7 @@ public class WorkoutCoachService {
     private final ExerciseRepository exercises;
     private final WeeklyVolumeService volume;
     private final DeloadService deload;
+    private final MuscleTargetService targets;
     private final Map<String, Coaching> today = new ConcurrentHashMap<>();
 
     public WorkoutCoachService(
@@ -66,7 +66,9 @@ public class WorkoutCoachService {
             WorkoutSetRepository sets,
             ExerciseRepository exercises,
             WeeklyVolumeService volume,
-            DeloadService deload) {
+            DeloadService deload,
+            MuscleTargetService targets) {
+        this.targets = targets;
         this.gemini = gemini;
         this.plans = plans;
         this.sets = sets;
@@ -127,13 +129,20 @@ public class WorkoutCoachService {
         WeeklyVolumeService.WeeklyVolume week = volume.forWeekOf(userId, date);
         Map<String, Integer> setsByMuscle = week.muscles().stream()
                 .collect(Collectors.toMap(WeeklyVolumeService.MuscleSets::group, WeeklyVolumeService.MuscleSets::sets));
+        // Each muscle's own weekly target, not one 10-20 band for all (owner request).
+        Map<String, Integer> minimums = new LinkedHashMap<>();
+        targets.current(userId).forEach((m, t) -> minimums.put(m, t.min()));
+        Set<String> todaysMain = todaysMuscles.stream().map(MainMuscles::of).collect(Collectors.toCollection(java.util.LinkedHashSet::new));
         StringBuilder weekFacts = new StringBuilder();
-        for (String muscle : todaysMuscles) {
-            weekFacts.append("- ").append(muscle).append(": ").append(setsByMuscle.getOrDefault(muscle, 0)).append(" sets\n");
+        for (String muscle : todaysMain) {
+            weekFacts.append("- ").append(muscle).append(": ").append(setsByMuscle.getOrDefault(muscle, 0)).append(" sets")
+                    .append(minimums.containsKey(muscle) ? " (weekly target " + minimums.get(muscle) + "+)" : "").append('\n');
         }
         week.muscles().stream()
-                .filter(m -> !todaysMuscles.contains(m.group()))
-                .forEach(m -> weekFacts.append("- ").append(m.group()).append(": ").append(m.sets()).append(" sets\n"));
+                .filter(m -> !todaysMain.contains(m.group()))
+                .forEach(m -> weekFacts.append("- ").append(m.group()).append(": ").append(m.sets()).append(" sets")
+                        .append(minimums.containsKey(m.group()) ? " (weekly target " + minimums.get(m.group()) + "+)" : "")
+                        .append('\n'));
 
         gemini.countUse(userId, "workout-coach", DAILY_LIMIT_PER_USER, "workout coaching");
         String prompt = "You are a strength coach writing a short, practical note for someone about to train. "
@@ -142,9 +151,9 @@ public class WorkoutCoachService {
                 + "- alerts: only for exercises with a real issue. PLATEAU for a STALLED lift (suggest a rep-scheme "
                 + "change or a small deload); DELOAD when recent sessions went backwards; SWAP when a STALLED lift would "
                 + "do better replaced, with swapTo set to one of its listed alternatives (otherwise swapTo is \"\").\n"
-                + "- gaps: muscles under " + MIN_WEEKLY_SETS + " sets this week (Monday-Sunday, today is " + date.getDayOfWeek()
-                + "), with how many sets to add and which of today's exercises or one common exercise to add them with. "
-                + "Skip muscles at or over " + MIN_WEEKLY_SETS + ".\n"
+                + "- gaps: muscles under their own weekly target (shown below) this week (Monday-Sunday, today is "
+                + date.getDayOfWeek() + "), with how many sets to add and which of today's exercises or one common "
+                + "exercise to add them with. Skip muscles already at their target.\n"
                 + (deload.isDeload(userId, date) ? "This is a planned deload day: keep the note easy-going.\n" : "")
                 + "\nTODAY'S EXERCISES" + facts
                 + "\nSETS PER MUSCLE THIS WEEK SO FAR:\n" + weekFacts;
@@ -162,7 +171,7 @@ public class WorkoutCoachService {
         schema.put("alerts", array(object(alert), 6));
         schema.put("gaps", array(object(gap), 6));
 
-        Coaching coaching = parse(gemini.generate(prompt, null, object(schema)), idsByName, setsByMuscle);
+        Coaching coaching = parse(gemini.generate(prompt, null, object(schema)), idsByName, setsByMuscle, minimums);
         today.put(key, coaching);
         return coaching;
     }
@@ -223,7 +232,8 @@ public class WorkoutCoachService {
         return names.isEmpty() ? "none in their library" : names;
     }
 
-    static Coaching parse(JsonNode answer, Map<String, UUID> idsByName, Map<String, Integer> setsByMuscle) {
+    static Coaching parse(
+            JsonNode answer, Map<String, UUID> idsByName, Map<String, Integer> setsByMuscle, Map<String, Integer> minimums) {
         String note = trim(answer.path("note").asString(""), 280);
         List<Alert> alerts = new ArrayList<>();
         for (JsonNode a : answer.path("alerts")) {
@@ -246,7 +256,8 @@ public class WorkoutCoachService {
             String muscle = g.path("muscle").asString("").strip().toLowerCase(Locale.ROOT);
             String message = trim(g.path("message").asString(""), 240);
             int done = setsByMuscle.getOrDefault(muscle, 0);
-            if (muscle.isEmpty() || message.isEmpty() || done >= MIN_WEEKLY_SETS) {
+            Integer min = minimums.get(MainMuscles.of(muscle));
+            if (muscle.isEmpty() || message.isEmpty() || min == null || done >= min) {
                 continue;
             }
             gaps.add(new Gap(muscle, done, message));

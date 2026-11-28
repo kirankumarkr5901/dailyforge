@@ -17,7 +17,7 @@ public final class ProteinDtos {
 
     /** {@code grams} is protein, kept under its original name so older clients still read it. */
     public record FoodResponse(
-            UUID id, String name, int grams, int kcal, int fatG, int carbsG, int fiberG, int sugarG, String source) {
+            UUID id, String name, double grams, int kcal, double fatG, double carbsG, double fiberG, double sugarG, String source) {
         public static FoodResponse of(ProteinFood food) {
             return new FoodResponse(
                     food.getId(), food.getName(), food.getGrams(), food.getKcal(), food.getFatG(),
@@ -25,7 +25,7 @@ public final class ProteinDtos {
         }
     }
 
-    public record LogResponse(UUID id, String foodName, int grams, int kcal, int fatG, int carbsG, int fiberG, int sugarG) {
+    public record LogResponse(UUID id, String foodName, double grams, int kcal, double fatG, double carbsG, double fiberG, double sugarG) {
         public static LogResponse of(ProteinLog log) {
             return new LogResponse(
                     log.getId(), log.getFoodName(), log.getGrams(), log.getKcal(), log.getFatG(),
@@ -36,17 +36,17 @@ public final class ProteinDtos {
     public record DayResponse(
             LocalDate date,
             int targetG,
-            int totalG,
+            double totalG,
             int calorieBudget,
             int totalKcal,
             int fatTargetG,
-            int totalFatG,
+            double totalFatG,
             int carbsTargetG,
-            int totalCarbsG,
+            double totalCarbsG,
             int fiberTargetG,
-            int totalFiberG,
+            double totalFiberG,
             int sugarLimitG,
-            int totalSugarG,
+            double totalSugarG,
             int waterTargetMl,
             int waterMl,
             List<LogResponse> entries,
@@ -84,12 +84,12 @@ public final class ProteinDtos {
     public record LogRequest(
             @NotNull LocalDate date,
             @NotBlank @Size(max = 60) String foodName,
-            Integer grams,
+            Double grams,
             Integer kcal,
-            Integer fatG,
-            Integer carbsG,
-            Integer fiberG,
-            Integer sugarG) {}
+            Double fatG,
+            Double carbsG,
+            Double fiberG,
+            Double sugarG) {}
 
     /** Any of the three; null leaves that target as it is. */
     public record TargetRequest(
@@ -106,20 +106,20 @@ public final class ProteinDtos {
     /** {@code source} is optional: PHOTO or BARCODE when saved from a meal photo or a scan. */
     public record CreateFoodRequest(
             @NotBlank @Size(max = 60) String name,
-            Integer grams,
+            Double grams,
             Integer kcal,
-            Integer fatG,
-            Integer carbsG,
-            Integer fiberG,
-            Integer sugarG,
+            Double fatG,
+            Double carbsG,
+            Double fiberG,
+            Double sugarG,
             String source) {}
 
     public record UpdateFoodRequest(
             @Size(max = 60) String name,
-            Integer grams,
+            Double grams,
             Integer kcal,
-            Integer fatG,
-            Integer carbsG,
-            Integer fiberG,
-            Integer sugarG) {}
+            Double fatG,
+            Double carbsG,
+            Double fiberG,
+            Double sugarG) {}
 }

@@ -59,8 +59,8 @@ public class ProteinDayReconciliationCalculator implements ReconciliationCalcula
         int target = settings.findById(scope.userId())
                 .map(NutritionSettings::getProteinTargetG)
                 .orElse(NutritionSettings.DEFAULT_TARGET_G);
-        int total = logs.findAllByUserIdAndOccurredOnOrderByCreatedAtAsc(scope.userId(), scope.date()).stream()
-                .mapToInt(ProteinLog::getGrams)
+        double total = logs.findAllByUserIdAndOccurredOnOrderByCreatedAtAsc(scope.userId(), scope.date()).stream()
+                .mapToDouble(ProteinLog::getGrams)
                 .sum();
         int amount = config.getInt("points");
         if (total < target || amount <= 0) {

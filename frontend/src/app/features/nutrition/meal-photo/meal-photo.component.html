@@ -87,9 +87,25 @@
                   (ngModelChange)="update(i, { name: $event })"
                 />
               </div>
+              @if (renamed(row)) {
+                <button
+                  dfButton
+                  type="button"
+                  variant="secondary"
+                  [disabled]="refreshing().has(i)"
+                  (click)="refreshNutrition(i)"
+                >
+                  {{
+                    refreshing().has(i)
+                      ? 'Looking it up…'
+                      : 'Update nutrition for "' + row.name.trim() + '"'
+                  }}
+                </button>
+              }
               @if (row.include) {
                 <df-stepper-input
                   label="Portion"
+                  [decimals]="1"
                   suffix="g"
                   [min]="5"
                   [max]="2000"

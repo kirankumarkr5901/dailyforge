@@ -49,6 +49,9 @@ public class WorkoutController {
     private final com.dailyforge.workout.domain.WeeklyVolumeService weeklyVolume;
     private final com.dailyforge.workout.domain.DeloadService deload;
     private final com.dailyforge.workout.domain.WorkoutCoachService coach;
+    private final com.dailyforge.workout.domain.MuscleTargetService muscleTargets;
+    private final com.dailyforge.points.domain.PointsService points;
+    private final com.dailyforge.points.domain.PointsRuleConfigService ruleConfigs;
 
     public WorkoutController(
             WorkoutSetService setService,
@@ -59,7 +62,13 @@ public class WorkoutController {
             WorkoutCompletionService completionService,
             com.dailyforge.workout.domain.WeeklyVolumeService weeklyVolume,
             com.dailyforge.workout.domain.DeloadService deload,
-            com.dailyforge.workout.domain.WorkoutCoachService coach) {
+            com.dailyforge.workout.domain.WorkoutCoachService coach,
+            com.dailyforge.workout.domain.MuscleTargetService muscleTargets,
+            com.dailyforge.points.domain.PointsService points,
+            com.dailyforge.points.domain.PointsRuleConfigService ruleConfigs) {
+        this.muscleTargets = muscleTargets;
+        this.points = points;
+        this.ruleConfigs = ruleConfigs;
         this.setService = setService;
         this.board = board;
         this.currentUser = currentUser;
@@ -98,7 +107,30 @@ public class WorkoutController {
     public WorkoutDtos.WeeklyVolumeResponse weeklyVolume(@RequestParam(required = false) LocalDate date) {
         UUID userId = currentUser.require();
         LocalDate resolved = date != null ? date : dayService.today(dayService.zoneOf(identity.requireSettings(userId).getTimeZone()));
-        return WorkoutDtos.WeeklyVolumeResponse.of(weeklyVolume.forWeekOf(userId, resolved));
+        return volumeResponse(userId, resolved, muscleTargets.targets(userId, resolved));
+    }
+
+    public record MuscleTargetRequest(int min, int max) {}
+
+    /** The user's own range for a muscle; kept, never overwritten by the AI's monthly check. */
+    @org.springframework.web.bind.annotation.PutMapping("/muscle-targets/{muscle}")
+    public WorkoutDtos.WeeklyVolumeResponse setMuscleTarget(
+            @PathVariable String muscle, @RequestBody MuscleTargetRequest request) {
+        UUID userId = currentUser.require();
+        LocalDate today = dayService.today(dayService.zoneOf(identity.requireSettings(userId).getTimeZone()));
+        var targets = muscleTargets.set(userId, muscle, request.min(), request.max());
+        points.reconcile(userId, new com.dailyforge.points.domain.ReconcileScope.MuscleWeek(
+                userId, com.dailyforge.workout.domain.WeeklyVolumeService.mondayOf(today)));
+        return volumeResponse(userId, today, targets);
+    }
+
+    private WorkoutDtos.WeeklyVolumeResponse volumeResponse(
+            UUID userId, LocalDate date, java.util.Map<String, com.dailyforge.workout.domain.MuscleTargetService.Target> targets) {
+        var each = ruleConfigs.getSystemDefault("MUSCLE_TARGET");
+        var all = ruleConfigs.getSystemDefault("MUSCLE_TARGET_ALL");
+        return WorkoutDtos.WeeklyVolumeResponse.of(
+                weeklyVolume.forWeekOf(userId, date), targets,
+                each.enabled() ? each.getInt("points") : 0, all.enabled() ? all.getInt("points") : 0);
     }
 
     /**

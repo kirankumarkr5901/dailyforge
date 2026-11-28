@@ -78,6 +78,28 @@ class FeatureSwitchTest {
         patchSettings(token, "{\"disabledFeatures\":[\"GOALS\",\"NUTRITION\"]}").andExpect(status().isOk());
     }
 
+    /** Owner-reported: the second toggle failed until a reload, because the reply carried the old version. */
+    @Test
+    void theVersionInTheReplyIsTheOneTheNextChangeNeeds() throws Exception {
+        String token = signUp();
+        long version = json.readTree(patchSettings(token, "{\"editingEnabled\":true}")
+                        .andExpect(status().isOk()).andReturn().getResponse().getContentAsString())
+                .get("version").asLong();
+        String second = mockMvc.perform(patch("/api/v1/me/settings")
+                        .header("Authorization", "Bearer " + token)
+                        .header("If-Match", String.valueOf(version))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"editingEnabled\":false}"))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        mockMvc.perform(patch("/api/v1/me/settings")
+                        .header("Authorization", "Bearer " + token)
+                        .header("If-Match", String.valueOf(json.readTree(second).get("version").asLong()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"editingEnabled\":true}"))
+                .andExpect(status().isOk());
+    }
+
     @Test
     void anUnknownFeatureIsRefused() throws Exception {
         String token = signUp();

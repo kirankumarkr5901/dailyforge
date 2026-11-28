@@ -61,8 +61,10 @@ public class WeeklyVolumeService {
             if (exercise == null || exercise.getKind() == ExerciseKind.CARDIO || exercise.getMuscleGroups().isEmpty()) {
                 continue;
             }
-            counts.merge(exercise.getMuscleGroups().get(0).trim().toLowerCase(java.util.Locale.ROOT), 1, Integer::sum);
+            counts.merge(MainMuscles.of(exercise.getMuscleGroups().get(0)), 1, Integer::sum);
         }
+        // Every main muscle shows, even at zero: each has a weekly target (owner request).
+        MainMuscles.ALL.forEach(m -> counts.putIfAbsent(m, 0));
         List<MuscleSets> muscles = counts.entrySet().stream()
                 .map(e -> new MuscleSets(e.getKey(), e.getValue()))
                 .sorted(Comparator.comparingInt(MuscleSets::sets).reversed().thenComparing(MuscleSets::group))

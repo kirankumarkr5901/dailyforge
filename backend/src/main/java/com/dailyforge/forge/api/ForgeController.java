@@ -67,10 +67,9 @@ public class ForgeController {
         return ai.nextQuestion(currentUser.require(), turns(request.turns()));
     }
 
-    /** Starts a program the AI plans from the interview, a week at a time. */
+    /** Starts a program the AI plans from the interview; works with "Enable edit" off (owner request). */
     @PostMapping("/ai/program")
     @ResponseStatus(HttpStatus.CREATED)
-    @StructuralChange
     public OverviewResponse startAi(@Valid @RequestBody AiStartRequest request) {
         return OverviewResponse.of(forge.startAi(currentUser.require(), turns(request.turns()), request.mode()));
     }

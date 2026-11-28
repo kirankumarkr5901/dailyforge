@@ -81,8 +81,9 @@ public class ProteinService {
     public static final int MAX_FAT_G = 300;
 
     /** What one entry adds. At least one of protein, calories and fat must be above zero. */
-    public record Amounts(int proteinG, int kcal, int fatG, int carbsG, int fiberG, int sugarG) {
-        public Amounts(int proteinG, int kcal, int fatG) {
+    /** Grams keep one decimal; calories are whole. */
+    public record Amounts(double proteinG, int kcal, double fatG, double carbsG, double fiberG, double sugarG) {
+        public Amounts(double proteinG, int kcal, double fatG) {
             this(proteinG, kcal, fatG, 0, 0, 0);
         }
     }
@@ -90,17 +91,17 @@ public class ProteinService {
     public record Day(
             LocalDate date,
             int targetG,
-            int totalG,
+            double totalG,
             int calorieBudget,
             int totalKcal,
             int fatTargetG,
-            int totalFatG,
+            double totalFatG,
             int carbsTargetG,
-            int totalCarbsG,
+            double totalCarbsG,
             int fiberTargetG,
-            int totalFiberG,
+            double totalFiberG,
             int sugarLimitG,
-            int totalSugarG,
+            double totalSugarG,
             int waterTargetMl,
             int waterMl,
             List<ProteinLog> logs,
@@ -185,17 +186,17 @@ public class ProteinService {
         return new Day(
                 date,
                 settings.getProteinTargetG(),
-                dayLogs.stream().mapToInt(ProteinLog::getGrams).sum(),
+                round1(dayLogs.stream().mapToDouble(ProteinLog::getGrams).sum()),
                 settings.getCalorieBudget(),
                 dayLogs.stream().mapToInt(ProteinLog::getKcal).sum(),
                 settings.getFatTargetG(),
-                dayLogs.stream().mapToInt(ProteinLog::getFatG).sum(),
+                round1(dayLogs.stream().mapToDouble(ProteinLog::getFatG).sum()),
                 settings.getCarbsTargetG(),
-                dayLogs.stream().mapToInt(ProteinLog::getCarbsG).sum(),
+                round1(dayLogs.stream().mapToDouble(ProteinLog::getCarbsG).sum()),
                 settings.getFiberTargetG(),
-                dayLogs.stream().mapToInt(ProteinLog::getFiberG).sum(),
+                round1(dayLogs.stream().mapToDouble(ProteinLog::getFiberG).sum()),
                 settings.getSugarLimitG(),
-                dayLogs.stream().mapToInt(ProteinLog::getSugarG).sum(),
+                round1(dayLogs.stream().mapToDouble(ProteinLog::getSugarG).sum()),
                 settings.getWaterTargetMl(),
                 waterMl(userId, date),
                 dayLogs,
@@ -359,7 +360,7 @@ public class ProteinService {
     }
 
     @Transactional
-    public ProteinFood updateFood(UUID userId, UUID foodId, String name, Integer grams, Integer kcal, Integer fatG) {
+    public ProteinFood updateFood(UUID userId, UUID foodId, String name, Double grams, Integer kcal, Double fatG) {
         return updateFood(userId, foodId, name, grams, kcal, fatG, null, null, null);
     }
 
@@ -368,12 +369,12 @@ public class ProteinService {
             UUID userId,
             UUID foodId,
             String name,
-            Integer grams,
+            Double grams,
             Integer kcal,
-            Integer fatG,
-            Integer carbsG,
-            Integer fiberG,
-            Integer sugarG) {
+            Double fatG,
+            Double carbsG,
+            Double fiberG,
+            Double sugarG) {
         ProteinFood food = requireFood(userId, foodId);
         Amounts next = new Amounts(
                 grams != null ? grams : food.getGrams(),
@@ -432,5 +433,10 @@ public class ProteinService {
         if (!dayService.isWithinEditWindow(date, zoneOf(userId), generalDays)) {
             throw new ApiException(ErrorCode.ENTRY_LOCKED, HttpStatus.FORBIDDEN, "This day can no longer be changed.");
         }
+    }
+
+    /** A sum of one-decimal values, without floating-point crumbs (0.1 + 0.2 = 0.3). */
+    public static double round1(double v) {
+        return Math.round(v * 10) / 10.0;
     }
 }

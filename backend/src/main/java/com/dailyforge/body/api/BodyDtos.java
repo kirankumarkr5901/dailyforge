@@ -26,7 +26,8 @@ public final class BodyDtos {
             @DecimalMin("20") @DecimalMax("250") BigDecimal chestCm,
             @DecimalMin("10") @DecimalMax("100") BigDecimal armCm,
             @DecimalMin("20") @DecimalMax("250") BigDecimal hipsCm,
-            @DecimalMin("10") @DecimalMax("150") BigDecimal thighCm) {}
+            @DecimalMin("10") @DecimalMax("150") BigDecimal thighCm,
+            @DecimalMin("15") @DecimalMax("80") BigDecimal neckCm) {}
 
     public record MetricResponse(
             UUID id,
@@ -39,7 +40,8 @@ public final class BodyDtos {
             BigDecimal chestCm,
             BigDecimal armCm,
             BigDecimal hipsCm,
-            BigDecimal thighCm) {
+            BigDecimal thighCm,
+            BigDecimal neckCm) {
         public static MetricResponse of(BodyMetric metric) {
             var m = metric.getMeasurements();
             return new MetricResponse(
@@ -53,7 +55,8 @@ public final class BodyDtos {
                     m.chestCm(),
                     m.armCm(),
                     m.hipsCm(),
-                    m.thighCm());
+                    m.thighCm(),
+                    m.neckCm());
         }
     }
 

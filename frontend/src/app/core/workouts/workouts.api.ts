@@ -59,6 +59,11 @@ export class WorkoutsApi {
   }
 
   /** Sets per muscle for the week containing `date`; omit it for this week. */
+  /** A muscle's own weekly target range; the AI's monthly check never overwrites it. */
+  setMuscleTarget(muscle: string, min: number, max: number): Observable<WeeklyVolume> {
+    return this.http.put<WeeklyVolume>(`${this.base}/workouts/muscle-targets/${muscle}`, { min, max });
+  }
+
   weeklyVolume(date?: LogicalDate): Observable<WeeklyVolume> {
     const params = date ? new HttpParams().set('date', date) : undefined;
     return this.http.get<WeeklyVolume>(`${this.base}/workouts/weekly-volume`, { params });

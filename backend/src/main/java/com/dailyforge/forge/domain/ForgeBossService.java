@@ -66,7 +66,11 @@ public class ForgeBossService {
             ForgeArea.FOCUS, new String[] {"The Screen Wraith", "It lives in the scroll. Every ignored notification weakens it."},
             ForgeArea.MINDSET, new String[] {"The Fog of Doubt", "It whispers that today doesn't count. Prove it wrong."},
             ForgeArea.LEARNING, new String[] {"The Tomorrow Troll", "It guards every 'I'll start next week'."},
-            ForgeArea.SOCIAL, new String[] {"The Silent Hermit", "It grows in the messages you never send."}));
+            ForgeArea.SOCIAL, new String[] {"The Silent Hermit", "It grows in the messages you never send."},
+            ForgeArea.FINANCE, new String[] {"The Leaky Wallet", "It eats small spends you never notice."},
+            ForgeArea.CAREER, new String[] {"The Comfort Plateau", "It keeps you busy so you never move up."},
+            ForgeArea.RELATIONSHIPS, new String[] {"The Distance Shade", "It grows in the calls you put off."},
+            ForgeArea.SOCIETY, new String[] {"The Bystander", "It whispers that someone else will help."}));
 
     static final RowMapper<Boss> ROW = (rs, i) -> new Boss(
             rs.getObject("id", UUID.class),

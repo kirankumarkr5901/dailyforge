@@ -21,7 +21,7 @@ import {
 /** Where an unfinished interview waits, so closing the app doesn't lose the answers. */
 const SAVED_KEY = 'dailyforge.forge-interview';
 /** Matches the server: the interview ends by then, and may end on request after the minimum. */
-const MAX_TURNS = 25;
+const MAX_TURNS = 30;
 const MIN_TURNS = 12;
 
 interface Saved {

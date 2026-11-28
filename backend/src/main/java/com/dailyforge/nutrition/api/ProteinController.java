@@ -224,14 +224,14 @@ public class ProteinController {
 
     public record MealItemDto(
             @jakarta.validation.constraints.NotBlank @jakarta.validation.constraints.Size(max = 60) String foodName,
-            Integer grams,
+            Double grams,
             Integer kcal,
-            Integer fatG,
-            Integer carbsG,
-            Integer fiberG,
-            Integer sugarG) {}
+            Double fatG,
+            Double carbsG,
+            Double fiberG,
+            Double sugarG) {}
 
-    public record MealResponse(UUID id, String name, int proteinG, int kcal, java.util.List<MealItemDto> items) {
+    public record MealResponse(UUID id, String name, double proteinG, int kcal, java.util.List<MealItemDto> items) {
         static MealResponse of(com.dailyforge.nutrition.domain.MealService.Meal m) {
             return new MealResponse(m.id(), m.name(), m.proteinG(), m.kcal(), m.items().stream()
                     .map(i -> new MealItemDto(i.foodName(), i.amounts().proteinG(), i.amounts().kcal(), i.amounts().fatG(),
@@ -277,6 +277,10 @@ public class ProteinController {
     }
 
     private static int orZero(Integer value) {
+        return value == null ? 0 : value;
+    }
+
+    private static double orZero(Double value) {
         return value == null ? 0 : value;
     }
 }

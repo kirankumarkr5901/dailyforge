@@ -161,7 +161,8 @@ export class NutritionPageComponent {
   protected readonly message = computed(() => {
     const d = this.day();
     if (!d) return '';
-    const left = d.targetG - d.totalG;
+    // One decimal, without floating-point crumbs (120 - 100.7 = 19.3, not 19.299999).
+    const left = Math.round((d.targetG - d.totalG) * 10) / 10;
     if (d.totalG === 0) return 'Nothing yet today. Eggs or curd at breakfast is an easy start.';
     if (left <= 0) return 'Target hit for today.';
     if (d.totalG < d.targetG / 2) return 'Good start. Make sure lunch has a solid protein source.';

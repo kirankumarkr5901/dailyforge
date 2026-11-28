@@ -27,6 +27,7 @@
           </div>
           <df-stepper-input
             label="How much you had"
+            [decimals]="1"
             suffix="g"
             [hint]="p.servingG ? 'One serving is ' + p.servingG + ' g.' : null"
             [min]="1"

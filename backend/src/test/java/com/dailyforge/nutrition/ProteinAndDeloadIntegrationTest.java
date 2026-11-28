@@ -299,6 +299,15 @@ class ProteinAndDeloadIntegrationTest {
         assertThat(body.get("day").get("entries").size()).isEqualTo(2);
     }
 
+    /** Owner request: grams keep one decimal, and the day adds them up exactly. */
+    @Test
+    void gramsKeepOneDecimal() throws Exception {
+        call(post("/api/v1/protein/logs").content("{\"date\":\"" + TODAY + "\",\"foodName\":\"Dal\",\"grams\":9.4,\"kcal\":180,\"fiberG\":5.25}"));
+        JsonNode day = call(post("/api/v1/protein/logs").content("{\"date\":\"" + TODAY + "\",\"foodName\":\"Curd\",\"grams\":10.3,\"kcal\":120}")).get("day");
+        assertThat(day.get("totalG").asDouble()).isEqualTo(19.7);
+        assertThat(day.get("totalFiberG").asDouble()).isEqualTo(5.3);
+    }
+
     @Test
     void anEntryWithNothingInItIsRefused() throws Exception {
         mockMvc.perform(auth(post("/api/v1/protein/logs"))

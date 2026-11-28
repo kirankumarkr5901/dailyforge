@@ -54,9 +54,14 @@ public class BodyMetric {
     @Column(name = "thigh_cm", precision = 5, scale = 1)
     private BigDecimal thighCm;
 
-    /** The five measurements together; any of them may be null. */
-    public record Measurements(BigDecimal waistCm, BigDecimal chestCm, BigDecimal armCm, BigDecimal hipsCm, BigDecimal thighCm) {
-        public static final Measurements NONE = new Measurements(null, null, null, null, null);
+    /** For the body-fat estimate (V51). */
+    @Column(name = "neck_cm", precision = 5, scale = 1)
+    private BigDecimal neckCm;
+
+    /** The six measurements together; any of them may be null. */
+    public record Measurements(
+            BigDecimal waistCm, BigDecimal chestCm, BigDecimal armCm, BigDecimal hipsCm, BigDecimal thighCm, BigDecimal neckCm) {
+        public static final Measurements NONE = new Measurements(null, null, null, null, null, null);
     }
 
     @Column(name = "created_at", nullable = false)
@@ -96,10 +101,11 @@ public class BodyMetric {
         if (m.armCm() != null) this.armCm = m.armCm();
         if (m.hipsCm() != null) this.hipsCm = m.hipsCm();
         if (m.thighCm() != null) this.thighCm = m.thighCm();
+        if (m.neckCm() != null) this.neckCm = m.neckCm();
     }
 
     public Measurements getMeasurements() {
-        return new Measurements(waistCm, chestCm, armCm, hipsCm, thighCm);
+        return new Measurements(waistCm, chestCm, armCm, hipsCm, thighCm, neckCm);
     }
 
     @PrePersist

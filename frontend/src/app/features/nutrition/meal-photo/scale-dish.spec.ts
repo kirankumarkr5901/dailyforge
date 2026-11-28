@@ -25,11 +25,13 @@ describe('scaling a dish from a meal photo', () => {
     });
   });
 
-  it('scales every value with the portion, rounded', () => {
+  it('scales every value with the portion, grams to one decimal and calories whole', () => {
     const half = scaleDish(biryani, 'Biryani', 150);
     expect(half.grams).toBe(12);
     expect(half.kcal).toBe(270);
-    expect(half.fiberG).toBe(2); // 1.5 rounds up
+    expect(half.fiberG).toBe(1.5); // kept, not rounded to 2
+    expect(scaleDish(biryani, 'Biryani', 100).grams).toBe(8);
+    expect(scaleDish(biryani, 'Biryani', 110).grams).toBe(8.8);
   });
 
   it('stays inside the per-entry limits', () => {

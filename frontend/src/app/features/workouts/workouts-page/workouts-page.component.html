@@ -25,7 +25,7 @@
         {{ restTimer.defaultSeconds() }}s
       </button>
 
-      @if (session.editingEnabled()) {
+      @if (session.editingEnabled() || ai.enabled()) {
         <button dfButton type="button" variant="ghost" (click)="openPlanManager()">
           <lucide-icon [img]="settingsIcon" [size]="16" aria-hidden="true" />
           Plans

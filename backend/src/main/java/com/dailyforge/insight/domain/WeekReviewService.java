@@ -103,7 +103,7 @@ public class WeekReviewService {
         if (targets != null) {
             for (List<ProteinLog> day : byDay.values()) {
                 if (day.stream().mapToInt(ProteinLog::getKcal).sum() <= targets.getCalorieBudget()) within++;
-                if (day.stream().mapToInt(ProteinLog::getGrams).sum() >= targets.getProteinTargetG()) proteinHit++;
+                if (day.stream().mapToDouble(ProteinLog::getGrams).sum() >= targets.getProteinTargetG()) proteinHit++;
             }
         }
 

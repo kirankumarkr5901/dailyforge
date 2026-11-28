@@ -208,7 +208,7 @@ public class DailyReminderService {
 
         if (identity.requireSettings(userId).isFeatureEnabled("NUTRITION") && nutritionSettings.existsById(userId)) {
             var day = protein.day(userId, today);
-            int left = day.targetG() - day.totalG();
+            int left = (int) Math.ceil(day.targetG() - day.totalG());
             if (left > 0) {
                 parts.add(left + " g protein");
             }

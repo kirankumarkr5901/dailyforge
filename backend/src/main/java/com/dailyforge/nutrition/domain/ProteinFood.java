@@ -25,23 +25,23 @@ public class ProteinFood {
     private String name;
 
     /** Protein, in grams. */
-    @Column(name = "grams", nullable = false)
-    private int grams;
+    @Column(name = "grams", nullable = false, precision = 6, scale = 1)
+    private java.math.BigDecimal grams = java.math.BigDecimal.ZERO;
 
     @Column(name = "kcal", nullable = false)
     private int kcal;
 
-    @Column(name = "fat_g", nullable = false)
-    private int fatG;
+    @Column(name = "fat_g", nullable = false, precision = 6, scale = 1)
+    private java.math.BigDecimal fatG = java.math.BigDecimal.ZERO;
 
-    @Column(name = "carbs_g", nullable = false)
-    private int carbsG;
+    @Column(name = "carbs_g", nullable = false, precision = 6, scale = 1)
+    private java.math.BigDecimal carbsG = java.math.BigDecimal.ZERO;
 
-    @Column(name = "fiber_g", nullable = false)
-    private int fiberG;
+    @Column(name = "fiber_g", nullable = false, precision = 6, scale = 1)
+    private java.math.BigDecimal fiberG = java.math.BigDecimal.ZERO;
 
-    @Column(name = "sugar_g", nullable = false)
-    private int sugarG;
+    @Column(name = "sugar_g", nullable = false, precision = 6, scale = 1)
+    private java.math.BigDecimal sugarG = java.math.BigDecimal.ZERO;
 
     @Column(name = "sort_order", nullable = false)
     private int sortOrder;
@@ -63,29 +63,29 @@ public class ProteinFood {
         // for JPA
     }
 
-    public static ProteinFood create(UUID userId, String name, int grams, int kcal, int fatG, int sortOrder) {
+    public static ProteinFood create(UUID userId, String name, double grams, int kcal, double fatG, int sortOrder) {
         ProteinFood food = new ProteinFood();
         food.id = UUID.randomUUID();
         food.userId = userId;
         food.name = name;
-        food.grams = grams;
+        food.grams = oneDecimal(grams);
         food.kcal = kcal;
-        food.fatG = fatG;
+        food.fatG = oneDecimal(fatG);
         food.sortOrder = sortOrder;
         return food;
     }
 
-    public void update(String name, int grams, int kcal, int fatG) {
+    public void update(String name, double grams, int kcal, double fatG) {
         this.name = name;
-        this.grams = grams;
+        this.grams = oneDecimal(grams);
         this.kcal = kcal;
-        this.fatG = fatG;
+        this.fatG = oneDecimal(fatG);
     }
 
-    public void updateMore(int carbsG, int fiberG, int sugarG) {
-        this.carbsG = carbsG;
-        this.fiberG = fiberG;
-        this.sugarG = sugarG;
+    public void updateMore(double carbsG, double fiberG, double sugarG) {
+        this.carbsG = oneDecimal(carbsG);
+        this.fiberG = oneDecimal(fiberG);
+        this.sugarG = oneDecimal(sugarG);
     }
 
     @PrePersist
@@ -112,28 +112,28 @@ public class ProteinFood {
         return name;
     }
 
-    public int getGrams() {
-        return grams;
+    public double getGrams() {
+        return grams.doubleValue();
     }
 
     public int getKcal() {
         return kcal;
     }
 
-    public int getFatG() {
-        return fatG;
+    public double getFatG() {
+        return fatG.doubleValue();
     }
 
-    public int getCarbsG() {
-        return carbsG;
+    public double getCarbsG() {
+        return carbsG.doubleValue();
     }
 
-    public int getFiberG() {
-        return fiberG;
+    public double getFiberG() {
+        return fiberG.doubleValue();
     }
 
-    public int getSugarG() {
-        return sugarG;
+    public double getSugarG() {
+        return sugarG.doubleValue();
     }
 
     public int getSortOrder() {
@@ -146,5 +146,10 @@ public class ProteinFood {
 
     void setSource(String source) {
         this.source = source;
+    }
+
+    /** Grams keep one decimal (owner request): 9.4 g stays 9.4 g. */
+    static java.math.BigDecimal oneDecimal(double v) {
+        return java.math.BigDecimal.valueOf(v).setScale(1, java.math.RoundingMode.HALF_UP);
     }
 }

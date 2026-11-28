@@ -48,16 +48,21 @@ export class ProteinTipsComponent {
   protected readonly tips = signal<ProteinSuggestion[] | null>(null);
   protected readonly meal = signal<MealIdea | null>(null);
 
-  protected readonly mealTotals = computed(() =>
-    (this.meal()?.items ?? []).reduce(
-      (t, i) => ({
-        proteinG: t.proteinG + i.proteinG,
-        kcal: t.kcal + i.kcal,
-        fiberG: t.fiberG + i.fiberG,
+  protected readonly mealTotals = computed(() => {
+    const t = (this.meal()?.items ?? []).reduce(
+      (a, i) => ({
+        proteinG: a.proteinG + i.proteinG,
+        kcal: a.kcal + i.kcal,
+        fiberG: a.fiberG + i.fiberG,
       }),
       { proteinG: 0, kcal: 0, fiberG: 0 },
-    ),
-  );
+    );
+    return {
+      proteinG: Math.round(t.proteinG * 10) / 10,
+      kcal: Math.round(t.kcal),
+      fiberG: Math.round(t.fiberG * 10) / 10,
+    };
+  });
   protected readonly hasEstimates = computed(() =>
     (this.meal()?.items ?? []).some((i) => !i.foodId),
   );

@@ -1,7 +1,6 @@
 package com.dailyforge.goal.api;
 
 import com.dailyforge.common.security.CurrentUser;
-import com.dailyforge.common.security.StructuralChange;
 import com.dailyforge.goal.domain.GoalPlannerService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -41,10 +40,13 @@ public class GoalPlannerController {
         return planner.draft(currentUser.require(), request.request(), request.targetDate());
     }
 
-    /** Creates what the user kept: the goal, milestones, habits, skill and workout additions. */
+    /**
+     * Creates what the user kept: the goal, milestones, habits, skill and workout
+     * additions. Not a structural change (owner request): changes the AI makes, after
+     * the user reviewed them, work with "Enable edit" off; the lock is for manual edits.
+     */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @StructuralChange
     public Map<String, UUID> accept(@RequestBody GoalPlannerService.Draft draft) {
         return Map.of("goalId", planner.accept(currentUser.require(), draft));
     }

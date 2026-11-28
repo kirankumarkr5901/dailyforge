@@ -31,23 +31,23 @@ public class ProteinLog {
     private String foodName;
 
     /** Protein, in grams. */
-    @Column(name = "grams", nullable = false)
-    private int grams;
+    @Column(name = "grams", nullable = false, precision = 6, scale = 1)
+    private java.math.BigDecimal grams = java.math.BigDecimal.ZERO;
 
     @Column(name = "kcal", nullable = false)
     private int kcal;
 
-    @Column(name = "fat_g", nullable = false)
-    private int fatG;
+    @Column(name = "fat_g", nullable = false, precision = 6, scale = 1)
+    private java.math.BigDecimal fatG = java.math.BigDecimal.ZERO;
 
-    @Column(name = "carbs_g", nullable = false)
-    private int carbsG;
+    @Column(name = "carbs_g", nullable = false, precision = 6, scale = 1)
+    private java.math.BigDecimal carbsG = java.math.BigDecimal.ZERO;
 
-    @Column(name = "fiber_g", nullable = false)
-    private int fiberG;
+    @Column(name = "fiber_g", nullable = false, precision = 6, scale = 1)
+    private java.math.BigDecimal fiberG = java.math.BigDecimal.ZERO;
 
-    @Column(name = "sugar_g", nullable = false)
-    private int sugarG;
+    @Column(name = "sugar_g", nullable = false, precision = 6, scale = 1)
+    private java.math.BigDecimal sugarG = java.math.BigDecimal.ZERO;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
@@ -56,24 +56,24 @@ public class ProteinLog {
         // for JPA
     }
 
-    public static ProteinLog create(UUID userId, LocalDate occurredOn, String foodName, int grams, int kcal, int fatG) {
+    public static ProteinLog create(UUID userId, LocalDate occurredOn, String foodName, double grams, int kcal, double fatG) {
         ProteinLog log = new ProteinLog();
         log.id = UUID.randomUUID();
         log.userId = userId;
         log.occurredOn = occurredOn;
         log.foodName = foodName;
-        log.grams = grams;
+        log.grams = oneDecimal(grams);
         log.kcal = kcal;
-        log.fatG = fatG;
+        log.fatG = oneDecimal(fatG);
         return log;
     }
 
     public static ProteinLog create(
-            UUID userId, LocalDate occurredOn, String foodName, int grams, int kcal, int fatG, int carbsG, int fiberG, int sugarG) {
+            UUID userId, LocalDate occurredOn, String foodName, double grams, int kcal, double fatG, double carbsG, double fiberG, double sugarG) {
         ProteinLog log = create(userId, occurredOn, foodName, grams, kcal, fatG);
-        log.carbsG = carbsG;
-        log.fiberG = fiberG;
-        log.sugarG = sugarG;
+        log.carbsG = oneDecimal(carbsG);
+        log.fiberG = oneDecimal(fiberG);
+        log.sugarG = oneDecimal(sugarG);
         return log;
     }
 
@@ -98,31 +98,36 @@ public class ProteinLog {
         return foodName;
     }
 
-    public int getGrams() {
-        return grams;
+    public double getGrams() {
+        return grams.doubleValue();
     }
 
     public int getKcal() {
         return kcal;
     }
 
-    public int getFatG() {
-        return fatG;
+    public double getFatG() {
+        return fatG.doubleValue();
     }
 
-    public int getCarbsG() {
-        return carbsG;
+    public double getCarbsG() {
+        return carbsG.doubleValue();
     }
 
-    public int getFiberG() {
-        return fiberG;
+    public double getFiberG() {
+        return fiberG.doubleValue();
     }
 
-    public int getSugarG() {
-        return sugarG;
+    public double getSugarG() {
+        return sugarG.doubleValue();
     }
 
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    /** Grams keep one decimal (owner request): 9.4 g stays 9.4 g. */
+    static java.math.BigDecimal oneDecimal(double v) {
+        return java.math.BigDecimal.valueOf(v).setScale(1, java.math.RoundingMode.HALF_UP);
     }
 }
