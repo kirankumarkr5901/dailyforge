@@ -37,7 +37,7 @@ class WorkoutCoachServiceTest {
                            {"exercise":"Made up","type":"SWAP","message":"x","swapTo":"y"}],
                  "gaps":[{"muscle":"Back","message":"Add 4 rows."},{"muscle":"chest","message":"Covered."}]}
                 """);
-        var coaching = WorkoutCoachService.parse(answer, Map.of("bench press", bench), Map.of("chest", 12, "back", 3));
+        var coaching = WorkoutCoachService.parse(answer, Map.of("bench press", bench), Map.of("chest", 12, "back", 3), Map.of("chest", 10, "back", 10));
         assertThat(coaching.note()).isEqualTo("Go for 42.5 kg.");
         assertThat(coaching.alerts()).extracting(WorkoutCoachService.Alert::exerciseId).containsExactly(bench);
         assertThat(coaching.gaps()).extracting(WorkoutCoachService.Gap::muscle).containsExactly("back");

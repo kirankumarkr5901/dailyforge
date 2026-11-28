@@ -172,10 +172,23 @@ export interface ExerciseHistoryEntry {
 }
 
 /** Sets per primary muscle for one Monday-to-Sunday week, with the usual target band. */
+export interface MuscleVolume {
+  group: string;
+  sets: number;
+  /** This muscle's weekly target; null for a muscle without one (e.g. forearms). */
+  min: number | null;
+  max: number | null;
+  /** AI, USER (edited) or DEFAULT. */
+  targetSource: 'AI' | 'USER' | 'DEFAULT' | null;
+}
+
 export interface WeeklyVolume {
   weekStart: LogicalDate;
   weekEnd: LogicalDate;
-  targetLow: number;
-  targetHigh: number;
-  muscles: { group: string; sets: number }[];
+  muscles: MuscleVolume[];
+  /** Main muscles at or above their minimum this week, out of {@link mainMuscles}. */
+  reached: number;
+  mainMuscles: number;
+  pointsPerMuscle: number;
+  allBonus: number;
 }

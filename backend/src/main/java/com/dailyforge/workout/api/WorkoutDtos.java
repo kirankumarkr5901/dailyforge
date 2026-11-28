@@ -279,18 +279,38 @@ public final class WorkoutDtos {
 
     // ---------------------------------------------------------------- weekly volume
 
-    public record MuscleSetsResponse(String group, int sets) {}
+    /** {@code min}/{@code max}: the muscle's weekly target (null for a muscle without one). */
+    public record MuscleSetsResponse(String group, int sets, Integer min, Integer max, String targetSource) {}
 
     /** Sets per primary muscle for one Monday-to-Sunday week, plus the usual target band. */
+    /**
+     * Sets per muscle this week against each main muscle's own target. Reaching a minimum
+     * pays {@code pointsPerMuscle}; every main muscle reaching it pays {@code allBonus}.
+     */
     public record WeeklyVolumeResponse(
-            LocalDate weekStart, LocalDate weekEnd, int targetLow, int targetHigh, List<MuscleSetsResponse> muscles) {
-        public static WeeklyVolumeResponse of(com.dailyforge.workout.domain.WeeklyVolumeService.WeeklyVolume v) {
+            LocalDate weekStart,
+            LocalDate weekEnd,
+            List<MuscleSetsResponse> muscles,
+            int reached,
+            int mainMuscles,
+            int pointsPerMuscle,
+            int allBonus) {
+        public static WeeklyVolumeResponse of(
+                com.dailyforge.workout.domain.WeeklyVolumeService.WeeklyVolume v,
+                java.util.Map<String, com.dailyforge.workout.domain.MuscleTargetService.Target> targets,
+                int pointsPerMuscle,
+                int allBonus) {
+            List<MuscleSetsResponse> rows = v.muscles().stream()
+                    .map(m -> {
+                        var t = targets.get(m.group());
+                        return t == null
+                                ? new MuscleSetsResponse(m.group(), m.sets(), null, null, null)
+                                : new MuscleSetsResponse(m.group(), m.sets(), t.min(), t.max(), t.source());
+                    })
+                    .toList();
+            int reached = (int) rows.stream().filter(r -> r.min() != null && r.sets() >= r.min()).count();
             return new WeeklyVolumeResponse(
-                    v.weekStart(),
-                    v.weekEnd(),
-                    com.dailyforge.workout.domain.WeeklyVolumeService.TARGET_LOW,
-                    com.dailyforge.workout.domain.WeeklyVolumeService.TARGET_HIGH,
-                    v.muscles().stream().map(m -> new MuscleSetsResponse(m.group(), m.sets())).toList());
+                    v.weekStart(), v.weekEnd(), rows, reached, targets.size(), pointsPerMuscle, allBonus);
         }
     }
 }

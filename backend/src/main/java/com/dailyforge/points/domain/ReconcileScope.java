@@ -33,6 +33,9 @@ public sealed interface ReconcileScope {
     /** One Forge 66 quest: paid when completed, reversed when unmarked. */
     record ForgeQuest(UUID questId) implements ReconcileScope {}
 
+    /** One Monday-to-Sunday week of sets per muscle against the weekly targets. */
+    record MuscleWeek(UUID userId, LocalDate weekStart) implements ReconcileScope {}
+
     /** One Forge 66 boss: paid when beaten, reversed if un-beaten the same day. */
     record ForgeBoss(UUID bossId) implements ReconcileScope {}
 

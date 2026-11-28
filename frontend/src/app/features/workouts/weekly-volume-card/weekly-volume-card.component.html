@@ -1,24 +1,82 @@
 <df-card>
   <h2 class="volume__title">Sets per muscle this week</h2>
   <p class="volume__sub">
-    The shaded zone is {{ volume().targetLow }}–{{ volume().targetHigh }} sets, the usual weekly target. Each set counts
-    toward its exercise's main muscle.
+    {{ current().reached }} of {{ current().mainMuscles }} muscles at target. Each muscle reaching
+    its minimum earns {{ current().pointsPerMuscle }} pts; all of them,
+    {{ current().allBonus }} more. Tap a muscle to change its target.
   </p>
 
-  @if (volume().muscles.length === 0) {
-    <p class="volume__empty">No sets logged this week yet.</p>
-  } @else {
-    <ul class="volume__rows">
-      @for (m of volume().muscles; track m.group) {
-        <li class="volume__row" [attr.aria-label]="m.group + ': ' + status(m.sets)" [attr.title]="status(m.sets)">
+  <ul class="volume__rows">
+    @for (m of current().muscles; track m.group) {
+      <li>
+        <button
+          type="button"
+          class="volume__row"
+          [class.volume__row--reached]="reached(m)"
+          [disabled]="m.min === null"
+          [attr.aria-label]="m.group + ': ' + status(m) + (m.min !== null ? '. Change target' : '')"
+          [attr.title]="status(m)"
+          (click)="edit(m)"
+        >
           <span class="volume__group">{{ m.group }}</span>
           <span class="volume__track" aria-hidden="true">
-            <span class="volume__zone" [style.left.%]="band().left" [style.width.%]="band().width"></span>
+            @if (band(m); as b) {
+              <span class="volume__zone" [style.left.%]="b.left" [style.width.%]="b.width"></span>
+            }
             <span class="volume__bar" [style.width.%]="width(m.sets)"></span>
           </span>
-          <span class="volume__count">{{ m.sets }}</span>
-        </li>
-      }
-    </ul>
-  }
+          <span class="volume__count">
+            {{ m.sets }}
+            @if (m.min !== null) {
+              <span class="volume__target">/{{ m.min }}</span>
+            }
+          </span>
+        </button>
+        @if (editing() === m.group) {
+          <div class="volume__edit">
+            <df-stepper-input
+              label="Minimum"
+              suffix="sets"
+              [min]="1"
+              [max]="40"
+              [ngModel]="editMin()"
+              (ngModelChange)="editMin.set($event)"
+            />
+            <df-stepper-input
+              label="Maximum"
+              suffix="sets"
+              [min]="1"
+              [max]="50"
+              [ngModel]="editMax()"
+              (ngModelChange)="editMax.set($event)"
+            />
+            <div class="volume__edit-actions">
+              <button
+                dfButton
+                type="button"
+                variant="primary"
+                [disabled]="saving()"
+                (click)="save()"
+              >
+                Save
+              </button>
+              <button dfButton type="button" variant="ghost" (click)="editing.set(null)">
+                Cancel
+              </button>
+            </div>
+            <p class="volume__sub">
+              {{
+                m.targetSource === 'AI'
+                  ? 'Set by the AI from your training.'
+                  : m.targetSource === 'USER'
+                    ? 'Your own target.'
+                    : 'A starting default.'
+              }}
+              Your own targets are kept; the AI re-checks the rest monthly.
+            </p>
+          </div>
+        }
+      </li>
+    }
+  </ul>
 </df-card>

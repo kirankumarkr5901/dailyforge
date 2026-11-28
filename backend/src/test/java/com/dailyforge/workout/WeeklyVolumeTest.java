@@ -61,7 +61,9 @@ class WeeklyVolumeTest {
 
         var week = volume.forWeekOf(user, TODAY);
 
-        assertThat(week.muscles()).containsExactly(new MuscleSets("chest", 7), new MuscleSets("back", 2));
+        assertThat(trained(week.muscles())).containsExactly(new MuscleSets("chest", 7), new MuscleSets("back", 2));
+        // Every main muscle is listed, at zero when untrained: each has a weekly target.
+        assertThat(week.muscles()).hasSize(com.dailyforge.workout.domain.MainMuscles.ALL.size());
         assertThat(week.weekStart()).isEqualTo(WeeklyVolumeService.mondayOf(TODAY));
         assertThat(week.weekEnd()).isEqualTo(week.weekStart().plusDays(6));
     }
@@ -70,19 +72,23 @@ class WeeklyVolumeTest {
     void cardioIsLeftOut() {
         log(exercise(ExerciseKind.CARDIO, List.of("legs")), 1);
 
-        assertThat(volume.forWeekOf(user, TODAY).muscles()).isEmpty();
+        assertThat(trained(volume.forWeekOf(user, TODAY).muscles())).isEmpty();
     }
 
     @Test
     void anotherWeekSeesNothing() {
         log(exercise(ExerciseKind.STRENGTH, List.of("chest")), 3);
 
-        assertThat(volume.forWeekOf(user, TODAY.plusWeeks(1)).muscles()).isEmpty();
+        assertThat(trained(volume.forWeekOf(user, TODAY.plusWeeks(1)).muscles())).isEmpty();
     }
 
     @Test
     void mondayIsTheStartOfTheWeek() {
         assertThat(WeeklyVolumeService.mondayOf(LocalDate.of(2026, 11, 29))).isEqualTo(LocalDate.of(2026, 11, 23));
         assertThat(WeeklyVolumeService.mondayOf(LocalDate.of(2026, 11, 23))).isEqualTo(LocalDate.of(2026, 11, 23));
+    }
+
+    private static java.util.List<MuscleSets> trained(java.util.List<MuscleSets> all) {
+        return all.stream().filter(m -> m.sets() > 0).toList();
     }
 }
