@@ -1,0 +1,82 @@
+/* Phone first: a checklist row per milestone, the date on the right. */
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.ms__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ms__row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.ms__row input {
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  accent-color: var(--done);
+}
+
+.ms__row--done .ms__title {
+  color: var(--ink-muted);
+  text-decoration: line-through;
+}
+
+.ms__date {
+  color: var(--ink-muted);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.ms__date--late {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.ms__review {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+}
+
+.ms__review--ask {
+  border-color: var(--heat-2);
+}
+
+.ms__note,
+.ms__muted {
+  margin: 0;
+  font-size: var(--text-sm);
+}
+
+.ms__muted {
+  color: var(--ink-muted);
+}
+
+.ms__proposal {
+  font-size: var(--text-sm);
+}
+
+.ms__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}

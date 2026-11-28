@@ -1,0 +1,56 @@
+@if (plan().review; as r) {
+  @if (r.status === 'PENDING' || r.status === 'NONE') {
+    <div class="ms__review" [class.ms__review--ask]="r.status === 'PENDING'">
+      <p class="ms__note"><strong>This week:</strong> {{ r.note }}</p>
+      @if (r.status === 'PENDING') {
+        <p class="ms__muted">Suggested new dates for the open milestones:</p>
+        <ul class="ms__list">
+          @for (m of r.proposal; track $index) {
+            <li class="ms__proposal">{{ m.title }} · {{ formatDate(m.dueDate) }}</li>
+          }
+        </ul>
+        <div class="ms__actions">
+          <button
+            dfButton
+            type="button"
+            variant="primary"
+            [disabled]="busy()"
+            (click)="answer(true)"
+          >
+            Accept
+          </button>
+          <button
+            dfButton
+            type="button"
+            variant="ghost"
+            [disabled]="busy()"
+            (click)="answer(false)"
+          >
+            Keep mine
+          </button>
+        </div>
+      }
+    </div>
+  }
+}
+
+@if (plan().milestones.length > 0) {
+  <ul class="ms__list">
+    @for (m of plan().milestones; track m.id) {
+      <li>
+        <label class="ms__row" [class.ms__row--done]="m.doneOn">
+          <input
+            type="checkbox"
+            [checked]="!!m.doneOn"
+            [disabled]="busy()"
+            (change)="toggle(m.id)"
+          />
+          <span class="ms__title">{{ m.title }}</span>
+          <span class="ms__date" [class.ms__date--late]="overdue(m.dueDate, m.doneOn)">{{
+            formatDate(m.dueDate)
+          }}</span>
+        </label>
+      </li>
+    }
+  </ul>
+}

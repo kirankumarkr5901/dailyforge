@@ -1,0 +1,160 @@
+<df-sheet
+  [open]="open()"
+  (openChange)="$event ? null : closed.emit()"
+  heading="Plan a goal with AI"
+>
+  <div class="planner">
+    @if (draft(); as d) {
+      @if (d.summary) {
+        <p class="planner__muted">{{ d.summary }}</p>
+      }
+
+      <section class="planner__section">
+        <h3 class="planner__heading">Goal · by {{ formatDate(d.goal.targetDate) }}</h3>
+        <df-input label="Title" [ngModel]="d.goal.title" (ngModelChange)="renameGoal($event)" />
+        @if (d.goal.kind !== 'CUSTOM' && d.goal.targetValue) {
+          <p class="planner__muted">
+            Tracks itself:
+            {{
+              d.goal.kind === 'RUN_DISTANCE'
+                ? d.goal.targetValue + ' km run'
+                : d.goal.kind === 'BODY_METRIC'
+                  ? d.goal.targetValue + ' kg body weight'
+                  : d.goal.exerciseName + ' at ' + d.goal.targetValue + ' kg'
+            }}
+          </p>
+        }
+      </section>
+
+      @if (d.milestones.length > 0) {
+        <section class="planner__section">
+          <h3 class="planner__heading">Milestones</h3>
+          <ul class="planner__list">
+            @for (m of d.milestones; track $index; let i = $index) {
+              <li class="planner__row">
+                <span>
+                  <span class="planner__item">{{ m.title }}</span>
+                  <span class="planner__muted">{{ formatDate(m.dueDate) }}</span>
+                </span>
+                <button
+                  type="button"
+                  class="planner__remove"
+                  [attr.aria-label]="'Remove ' + m.title"
+                  (click)="removeMilestone(i)"
+                >
+                  ×
+                </button>
+              </li>
+            }
+          </ul>
+        </section>
+      }
+
+      @if (d.habits.length > 0) {
+        <section class="planner__section">
+          <h3 class="planner__heading">Habits to start</h3>
+          @for (h of d.habits; track $index; let i = $index) {
+            <label class="planner__check">
+              <input type="checkbox" [checked]="keepHabits()[i]" (change)="toggle('habits', i)" />
+              <span>
+                <span class="planner__item">{{ h.name }}</span>
+                <span class="planner__muted">{{ days(h.daysPerWeek) }}</span>
+              </span>
+            </label>
+          }
+        </section>
+      }
+
+      @if (d.skill; as s) {
+        <section class="planner__section">
+          <h3 class="planner__heading">Skill path</h3>
+          <label class="planner__check">
+            <input type="checkbox" [checked]="keepSkill()" (change)="keepSkill.set(!keepSkill())" />
+            <span>
+              <span class="planner__item">{{ s.name }}</span>
+              <span class="planner__muted">{{ s.when }}</span>
+            </span>
+          </label>
+          <ol class="planner__levels">
+            @for (l of s.levels; track $index) {
+              <li>
+                <strong>{{ l.title }}:</strong> {{ l.drills.join(' · ') }}
+                <span class="planner__muted">Move on: {{ l.goal }}</span>
+              </li>
+            }
+          </ol>
+        </section>
+      }
+
+      @if (d.workoutAdds.length > 0) {
+        <section class="planner__section">
+          <h3 class="planner__heading">Add to your workout plan</h3>
+          @for (w of d.workoutAdds; track $index; let i = $index) {
+            <label class="planner__check">
+              <input type="checkbox" [checked]="keepAdds()[i]" (change)="toggle('adds', i)" />
+              <span>
+                <span class="planner__item">{{ w.exerciseName }}</span>
+                <span class="planner__muted">
+                  {{ w.dayLabel }} · {{ w.sets }} ×
+                  {{ w.repsMin === w.repsMax ? w.repsMin : w.repsMin + '–' + w.repsMax }}
+                </span>
+              </span>
+            </label>
+          }
+        </section>
+      }
+
+      <p class="planner__muted">
+        Each week the AI checks your progress and may suggest new milestone dates for you to accept.
+      </p>
+      <button
+        dfButton
+        type="button"
+        variant="primary"
+        [fullWidth]="true"
+        [loading]="saving()"
+        [disabled]="saving() || !d.goal.title.trim()"
+        (click)="accept()"
+      >
+        Add to my plan
+      </button>
+      <button dfButton type="button" variant="ghost" (click)="draft.set(null)">
+        Change what I asked
+      </button>
+    } @else {
+      <label class="planner__label" for="planner-goal">What do you want to achieve?</label>
+      <textarea
+        id="planner-goal"
+        class="planner__text"
+        rows="3"
+        maxlength="500"
+        placeholder="e.g. Run 10 km without stopping · Do my first pull-up · Read 12 books"
+        [ngModel]="request()"
+        (ngModelChange)="request.set($event)"
+      ></textarea>
+      <label class="planner__label" for="planner-date">By when?</label>
+      <input
+        id="planner-date"
+        class="planner__date"
+        type="date"
+        [min]="minDate()"
+        [ngModel]="targetDate()"
+        (ngModelChange)="targetDate.set($event)"
+      />
+      <button
+        dfButton
+        type="button"
+        variant="primary"
+        [fullWidth]="true"
+        [loading]="drafting()"
+        [disabled]="drafting() || !canDraft()"
+        (click)="makeDraft()"
+      >
+        {{ drafting() ? 'Planning…' : 'Plan it' }}
+      </button>
+      <p class="planner__muted">
+        Your goal is read by Google Gemini to plan with. Google may use it to improve its products.
+      </p>
+    }
+  </div>
+</df-sheet>

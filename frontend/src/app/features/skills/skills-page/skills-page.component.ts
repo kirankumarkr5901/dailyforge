@@ -87,6 +87,22 @@ export class SkillsPageComponent {
     });
   }
 
+  /** A custom skill waiting for the second tap to remove it. */
+  protected readonly armedRemove = signal<string | null>(null);
+
+  protected async removeCustom(skill: Skill): Promise<void> {
+    if (this.busy()) return;
+    this.busy.set(skill.code);
+    try {
+      this.board.set(await firstValueFrom(this.api.removeCustom(skill.code)));
+      this.armedRemove.set(null);
+    } catch {
+      this.toasts.show('That did not save. Check your connection and try again.', { tone: 'penalty' });
+    } finally {
+      this.busy.set(null);
+    }
+  }
+
   protected async setLevel(skill: Skill, level: number): Promise<void> {
     if (level === skill.level || this.busy()) return;
     this.busy.set(skill.code);

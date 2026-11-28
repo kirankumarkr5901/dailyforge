@@ -42,7 +42,8 @@ public class SkillController {
             int level,
             boolean doneOnDate,
             int daysDone,
-            List<LevelResponse> levels) {
+            List<LevelResponse> levels,
+            boolean custom) {
 
         static SkillResponse of(SkillService.SkillState s) {
             SkillCatalog.Skill skill = s.skill();
@@ -53,7 +54,8 @@ public class SkillController {
                     })
                     .toList();
             return new SkillResponse(
-                    skill.code(), skill.name(), skill.when(), skill.safety(), s.level(), s.doneOnDate(), s.daysDone(), levels);
+                    skill.code(), skill.name(), skill.when(), skill.safety(), s.level(), s.doneOnDate(), s.daysDone(), levels,
+                    s.custom());
         }
     }
 
@@ -93,5 +95,11 @@ public class SkillController {
     @DeleteMapping("/{code}/done")
     public WriteResponse markNotDone(@PathVariable String code, @RequestParam LocalDate date) {
         return WriteResponse.of(skills.markNotDone(currentUser.require(), code, date));
+    }
+
+    /** Removes a skill the AI wrote (the built-in three can't be removed). */
+    @org.springframework.web.bind.annotation.DeleteMapping("/{code}")
+    public BoardResponse deleteCustom(@org.springframework.web.bind.annotation.PathVariable String code) {
+        return BoardResponse.of(skills.deleteCustom(currentUser.require(), code));
     }
 }

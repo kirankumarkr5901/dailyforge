@@ -2,6 +2,10 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } 
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
 import { Award, EyeOff, LucideAngularModule, Plus, SquarePen, Trash2 } from 'lucide-angular';
+import { AiStatusService } from '../../../core/ai/ai-status.service';
+import { GoalPlan, GoalPlannerApi } from '../../../core/goal/goal-planner.api';
+import { GoalPlannerSheetComponent } from '../goal-planner-sheet/goal-planner-sheet.component';
+import { GoalMilestonesComponent } from '../goal-milestones/goal-milestones.component';
 
 import { AuthApi } from '../../../core/auth/auth.api';
 import { AuthSheetService } from '../../../core/auth/auth-sheet.service';
@@ -24,6 +28,8 @@ import { GoalFormSheetComponent } from '../goal-form-sheet/goal-form-sheet.compo
 @Component({
   selector: 'df-goals-page',
   imports: [
+    GoalPlannerSheetComponent,
+    GoalMilestonesComponent,
     DfEditingNoteComponent,
     LucideAngularModule,
     DfButtonComponent,
@@ -58,6 +64,30 @@ export class GoalsPageComponent {
   protected readonly goals = signal<Goal[]>([]);
   protected readonly todayDate = signal<LogicalDate | null>(null);
   protected readonly formOpen = signal(false);
+  protected readonly ai = inject(AiStatusService);
+  private readonly planner = inject(GoalPlannerApi);
+  /** "Plan with AI" sheet. */
+  protected readonly plannerOpen = signal(false);
+  /** Milestones and weekly check-ins of AI-planned goals. */
+  protected readonly goalPlans = signal<GoalPlan[]>([]);
+
+  protected planFor(goalId: string): GoalPlan | null {
+    return this.goalPlans().find((p) => p.goalId === goalId) ?? null;
+  }
+
+  private async loadPlans(): Promise<void> {
+    if (!(await this.ai.load())) return;
+    try {
+      this.goalPlans.set(await firstValueFrom(this.planner.plans()));
+    } catch {
+      // Goals work without their AI extras.
+    }
+  }
+
+  protected async onPlanned(): Promise<void> {
+    await this.refresh();
+    await this.loadPlans();
+  }
   /** The goal the form is editing, or null when it is creating. */
   protected readonly editingGoal = signal<Goal | null>(null);
 
@@ -101,6 +131,7 @@ export class GoalsPageComponent {
       const [today, goals] = await Promise.all([firstValueFrom(this.authApi.today()), firstValueFrom(this.api.list())]);
       this.todayDate.set(today.date);
       this.goals.set(goals);
+      void this.loadPlans();
     } catch {
       this.error.set('Could not load your goals. Check your connection and try again.');
     } finally {
