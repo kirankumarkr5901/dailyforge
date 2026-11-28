@@ -1,0 +1,186 @@
+/* Phone first: the button floats above the bottom bar, at the right thumb. */
+.ask__fab {
+  position: fixed;
+  right: var(--space-4);
+  bottom: calc(64px + var(--safe-bottom, 0px) + var(--space-3));
+  z-index: 25;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--heat-2);
+  color: var(--ink-on-accent, #fff);
+  box-shadow: 0 6px 18px rgb(0 0 0 / 0.25);
+  cursor: pointer;
+}
+
+.ask__fab:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+/* No bottom bar from 1024px: the button sits in the corner. */
+@media (min-width: 1024px) {
+  .ask__fab {
+    bottom: var(--space-5, 24px);
+  }
+}
+
+.ask {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.ask__log {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-height: 55vh;
+  overflow-y: auto;
+}
+
+.ask__muted {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+}
+
+.ask__examples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.ask__example {
+  min-height: 40px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-sunken);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-sm);
+  text-align: left;
+  cursor: pointer;
+}
+
+.ask__msg {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.ask__msg--user {
+  align-items: flex-end;
+}
+
+.ask__bubble {
+  max-width: 88%;
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border-radius: 14px;
+  background: var(--surface-sunken);
+  white-space: pre-line;
+}
+
+.ask__msg--user .ask__bubble {
+  background: var(--heat-2);
+  color: var(--ink-on-accent, #fff);
+}
+
+.ask__action {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-3);
+  border: 1px solid var(--heat-2);
+  border-radius: var(--radius-card);
+}
+
+.ask__action--done {
+  border-color: var(--done);
+}
+
+.ask__action-summary {
+  font-weight: 600;
+}
+
+.ask__action-buttons {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.ask__form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-2);
+}
+
+/* 16px text so phones don't zoom into the field. */
+.ask__input {
+  min-height: 48px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-sunken);
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;
+}
+
+.ask__send {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--heat-2);
+  color: var(--ink-on-accent, #fff);
+  cursor: pointer;
+}
+
+.ask__send:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.ask__input:focus-visible,
+.ask__send:focus-visible,
+.ask__example:focus-visible,
+.ask__clear:focus-visible {
+  outline: 2px solid var(--heat-2);
+  outline-offset: 2px;
+}
+
+.ask__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.ask__clear {
+  min-height: 40px;
+  border: 0;
+  background: none;
+  color: var(--ink-muted);
+  font: inherit;
+  font-size: var(--text-sm);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.ask__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

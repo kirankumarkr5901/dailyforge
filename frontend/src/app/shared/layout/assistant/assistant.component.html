@@ -1,0 +1,95 @@
+@if (session.isAuthenticated() && ai.enabled()) {
+  <button type="button" class="ask__fab" aria-label="Ask DailyForge" (click)="open.set(true)">
+    <lucide-icon [img]="chatIcon" [size]="22" aria-hidden="true" />
+  </button>
+
+  <df-sheet [open]="open()" (openChange)="open.set($event)" heading="Ask DailyForge">
+    <div class="ask">
+      <div class="ask__log" #log aria-live="polite">
+        @if (turns().length === 0) {
+          <p class="ask__muted">
+            Ask about your training, food, habits or goals, or tell me what to log.
+          </p>
+          <div class="ask__examples">
+            @for (example of examples; track example) {
+              <button type="button" class="ask__example" (click)="send(example)">
+                {{ example }}
+              </button>
+            }
+          </div>
+        }
+        @for (turn of turns(); track $index; let ti = $index) {
+          <div class="ask__msg" [class.ask__msg--user]="turn.role === 'user'">
+            @if (turn.text) {
+              <p class="ask__bubble">{{ turn.text }}</p>
+            }
+            @for (item of turn.actions ?? []; track $index; let ai = $index) {
+              <div class="ask__action" [class.ask__action--done]="item.state === 'done'">
+                <span class="ask__action-summary">{{ item.action.summary }}</span>
+                @if (item.result) {
+                  <span class="ask__muted">{{ item.result }}</span>
+                }
+                @if (item.state === 'open' || item.state === 'busy') {
+                  <span class="ask__action-buttons">
+                    <button
+                      dfButton
+                      type="button"
+                      variant="primary"
+                      [disabled]="item.state === 'busy'"
+                      (click)="confirm(ti, ai)"
+                    >
+                      Confirm
+                    </button>
+                    <button
+                      dfButton
+                      type="button"
+                      variant="ghost"
+                      [disabled]="item.state === 'busy'"
+                      (click)="skip(ti, ai)"
+                    >
+                      Skip
+                    </button>
+                  </span>
+                } @else if (item.state === 'skipped') {
+                  <span class="ask__muted">Skipped.</span>
+                }
+              </div>
+            }
+          </div>
+        }
+        @if (thinking()) {
+          <p class="ask__muted" role="status">Thinking…</p>
+        }
+      </div>
+
+      <form class="ask__form" (submit)="$event.preventDefault(); send()">
+        <label class="ask__sr" for="ask-input">Message</label>
+        <input
+          id="ask-input"
+          class="ask__input"
+          type="text"
+          maxlength="500"
+          autocomplete="off"
+          placeholder="Ask or tell me what to log"
+          [ngModel]="text()"
+          (ngModelChange)="text.set($event)"
+          name="ask"
+        />
+        <button
+          type="submit"
+          class="ask__send"
+          aria-label="Send"
+          [disabled]="thinking() || !text().trim()"
+        >
+          <lucide-icon [img]="sendIcon" [size]="18" aria-hidden="true" />
+        </button>
+      </form>
+      <div class="ask__footer">
+        <span class="ask__muted">Read by Google Gemini. Nothing changes until you confirm.</span>
+        @if (turns().length > 0) {
+          <button type="button" class="ask__clear" (click)="clear()">New chat</button>
+        }
+      </div>
+    </div>
+  </df-sheet>
+}
