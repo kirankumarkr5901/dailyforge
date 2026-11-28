@@ -1,6 +1,6 @@
 package com.dailyforge.nutrition.domain;
 
-import static com.dailyforge.ai.GeminiClient.array;
+import static com.dailyforge.ai.GeminiClient.arrayOf;
 import static com.dailyforge.ai.GeminiClient.integer;
 import static com.dailyforge.ai.GeminiClient.object;
 import static com.dailyforge.ai.GeminiClient.string;
@@ -90,7 +90,7 @@ public class MealPhotoService {
         dish.put("carbsG", Map.of("type", "number"));
         dish.put("fiberG", Map.of("type", "number"));
         dish.put("sugarG", Map.of("type", "number"));
-        return object(Map.of("dishes", array(object(dish), MAX_DISHES)));
+        return object(Map.of("dishes", arrayOf(object(dish))));
     }
 
     /** Gemini's answer to dishes, rounded and clamped to the app's per-entry limits. */

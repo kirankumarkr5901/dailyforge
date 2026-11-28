@@ -31,13 +31,14 @@ export class ProteinApi {
   }
 
   /** Two or three options that fit what's left of the day's protein and calories. */
-  suggestions(date: LogicalDate): Observable<{ suggestions: ProteinSuggestion[] }> {
-    return this.http.post<{ suggestions: ProteinSuggestion[] }>(`${this.base}/protein/suggestions`, { date });
+  /** `exclude`: what was already shown, so asking again brings new ideas. */
+  suggestions(date: LogicalDate, exclude: string[] = []): Observable<{ suggestions: ProteinSuggestion[] }> {
+    return this.http.post<{ suggestions: ProteinSuggestion[] }>(`${this.base}/protein/suggestions`, { date, exclude });
   }
 
   /** "Fill my day": one meal that closes today's protein, fiber and calorie gaps. */
-  fillDay(date: LogicalDate): Observable<MealIdea> {
-    return this.http.post<MealIdea>(`${this.base}/protein/fill-day`, { date });
+  fillDay(date: LogicalDate, exclude: string[] = []): Observable<MealIdea> {
+    return this.http.post<MealIdea>(`${this.base}/protein/fill-day`, { date, exclude });
   }
 
   /** What the user ate, in their own words; the answer is estimates, nothing is logged. */

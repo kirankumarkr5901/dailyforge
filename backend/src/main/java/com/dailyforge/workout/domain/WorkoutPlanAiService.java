@@ -1,6 +1,7 @@
 package com.dailyforge.workout.domain;
 
 import static com.dailyforge.ai.GeminiClient.array;
+import static com.dailyforge.ai.GeminiClient.arrayOf;
 import static com.dailyforge.ai.GeminiClient.enumOf;
 import static com.dailyforge.ai.GeminiClient.integer;
 import static com.dailyforge.ai.GeminiClient.object;
@@ -117,11 +118,11 @@ public class WorkoutPlanAiService {
         ex.put("restSeconds", integer());
         Map<String, Object> day = new LinkedHashMap<>();
         day.put("label", string());
-        day.put("exercises", array(object(ex), 10));
+        day.put("exercises", arrayOf(object(ex)));
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("name", string());
         props.put("summary", string());
-        props.put("days", array(object(day), 7));
+        props.put("days", arrayOf(object(day)));
 
         return parse(gemini.generate(prompt, null, object(props)), library);
     }

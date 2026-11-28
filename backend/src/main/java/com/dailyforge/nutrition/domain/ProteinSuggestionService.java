@@ -46,10 +46,15 @@ public class ProteinSuggestionService {
     }
 
     public List<Suggestion> suggest(UUID userId, LocalDate date) {
+        return suggest(userId, date, List.of());
+    }
+
+    /** {@code exclude}: what was already suggested, so "Other ideas" brings new ones. */
+    public List<Suggestion> suggest(UUID userId, LocalDate date, List<String> exclude) {
         gemini.requireEnabled();
         gemini.countUse(userId, "protein-tips", DAILY_LIMIT_PER_USER, "food suggestions");
         ProteinService.Day day = protein.day(userId, date);
-        JsonNode answer = gemini.generate(prompt(day), null, schema());
+        JsonNode answer = gemini.generate(prompt(day) + avoid(exclude), null, schema());
         return suggestions(answer, day.foods());
     }
 
@@ -57,6 +62,11 @@ public class ProteinSuggestionService {
     public record MealIdea(String title, String why, List<Suggestion> items) {}
 
     public MealIdea fillDay(UUID userId, LocalDate date) {
+        return fillDay(userId, date, List.of());
+    }
+
+    /** {@code exclude}: meals and items already suggested, so "Another idea" is a different one. */
+    public MealIdea fillDay(UUID userId, LocalDate date, List<String> exclude) {
         gemini.requireEnabled();
         gemini.countUse(userId, "fill-day", DAILY_LIMIT_PER_USER, "meal ideas");
         ProteinService.Day day = protein.day(userId, date);
@@ -66,7 +76,7 @@ public class ProteinSuggestionService {
                 + "budget and the sugar limit. Prefer items from THEIR FOODS (exact name, one serving as listed); use a "
                 + "common food with a realistic serving only where the list has nothing that fits. title: a short name "
                 + "for the meal (\"Paneer wrap with sprouts salad\"). why: one sentence on which gaps it closes.\n\n"
-                + facts(day);
+                + facts(day) + avoid(exclude);
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("title", string());
         props.put("why", string());
@@ -78,6 +88,16 @@ public class ProteinSuggestionService {
                 title.isEmpty() ? "A meal for the rest of today" : (title.length() > 80 ? title.substring(0, 80) : title),
                 why.length() > 200 ? why.substring(0, 200) : why,
                 suggestions(answer, day.foods(), 4));
+    }
+
+    /** The "already suggested" list, so asking again gives something different (owner-reported repeats). */
+    static String avoid(List<String> exclude) {
+        List<String> names = exclude == null ? List.of() : exclude.stream()
+                .filter(n -> n != null && !n.isBlank())
+                .map(n -> n.strip().length() > 80 ? n.strip().substring(0, 80) : n.strip())
+                .distinct().limit(20).toList();
+        return names.isEmpty() ? "" : "\nALREADY SUGGESTED (the user wants different ideas; don't repeat these or close "
+                + "variations): " + String.join("; ", names) + "\n";
     }
 
     static String prompt(ProteinService.Day d) {

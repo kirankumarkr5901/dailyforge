@@ -31,4 +31,17 @@ class ProteinSuggestionServiceTest {
         assertThat(out.get(1).foodId()).isNull();
         assertThat(out.get(1).fiberG()).isEqualTo(12);
     }
+
+    @Test
+    void askingAgainListsWhatWasAlreadySuggested() {
+        assertThat(ProteinSuggestionService.avoid(List.of())).isEmpty();
+        assertThat(ProteinSuggestionService.avoid(java.util.Arrays.asList("Paneer wrap", " ", null, "Paneer wrap", "Curd bowl")))
+                .contains("ALREADY SUGGESTED")
+                .contains("Paneer wrap; Curd bowl");
+    }
+
+    @Test
+    void theMealListHasNoLengthLimitInTheSchema() {
+        assertThat(MealPhotoService.schema().toString()).doesNotContain("maxItems");
+    }
 }

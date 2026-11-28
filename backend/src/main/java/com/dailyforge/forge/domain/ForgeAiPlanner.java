@@ -1,6 +1,7 @@
 package com.dailyforge.forge.domain;
 
 import static com.dailyforge.ai.GeminiClient.array;
+import static com.dailyforge.ai.GeminiClient.arrayOf;
 import static com.dailyforge.ai.GeminiClient.enumOf;
 import static com.dailyforge.ai.GeminiClient.integer;
 import static com.dailyforge.ai.GeminiClient.object;
@@ -167,7 +168,7 @@ public class ForgeAiPlanner {
         props.put("profile", string());
         props.put("focusAreas", array(enumOf(areaNames()), 3));
         props.put("outline", array(string(), 3));
-        props.put("days", array(daySchema(), days));
+        props.put("days", arrayOf(daySchema()));
         JsonNode a = gemini.generate(prompt, null, object(props));
 
         List<ForgeArea> focus = new ArrayList<>(new LinkedHashSet<>(areas(a.path("focusAreas"))));
@@ -209,7 +210,7 @@ public class ForgeAiPlanner {
                 + "PHASES:\n" + nullToEmpty(program.getAiOutline()) + "\n"
                 + "FOCUS AREAS: " + program.getFocusAreas() + "\n"
                 + "LAST DAYS (quest: done or missed):\n" + String.join("\n", history) + "\n";
-        JsonNode a = gemini.generate(prompt, null, object(Map.of("days", array(daySchema(), days))));
+        JsonNode a = gemini.generate(prompt, null, object(Map.of("days", arrayOf(daySchema()))));
         return days(a.path("days"), settings, firstDayNumber, days);
     }
 
@@ -223,7 +224,7 @@ public class ForgeAiPlanner {
         quest.put("tier", integer());
         Map<String, Object> day = new LinkedHashMap<>();
         day.put("day", integer());
-        day.put("quests", array(object(quest), 6));
+        day.put("quests", arrayOf(object(quest)));
         return object(day);
     }
 

@@ -192,6 +192,11 @@ public class GeminiClient {
             return new ApiException(
                     ErrorCode.CONFLICT, HttpStatus.SERVICE_UNAVAILABLE, "Gemini is busy right now. Try again in a minute.");
         }
+        if (status == 400) {
+            // Reached Gemini, which refused the request itself: not a connection problem.
+            return new ApiException(
+                    ErrorCode.CONFLICT, HttpStatus.BAD_GATEWAY, "The AI refused this request. Please report it; the server log has the reason.");
+        }
         return unavailable();
     }
 
@@ -212,6 +217,15 @@ public class GeminiClient {
 
     public static Map<String, Object> enumOf(List<String> values) {
         return Map.of("type", "string", "enum", values);
+    }
+
+    /**
+     * A list with no length limit in the schema. Gemini refuses schemas it finds too
+     * complex, and a long maxItems over objects is one way to get there: the meal list at
+     * 40 was refused (owner-reported: meal photos stopped working).
+     */
+    public static Map<String, Object> arrayOf(Map<String, Object> items) {
+        return Map.of("type", "array", "items", items);
     }
 
     public static Map<String, Object> array(Map<String, Object> items, int maxItems) {
