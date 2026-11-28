@@ -21,7 +21,7 @@ public class ForgeQuestTemplate {
     private String code;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "area", nullable = false, length = 12)
+    @Column(name = "area", nullable = false, length = 16)
     private ForgeArea area;
 
     @Column(name = "tier", nullable = false)

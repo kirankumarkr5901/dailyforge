@@ -30,7 +30,7 @@ import tools.jackson.databind.JsonNode;
 public class ForgeAiPlanner {
 
     /** The interview always ends by this many answers. */
-    public static final int MAX_TURNS = 25;
+    public static final int MAX_TURNS = 30;
     /** The AI may not finish before this many answers. */
     public static final int MIN_TURNS = 12;
     public static final int WEEK = 7;
@@ -48,16 +48,22 @@ public class ForgeAiPlanner {
 
     public record Plan(String profile, List<ForgeArea> focusAreas, String outline, List<DayPlan> days) {}
 
+    /** The Wheel of Life (owner request): the interview rates every spoke, then digs into the weakest. */
     private static final String AREAS = """
-            BODY: fitness and training level, injuries or health limits, food and water, sleep times and quality.
-            MIND: focus and attention, stress and mood, phone and screen time, rest.
-            GROWTH: learning and skills, career goals, reading, money (saving, spending, budgeting).
-            LIFE: family and friends, home and chores, work hours and commute, free time windows in a normal day.""";
+            HEALTH & FITNESS: training level, injuries or health limits, food and water, sleep.
+            CAREER: work satisfaction, growth, skills for the next step.
+            FINANCE: income, saving, spending, debt, budgeting habits.
+            RELATIONSHIPS: partner, family, close friends.
+            PERSONAL GROWTH & PERSONALITY: learning, reading, confidence, habits, discipline, focus, screen time.
+            MIND: stress, mood, rest.
+            SOCIETY: community, helping others, contribution.
+            FUN & ENVIRONMENT: hobbies, free time, home and surroundings, schedule.""";
 
     private static final String AREA_CODES = """
             Quest areas (use exactly these codes): FITNESS (training, movement), HEALTH (food, water, sleep), \
-            FOCUS (attention, screens, deep work), MINDSET (stress, mood, reflection), LEARNING (skills, career, \
-            reading, money), SOCIAL (people, home, relationships).""";
+            FOCUS (attention, screens, deep work), MINDSET (stress, mood, reflection, personality), LEARNING (skills, \
+            reading), SOCIAL (friends, fun, home), FINANCE (saving, spending, budgeting), CAREER (work, growth), \
+            RELATIONSHIPS (partner, family), SOCIETY (community, helping others).""";
 
     private static final String QUEST_RULES = """
             Quest rules: each quest is one concrete action done today, finishable in one sitting, with a clear \
@@ -90,8 +96,11 @@ public class ForgeAiPlanner {
                 + "Ask ONE question at a time and choose the next one from their answers so far: dig into what matters "
                 + "to them, find their real constraints (time free each day and when, work and family load, equipment, "
                 + "injuries or health limits, budget), their current level, what they tried before and why it stopped, "
-                + "and what success after 66 days looks like. Cover all four areas, spending more questions where they "
-                + "want to improve most:\n" + AREAS + "\n"
+                + "and what success after 66 days looks like.\n"
+                + "Use the WHEEL OF LIFE. Start by asking them to rate each spoke below from 1 to 10, one spoke per "
+                + "question (options: \"1-3 struggling\", \"4-5 not great\", \"6-7 okay\", \"8-10 strong\"). Then spend the "
+                + "remaining questions digging into the two or three lowest-rated spokes: what's wrong, what they've "
+                + "tried, what better would look like, and what time and money they can give it.\n" + AREAS + "\n"
                 + "Keep questions short and friendly. Give 3 to 6 tap options that fit the question (the person can also "
                 + "type their own answer); set multi=true only when several options can apply. hint: optional half "
                 + "sentence of guidance, else \"\". Don't repeat a question already asked. "
@@ -146,7 +155,8 @@ public class ForgeAiPlanner {
                         : "NORMAL.") + "\n"
                 + "Return:\n- profile: what you learned about them that matters for planning (goals, schedule, limits, "
                 + "level, motivation), at most 1200 characters, written to yourself for planning later weeks.\n"
-                + "- focusAreas: the 1 to 3 areas that need the most work, most important first.\n"
+                + "- focusAreas: the 1 to 3 quest areas for the WEAKEST spokes of their Wheel of Life, weakest first; "
+                + "most quests should improve those.\n"
                 + "- outline: one line per phase, what it builds toward for this person.\n"
                 + "- days: the first " + days + " days. " + countsFor(settings, 1, days) + "\n"
                 + AREA_CODES + "\n" + QUEST_RULES + "\n"

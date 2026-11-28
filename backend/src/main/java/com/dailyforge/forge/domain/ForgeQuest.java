@@ -40,7 +40,7 @@ public class ForgeQuest {
     @Column(name = "description", length = 400)
     private String description;
 
-    @Column(name = "area", length = 12)
+    @Column(name = "area", length = 16)
     @jakarta.persistence.Enumerated(jakarta.persistence.EnumType.STRING)
     private ForgeArea area;
 

@@ -21,3 +21,15 @@
 :host(.area--social) {
   --area: var(--area-social);
 }
+:host(.area--finance) {
+  --area: var(--area-finance);
+}
+:host(.area--career) {
+  --area: var(--area-career);
+}
+:host(.area--relationships) {
+  --area: var(--area-relationships);
+}
+:host(.area--society) {
+  --area: var(--area-society);
+}

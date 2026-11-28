@@ -11,5 +11,10 @@ public enum ForgeArea {
     HEALTH,
     MINDSET,
     LEARNING,
-    SOCIAL
+    SOCIAL,
+    // The rest of the Wheel of Life (V52).
+    FINANCE,
+    CAREER,
+    RELATIONSHIPS,
+    SOCIETY
 }

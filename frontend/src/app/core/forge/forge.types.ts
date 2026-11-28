@@ -3,7 +3,17 @@
 import { PointsEnvelope } from '../points/points.types';
 import { LogicalDate } from '../time/logical-date';
 
-export type ForgeArea = 'FITNESS' | 'FOCUS' | 'HEALTH' | 'MINDSET' | 'LEARNING' | 'SOCIAL';
+export type ForgeArea =
+  | 'FITNESS'
+  | 'FOCUS'
+  | 'HEALTH'
+  | 'MINDSET'
+  | 'LEARNING'
+  | 'SOCIAL'
+  | 'FINANCE'
+  | 'CAREER'
+  | 'RELATIONSHIPS'
+  | 'SOCIETY';
 export type ForgeMode = 'NORMAL' | 'HARD';
 export type ForgeDayStatus = 'DONE' | 'PARTIAL' | 'MISSED' | 'TODAY' | 'UPCOMING';
 
@@ -130,6 +140,10 @@ export const FORGE_AREA_LABELS: Record<ForgeArea, string> = {
   MINDSET: 'Mindset',
   LEARNING: 'Learning',
   SOCIAL: 'Social',
+  FINANCE: 'Finance',
+  CAREER: 'Career',
+  RELATIONSHIPS: 'Relationships',
+  SOCIETY: 'Society',
 };
 
 export const FORGE_PHASE_LABELS: Record<number, string> = {
