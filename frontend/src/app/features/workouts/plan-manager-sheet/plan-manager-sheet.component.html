@@ -102,6 +102,12 @@
       }
     }
 
+    @if (ai.enabled()) {
+      <df-card class="plan-manager__new">
+        <df-ai-plan-builder (created)="onAiPlanCreated($event)" />
+      </df-card>
+    }
+
     <df-card class="plan-manager__new">
       <h3 class="plan-manager__day-title">New plan</h3>
       <df-input label="Name" placeholder="e.g. Push Pull Legs" [ngModel]="newPlanName()" (ngModelChange)="newPlanName.set($event)" />

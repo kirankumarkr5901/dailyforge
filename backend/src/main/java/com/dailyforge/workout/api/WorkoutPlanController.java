@@ -38,6 +38,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/workout-plans")
 public class WorkoutPlanController {
 
+    private final com.dailyforge.workout.domain.WorkoutPlanAiService aiPlans;
     private final WorkoutPlanService plans;
     private final ExerciseService exercises;
     private final CurrentUser currentUser;
@@ -49,7 +50,9 @@ public class WorkoutPlanController {
             ExerciseService exercises,
             CurrentUser currentUser,
             com.dailyforge.common.time.DayService dayService,
-            com.dailyforge.identity.domain.IdentityService identity) {
+            com.dailyforge.identity.domain.IdentityService identity,
+            com.dailyforge.workout.domain.WorkoutPlanAiService aiPlans) {
+        this.aiPlans = aiPlans;
         this.dayService = dayService;
         this.identity = identity;
         this.plans = plans;
@@ -74,6 +77,21 @@ public class WorkoutPlanController {
     public PlanResponse unarchive(@PathVariable UUID id) {
         UUID userId = currentUser.require();
         return toResponse(plans.unarchive(id, userId));
+    }
+
+    /** "Build me a workout plan": a draft to look over; nothing is saved. */
+    @PostMapping("/ai/draft")
+    public com.dailyforge.workout.domain.WorkoutPlanAiService.Draft aiDraft(
+            @RequestBody com.dailyforge.workout.domain.WorkoutPlanAiService.Request request) {
+        return aiPlans.draft(currentUser.require(), request);
+    }
+
+    /** Saves a draft (as the user left it) as a new plan, not active until they switch to it. */
+    @PostMapping("/ai")
+    @ResponseStatus(HttpStatus.CREATED)
+    @StructuralChange
+    public PlanResponse aiSave(@RequestBody com.dailyforge.workout.domain.WorkoutPlanAiService.Draft draft) {
+        return toResponse(aiPlans.save(currentUser.require(), draft));
     }
 
     @PostMapping

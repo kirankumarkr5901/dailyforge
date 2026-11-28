@@ -3,6 +3,8 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, input, ou
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { ArchiveRestore, GripVertical, LucideAngularModule, Plus, Settings2, SquarePen, Star, Trash2 } from 'lucide-angular';
+import { AiPlanBuilderComponent } from '../ai-plan-builder/ai-plan-builder.component';
+import { AiStatusService } from '../../../core/ai/ai-status.service';
 
 import {
   CdkDrag,
@@ -42,6 +44,7 @@ import { ExercisePickerSheetComponent } from '../exercise-picker-sheet/exercise-
 @Component({
   selector: 'df-plan-manager-sheet',
   imports: [
+    AiPlanBuilderComponent,
     CdkDrag,
     CdkDragHandle,
     CdkDragPlaceholder,
@@ -127,6 +130,7 @@ export class PlanManagerSheetComponent {
   );
 
   constructor() {
+    void this.ai.load();
     effect(() => {
       if (this.open()) {
         void this.refresh();
@@ -182,6 +186,15 @@ export class PlanManagerSheetComponent {
       this.toasts.show('Could not save that order. Putting it back.', { tone: 'penalty' });
       await this.refresh();
     }
+  }
+
+  protected readonly ai = inject(AiStatusService);
+
+  /** An AI plan was saved: show it, so it can be checked and made active. */
+  protected async onAiPlanCreated(plan: { id: string }): Promise<void> {
+    await this.refresh();
+    this.selectedPlanId.set(plan.id);
+    this.changed.emit();
   }
 
   protected async createPlan(): Promise<void> {
