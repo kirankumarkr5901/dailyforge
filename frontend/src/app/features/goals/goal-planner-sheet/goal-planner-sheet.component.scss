@@ -1,0 +1,115 @@
+/* Phone first: one column of sections; each choice a full-width, thumb-sized row. */
+.planner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.planner__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+}
+
+.planner__heading {
+  margin: 0;
+  font-size: var(--text-sm);
+}
+
+.planner__muted {
+  display: block;
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+}
+
+.planner__item {
+  display: block;
+  font-weight: 600;
+}
+
+.planner__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.planner__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.planner__remove {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: none;
+  color: var(--ink-muted);
+  font-size: var(--text-lg);
+  cursor: pointer;
+}
+
+.planner__check {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-2);
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.planner__check input {
+  width: 22px;
+  height: 22px;
+  margin: 2px 0 0;
+  accent-color: var(--heat-2);
+}
+
+.planner__levels {
+  margin: 0;
+  padding-left: var(--space-4);
+  font-size: var(--text-sm);
+}
+
+.planner__levels li + li {
+  margin-top: var(--space-1);
+}
+
+.planner__label {
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+/* 16px text so phones don't zoom into the fields. */
+.planner__text,
+.planner__date {
+  width: 100%;
+  padding: var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control, 10px);
+  background: var(--surface-sunken);
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;
+}
+
+.planner__text {
+  min-height: 88px;
+  resize: vertical;
+}
+
+.planner__text:focus-visible,
+.planner__date:focus-visible,
+.planner__remove:focus-visible {
+  outline: 2px solid var(--heat-2);
+  outline-offset: 2px;
+}

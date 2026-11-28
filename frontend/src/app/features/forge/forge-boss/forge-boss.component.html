@@ -1,0 +1,42 @@
+<div class="boss" [class.boss--defeated]="defeated()">
+  <div class="boss__head">
+    <p class="boss__eyebrow">
+      Boss of the week · {{ areaLabel() }}
+      @if (boss().level > 1) {
+        <span class="boss__returned">Returned ×{{ boss().level - 1 }}</span>
+      }
+    </p>
+    <h3 class="boss__name">{{ boss().name }}</h3>
+  </div>
+  <p class="boss__text">{{ boss().description }}</p>
+
+  @if (defeated()) {
+    <p class="boss__result" role="status">
+      Beaten! +{{ boss().rewardXp }} XP · +{{ boss().rewardPoints }} pts
+    </p>
+  } @else {
+    <div
+      class="boss__bar"
+      role="progressbar"
+      [attr.aria-label]="
+        boss().questsDone +
+        ' of ' +
+        boss().questsTotal +
+        ' ' +
+        areaLabel() +
+        ' quests done this week'
+      "
+      [attr.aria-valuenow]="percent()"
+      aria-valuemin="0"
+      aria-valuemax="100"
+    >
+      <div class="boss__fill" [style.transform]="'scaleX(' + percent() / 100 + ')'"></div>
+    </div>
+    <p class="boss__text">
+      Finish every {{ areaLabel() }} quest this week ({{ boss().questsDone }}/{{
+        boss().questsTotal
+      }}) to beat it for <strong>{{ boss().rewardXp }} XP</strong>. Left standing on Sunday, it
+      comes back stronger.
+    </p>
+  }
+</div>

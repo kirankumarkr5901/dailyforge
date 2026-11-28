@@ -54,6 +54,13 @@ export interface ProteinSuggestion {
   sugarG: number;
 }
 
+/** "Fill my day": one meal of 1-4 items that closes today's gaps together. */
+export interface MealIdea {
+  title: string;
+  why: string;
+  items: ProteinSuggestion[];
+}
+
 export interface NutritionAmounts {
   grams: number;
   kcal: number;

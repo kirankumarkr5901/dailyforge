@@ -33,6 +33,9 @@ public sealed interface ReconcileScope {
     /** One Forge 66 quest: paid when completed, reversed when unmarked. */
     record ForgeQuest(UUID questId) implements ReconcileScope {}
 
+    /** One Forge 66 boss: paid when beaten, reversed if un-beaten the same day. */
+    record ForgeBoss(UUID bossId) implements ReconcileScope {}
+
     /** One day of the protein meter: paid once when the day reaches the target. */
     record ProteinDay(UUID userId, LocalDate date) implements ReconcileScope {}
 

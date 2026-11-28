@@ -104,4 +104,32 @@ class ForgeAiProgramTest {
                 .containsExactlyInAnyOrder("Lights out by 23:00", "Walk 20 minutes after lunch");
         assertThat(dayEight).extracting(ForgeQuest::getDayNumber).containsOnly(8);
     }
+
+    /** The week's boss is beaten by finishing every quest in its area, and pays 200 XP once. */
+    @Test
+    void finishingEveryQuestInTheBossAreaThisWeekBeatsIt() {
+        planFirstWeek();
+        var overview = forge.startAi(user, TURNS, ForgeMode.NORMAL); // DAY_ONE is a Monday
+        var boss = overview.boss().orElseThrow().boss();
+        assertThat(boss.level()).isEqualTo(1);
+        assertThat(boss.rewardXp()).isEqualTo(200);
+
+        int xpBefore = 0;
+        for (int d = 0; d < 7; d++) {
+            setToday(DAY_ONE.plusDays(d));
+            var today = forge.overview(user);
+            if (d == 0) {
+                xpBefore = today.progress().totalXp();
+            }
+            for (ForgeQuest q : today.todaysQuests()) {
+                if (q.getArea() == boss.area()) {
+                    forge.markDone(user, q.getId());
+                }
+            }
+        }
+        var after = forge.overview(user);
+        assertThat(after.boss().orElseThrow().boss().status()).isEqualTo(com.dailyforge.forge.domain.ForgeBossService.Status.DEFEATED);
+        int questXp = boss.area() == ForgeArea.HEALTH ? 7 * 10 : 7 * 20;
+        assertThat(after.progress().totalXp() - xpBefore).isGreaterThanOrEqualTo(questXp + 200);
+    }
 }

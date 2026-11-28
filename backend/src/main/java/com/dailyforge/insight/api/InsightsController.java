@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/insights")
 public class InsightsController {
 
+    private final com.dailyforge.insight.domain.FutureYouService futureYou;
     private final com.dailyforge.insight.domain.WeeklyCoachService weeklyCoach;
     private final DailySummaryService summaries;
     private final CurrentUser currentUser;
@@ -28,11 +29,22 @@ public class InsightsController {
             DailySummaryService summaries,
             CurrentUser currentUser,
             com.dailyforge.insight.domain.WeekReviewService weekReviews,
-            com.dailyforge.insight.domain.WeeklyCoachService weeklyCoach) {
+            com.dailyforge.insight.domain.WeeklyCoachService weeklyCoach,
+            com.dailyforge.insight.domain.FutureYouService futureYou) {
         this.summaries = summaries;
         this.currentUser = currentUser;
         this.weekReviews = weekReviews;
         this.weeklyCoach = weeklyCoach;
+        this.futureYou = futureYou;
+    }
+
+    /** "Future you": this month's 90-day projection, on the 1st only. 204 on other days or with AI off. */
+    @GetMapping("/future")
+    public org.springframework.http.ResponseEntity<com.dailyforge.insight.domain.FutureYouService.Projection> future() {
+        var projection = futureYou.forToday(currentUser.require());
+        return projection == null
+                ? org.springframework.http.ResponseEntity.noContent().build()
+                : org.springframework.http.ResponseEntity.ok(projection);
     }
 
     /**

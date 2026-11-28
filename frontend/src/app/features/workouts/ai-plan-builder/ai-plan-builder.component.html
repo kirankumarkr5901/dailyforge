@@ -1,0 +1,123 @@
+<div class="builder">
+  @if (!open()) {
+    <button dfButton type="button" variant="secondary" [fullWidth]="true" (click)="open.set(true)">
+      Build a plan with AI
+    </button>
+  } @else if (draft(); as d) {
+    <df-input label="Plan name" [ngModel]="d.name" (ngModelChange)="rename($event)" />
+    @if (d.summary) {
+      <p class="builder__muted">{{ d.summary }}</p>
+    }
+    @for (day of d.days; track $index; let di = $index) {
+      <div class="builder__day">
+        <h4 class="builder__day-title">Day {{ di + 1 }} · {{ day.label }}</h4>
+        <ul class="builder__list">
+          @for (ex of day.exercises; track $index; let ei = $index) {
+            <li class="builder__row">
+              <span class="builder__ex">
+                <span class="builder__ex-name">
+                  {{ ex.name }}
+                  @if (!ex.exerciseId) {
+                    <span class="builder__new">new</span>
+                  }
+                </span>
+                <span class="builder__muted">
+                  {{ ex.sets }} ×
+                  {{ ex.repsMin === ex.repsMax ? ex.repsMin : ex.repsMin + '–' + ex.repsMax }} ·
+                  {{ restSeconds(ex.restSeconds) }}
+                </span>
+              </span>
+              <button
+                type="button"
+                class="builder__remove"
+                [attr.aria-label]="'Remove ' + ex.name"
+                (click)="remove(di, ei)"
+              >
+                ×
+              </button>
+            </li>
+          }
+        </ul>
+      </div>
+    }
+    <p class="builder__muted">
+      Exercises you've logged before are reused, so their cards keep your history. "new" ones are
+      added to your library.
+    </p>
+    <button
+      dfButton
+      type="button"
+      variant="primary"
+      [fullWidth]="true"
+      [loading]="saving()"
+      [disabled]="saving() || d.days.length === 0"
+      (click)="save()"
+    >
+      Save as a new plan
+    </button>
+    <button dfButton type="button" variant="ghost" (click)="draft.set(null)">
+      Change my answers
+    </button>
+  } @else {
+    <h3 class="builder__title">Build a plan with AI</h3>
+    <df-stepper-input
+      label="Days a week"
+      [min]="1"
+      [max]="7"
+      [ngModel]="days()"
+      (ngModelChange)="days.set($event)"
+    />
+    <df-stepper-input
+      label="Minutes per session"
+      [min]="20"
+      [max]="150"
+      [step]="5"
+      [ngModel]="minutes()"
+      (ngModelChange)="minutes.set($event)"
+    />
+    <df-select
+      label="Goal"
+      [options]="goals"
+      [ngModel]="goal()"
+      (ngModelChange)="goal.set($event)"
+    />
+    <df-select
+      label="Experience"
+      [options]="levels"
+      [ngModel]="experience()"
+      (ngModelChange)="experience.set($event)"
+    />
+    <fieldset class="builder__equipment">
+      <legend class="builder__legend">Equipment you have</legend>
+      @for (e of equipmentOptions; track e.value) {
+        <button
+          type="button"
+          class="builder__chip"
+          [class.is-on]="equipment().includes(e.value)"
+          [attr.aria-pressed]="equipment().includes(e.value)"
+          (click)="toggleEquipment(e.value)"
+        >
+          {{ e.label }}
+        </button>
+      }
+    </fieldset>
+    <df-input
+      label="Injuries or limits (optional)"
+      placeholder="e.g. sore left shoulder, no jumping"
+      [ngModel]="limits()"
+      (ngModelChange)="limits.set($event)"
+    />
+    <button
+      dfButton
+      type="button"
+      variant="primary"
+      [fullWidth]="true"
+      [loading]="drafting()"
+      [disabled]="drafting() || equipment().length === 0"
+      (click)="makeDraft()"
+    >
+      {{ drafting() ? 'Drafting your plan…' : 'Draft my plan' }}
+    </button>
+    <button dfButton type="button" variant="ghost" (click)="open.set(false)">Cancel</button>
+  }
+</div>

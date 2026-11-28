@@ -75,6 +75,10 @@
         </p>
       }
 
+      @if (forge.boss; as boss) {
+        <df-forge-boss [boss]="boss" />
+      }
+
       <ul class="forge__quests">
         @for (quest of p.quests; track quest.id) {
           <li>

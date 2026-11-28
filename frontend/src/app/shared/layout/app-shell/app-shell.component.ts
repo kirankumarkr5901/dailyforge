@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, signal, computed } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { LucideAngularModule, Menu, MoreHorizontal, X } from 'lucide-angular';
+import { AssistantComponent } from '../assistant/assistant.component';
 
 import { AuthSheetService } from '../../../core/auth/auth-sheet.service';
 import { SessionStore } from '../../../core/auth/session.store';
@@ -29,6 +30,7 @@ import { NAV_ITEMS, PRIMARY_NAV } from './nav-items';
     LucideAngularModule,
     TPipe,
     DfScorePillComponent,
+    AssistantComponent,
   ],
   templateUrl: './app-shell.component.html',
   styleUrl: './app-shell.component.scss',

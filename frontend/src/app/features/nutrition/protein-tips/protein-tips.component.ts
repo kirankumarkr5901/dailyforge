@@ -1,17 +1,29 @@
-import { ChangeDetectionStrategy, Component, inject, input, output, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  input,
+  output,
+  signal,
+} from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 
 import { ProteinApi } from '../../../core/nutrition/protein.api';
-import { ProteinDayWrite, ProteinSuggestion } from '../../../core/nutrition/protein.types';
+import {
+  MealIdea,
+  ProteinDayWrite,
+  ProteinSuggestion,
+} from '../../../core/nutrition/protein.types';
 import { LogicalDate } from '../../../core/time/logical-date';
 import { DfButtonComponent } from '../../../shared/ui/df-button/df-button.component';
 import { ToastService } from '../../../shared/ui/df-toast/toast.service';
 
 /**
- * "What should I eat to hit protein?" under the protein meter: asks the AI for two or
- * three options that fit what's left today, from the user's own foods first. Tapping
- * Add logs it straight away.
+ * Under the protein meter, two AI helpers: "What to eat for protein?" (two or three
+ * single options, the user's own foods first; Add logs one) and "Fill my day" (one meal
+ * that closes today's protein, fiber and calorie gaps together; Add all logs it).
  */
 @Component({
   selector: 'df-protein-tips',
@@ -25,29 +37,64 @@ export class ProteinTipsComponent {
   private readonly toasts = inject(ToastService);
 
   readonly date = input.required<LogicalDate>();
-  /** An option was logged: the page applies the day and points. */
+  /** Protein target hit: only "Fill my day" is offered then. */
+  readonly reached = input(false);
+  /** Something was logged: the page applies the day and points. */
   readonly logged = output<ProteinDayWrite>();
 
   protected readonly loading = signal(false);
   protected readonly busy = signal(false);
+  protected readonly asking = signal<'tips' | 'meal' | null>(null);
   protected readonly tips = signal<ProteinSuggestion[] | null>(null);
+  protected readonly meal = signal<MealIdea | null>(null);
+
+  protected readonly mealTotals = computed(() =>
+    (this.meal()?.items ?? []).reduce(
+      (t, i) => ({
+        proteinG: t.proteinG + i.proteinG,
+        kcal: t.kcal + i.kcal,
+        fiberG: t.fiberG + i.fiberG,
+      }),
+      { proteinG: 0, kcal: 0, fiberG: 0 },
+    ),
+  );
+  protected readonly hasEstimates = computed(() =>
+    (this.meal()?.items ?? []).some((i) => !i.foodId),
+  );
 
   protected async ask(): Promise<void> {
     if (this.loading()) return;
     this.loading.set(true);
+    this.asking.set('tips');
     try {
       const { suggestions } = await firstValueFrom(this.api.suggestions(this.date()));
       this.tips.set(suggestions);
+      this.meal.set(null);
     } catch (e) {
-      const message =
-        e instanceof HttpErrorResponse && typeof e.error?.message === 'string'
-          ? e.error.message
-          : null;
-      this.toasts.show(message ?? "Couldn't get suggestions right now. Try again.", {
+      this.toasts.show(errorMessage(e) ?? "Couldn't get suggestions right now. Try again.", {
         tone: 'penalty',
       });
     } finally {
       this.loading.set(false);
+      this.asking.set(null);
+    }
+  }
+
+  /** "Fill my day": one meal that closes today's gaps together. */
+  protected async fillDay(): Promise<void> {
+    if (this.loading()) return;
+    this.loading.set(true);
+    this.asking.set('meal');
+    try {
+      this.meal.set(await firstValueFrom(this.api.fillDay(this.date())));
+      this.tips.set(null);
+    } catch (e) {
+      this.toasts.show(errorMessage(e) ?? "Couldn't get a meal idea right now. Try again.", {
+        tone: 'penalty',
+      });
+    } finally {
+      this.loading.set(false);
+      this.asking.set(null);
     }
   }
 
@@ -75,4 +122,40 @@ export class ProteinTipsComponent {
       this.busy.set(false);
     }
   }
+
+  protected async addMeal(): Promise<void> {
+    const m = this.meal();
+    if (!m || this.busy()) return;
+    this.busy.set(true);
+    try {
+      const result = await firstValueFrom(
+        this.api.logMany(
+          this.date(),
+          m.items.map((i) => ({
+            foodName: i.name,
+            grams: i.proteinG,
+            kcal: i.kcal,
+            fatG: i.fatG,
+            carbsG: i.carbsG,
+            fiberG: i.fiberG,
+            sugarG: i.sugarG,
+          })),
+        ),
+      );
+      this.meal.set(null);
+      this.logged.emit(result);
+    } catch {
+      this.toasts.show('That did not save. Check your connection and try again.', {
+        tone: 'penalty',
+      });
+    } finally {
+      this.busy.set(false);
+    }
+  }
+}
+
+function errorMessage(e: unknown): string | null {
+  return e instanceof HttpErrorResponse && typeof e.error?.message === 'string'
+    ? e.error.message
+    : null;
 }

@@ -40,8 +40,8 @@
           <span class="nutrition__meter-fill" [style.width.%]="percent()"></span>
         </div>
         <p class="nutrition__message" aria-live="polite">{{ message() }}</p>
-        @if (mealPhotoEnabled() && !reached()) {
-          <df-protein-tips [date]="d.date" (logged)="onScanned($event)" />
+        @if (mealPhotoEnabled()) {
+          <df-protein-tips [date]="d.date" [reached]="reached()" (logged)="onScanned($event)" />
         }
       </div>
 

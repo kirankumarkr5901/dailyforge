@@ -2,10 +2,15 @@
   <h1 class="goals-page__title">Goals</h1>
 
   @if (session.isAuthenticated() && session.editingEnabled()) {
-    <button dfButton type="button" variant="primary" (click)="openForm()">
-      <lucide-icon [img]="plusIcon" [size]="16" aria-hidden="true" />
-      New goal
-    </button>
+    <span class="goals-page__header-actions">
+      @if (ai.enabled()) {
+        <button dfButton type="button" variant="secondary" (click)="plannerOpen.set(true)">Plan with AI</button>
+      }
+      <button dfButton type="button" variant="primary" (click)="openForm()">
+        <lucide-icon [img]="plusIcon" [size]="16" aria-hidden="true" />
+        New goal
+      </button>
+    </span>
   }
 </div>
 
@@ -105,6 +110,9 @@
                 Mark complete
               </button>
             }
+            @if (planFor(goal.id); as plan) {
+              <df-goal-milestones [plan]="plan" (changed)="goalPlans.set($event)" />
+            }
           </df-card>
         }
       </div>
@@ -145,6 +153,8 @@
     }
   }
 }
+
+<df-goal-planner-sheet [open]="plannerOpen()" (closed)="plannerOpen.set(false)" (created)="onPlanned()" />
 
 <df-goal-form-sheet
   [open]="formOpen()"

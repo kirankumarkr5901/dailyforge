@@ -98,6 +98,22 @@ export interface ForgeOverview {
   profile: ForgeProfile;
   program: ForgeProgram | null;
   lastProgram: ForgeFinishedProgram | null;
+  /** This week's boss fight, when the running program has one. */
+  boss: ForgeBoss | null;
+}
+
+export interface ForgeBoss {
+  name: string;
+  description: string;
+  area: ForgeArea;
+  /** 1 the first time; one more each time it escaped and came back. */
+  level: number;
+  rewardXp: number;
+  rewardPoints: number;
+  status: 'ACTIVE' | 'DEFEATED' | 'ESCAPED';
+  questsDone: number;
+  questsTotal: number;
+  weekEnd: LogicalDate;
 }
 
 export interface ForgeQuestChange {

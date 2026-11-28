@@ -46,6 +46,7 @@ public class ForgeService {
     private final IdentityService identity;
     private final ObjectMapper objectMapper;
     private final ForgeAiPlanner ai;
+    private final ForgeBossService bosses;
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ForgeService.class);
 
     public ForgeService(
@@ -57,7 +58,8 @@ public class ForgeService {
             DayService dayService,
             IdentityService identity,
             ObjectMapper objectMapper,
-            ForgeAiPlanner ai) {
+            ForgeAiPlanner ai,
+            ForgeBossService bosses) {
         this.programs = programs;
         this.quests = quests;
         this.templates = templates;
@@ -67,6 +69,7 @@ public class ForgeService {
         this.identity = identity;
         this.objectMapper = objectMapper;
         this.ai = ai;
+        this.bosses = bosses;
     }
 
     /** Everything the Forge 66 screen shows, in one read. */
@@ -77,7 +80,9 @@ public class ForgeService {
             Optional<ForgeProgram> lastFinishedProgram,
             List<ForgeQuest> todaysQuests,
             Map<String, ForgeQuestTemplate> templatesByCode,
-            Progress progress) {}
+            Progress progress,
+            /** This week's boss fight, if the running program has one. */
+            Optional<ForgeBossService.Fight> boss) {}
 
     /** A quest mark or unmark: the new state, plus what it changed. */
     public record QuestChange(Overview overview, PointsResult points, int levelBefore, boolean dayCompleted) {}
@@ -115,6 +120,7 @@ public class ForgeService {
         }
 
         planQuests(program, today, settings, scores);
+        bosses.settle(userId, program, today, progressFor(userId, today, settings).stats());
 
         return buildOverview(userId, today);
     }
@@ -145,6 +151,7 @@ public class ForgeService {
             throw alreadyRunning();
         }
         saveDays(program, today, 1, Math.min(ForgeAiPlanner.WEEK, settings.lengthDays()), plan.days(), settings);
+        bosses.settle(userId, program, today, progressFor(userId, today, settings).stats());
         return buildOverview(userId, today);
     }
 
@@ -292,6 +299,10 @@ public class ForgeService {
         quests.saveAndFlush(quest);
 
         PointsResult paid = points.reconcile(userId, new ReconcileScope.ForgeQuest(quest.getId()));
+        PointsResult bossPaid = bosses.evaluate(userId, program, today);
+        if (bossPaid != null) {
+            paid = PointsResult.combine(List.of(paid, bossPaid));
+        }
         boolean dayCompleted = !dayWasComplete && isDayComplete(program.getId(), today);
 
         return new QuestChange(buildOverview(userId, today), paid, before.level().level(), dayCompleted);
@@ -381,6 +392,8 @@ public class ForgeService {
         restartIfHardModeFailed(userId, today);
         closeIfFinished(userId, today);
         ensurePlanned(userId, today);
+        programs.findFirstByUserIdAndStatus(userId, ForgeProgramStatus.ACTIVE).ifPresent(p -> bosses.settle(
+                userId, p, today, progressFor(userId, today, settingsProvider.current()).stats()));
     }
 
     /** Marks a program whose last day has passed as completed. Lazy — no job needed. */
@@ -401,7 +414,22 @@ public class ForgeService {
                 quests.findAllByUserIdOrderByQuestDateAsc(userId).stream()
                         .map(q -> new QuestFact(q.getProgramId(), q.getQuestDate(), areaOf(byCode, q), q.getXp(), q.isDone()))
                         .toList();
-        return ForgeProgressCalculator.compute(all, facts, today, settings);
+        Progress base = ForgeProgressCalculator.compute(all, facts, today, settings);
+        Map<ForgeArea, Integer> bossXp = bosses.defeatedXpByArea(userId);
+        if (bossXp.isEmpty()) {
+            return base;
+        }
+        Map<ForgeArea, Integer> stats = new java.util.EnumMap<>(base.stats());
+        bossXp.forEach((area, xp) -> stats.merge(area, xp, Integer::sum));
+        int total = base.totalXp() + bossXp.values().stream().mapToInt(Integer::intValue).sum();
+        return new Progress(
+                total,
+                LevelCurve.levelFor(total, settings.levelBase(), settings.levelExponent()),
+                base.currentStreak(),
+                base.bestStreak(),
+                stats,
+                base.daysCompleted(),
+                base.days());
     }
 
     private Overview buildOverview(UUID userId, LocalDate today) {
@@ -417,7 +445,8 @@ public class ForgeService {
                 active.map(p -> quests.findAllByProgramIdAndQuestDate(p.getId(), today)).orElse(List.of());
 
         return new Overview(
-                today, settings, active, lastFinished, todays, templatesByCode(), progressFor(userId, today, settings));
+                today, settings, active, lastFinished, todays, templatesByCode(), progressFor(userId, today, settings),
+                active.flatMap(p -> bosses.currentFight(p.getId(), today)));
     }
 
     private Map<String, ForgeQuestTemplate> templatesByCode() {

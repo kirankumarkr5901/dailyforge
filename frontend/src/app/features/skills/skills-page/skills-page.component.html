@@ -75,6 +75,15 @@
             </button>
             <span class="skill__count">{{ skill.daysDone }} {{ skill.daysDone === 1 ? 'day' : 'days' }} done</span>
           </div>
+          @if (skill.custom) {
+            @if (armedRemove() === skill.code) {
+              <button dfButton type="button" variant="danger" [disabled]="busy() === skill.code" (click)="removeCustom(skill)">
+                Remove this skill?
+              </button>
+            } @else {
+              <button dfButton type="button" variant="ghost" (click)="armedRemove.set(skill.code)">Remove skill</button>
+            }
+          }
 
           <button
             type="button"

@@ -24,6 +24,8 @@ export interface Skill {
   /** Every day this skill's block was ever done. */
   daysDone: number;
   levels: SkillLevel[];
+  /** Written by the AI goal planner, not one of the built-in three; can be removed. */
+  custom: boolean;
 }
 
 export interface SkillBoard {
@@ -45,6 +47,11 @@ export class SkillsApi {
   board(date?: LogicalDate): Observable<SkillBoard> {
     const params = date ? new HttpParams().set('date', date) : undefined;
     return this.http.get<SkillBoard>(`${this.base}/skills`, { params });
+  }
+
+  /** Removes a skill the AI wrote; days already done keep their points. */
+  removeCustom(code: string): Observable<SkillBoard> {
+    return this.http.delete<SkillBoard>(`${this.base}/skills/${code}`);
   }
 
   setLevel(code: string, level: number): Observable<SkillBoard> {
