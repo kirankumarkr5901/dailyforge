@@ -202,6 +202,33 @@ export class BarcodeScannerComponent {
     void this.lookup(code);
   }
 
+  /** The phone's camera app can't open while this page holds the camera. */
+  protected releaseCamera(): void {
+    this.stopCamera();
+  }
+
+  /** The fallback: a photo from the phone's camera app, which focuses far better than a web page can. */
+  protected async onBarcodePhoto(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+    this.stopCamera();
+    this.status.set('looking');
+    const code = await readBarcodeFromPhoto(file);
+    if (code) {
+      void this.lookup(code);
+      return;
+    }
+    this.toasts.show(
+      'No barcode found in that photo. Get close so the barcode fills most of the picture.',
+      {
+        tone: 'penalty',
+      },
+    );
+    this.status.set('missing');
+  }
+
   protected scanAgain(): void {
     void this.start();
   }
@@ -290,32 +317,105 @@ export class BarcodeScannerComponent {
 }
 
 /**
- * The back camera, sharp enough to read a barcode held close: a higher resolution than
- * the default 640x480 and continuous autofocus where the phone offers it.
+ * The back camera, as sharp as a web page can get it. Phones with several back lenses
+ * often hand a web page the ultra-wide one, which can't focus up close: so pick the
+ * main back camera (the lowest-numbered one; Android names them "camera2 0, facing
+ * back"), ask for up to 1080p with continuous autofocus, and zoom in a little so the
+ * phone can be held far enough back to focus.
  */
 async function openCamera(): Promise<MediaStream> {
+  let stream = await getBackCamera();
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } },
-      audio: false,
-    });
-    const track = stream.getVideoTracks()[0];
-    const caps = (track?.getCapabilities?.() ?? {}) as { focusMode?: string[] };
-    if (caps.focusMode?.includes('continuous')) {
-      await track
-        .applyConstraints({ advanced: [{ focusMode: 'continuous' } as MediaTrackConstraintSet] })
-        .catch(() => {});
+    const main = await mainBackCameraId();
+    const current = stream.getVideoTracks()[0]?.getSettings().deviceId;
+    if (main && main !== current) {
+      stream.getTracks().forEach((t) => t.stop());
+      stream = await getBackCamera(main);
     }
-    return stream;
+  } catch {
+    // Keep the camera we have.
+  }
+  await sharpen(stream.getVideoTracks()[0]);
+  return stream;
+}
+
+async function getBackCamera(deviceId?: string): Promise<MediaStream> {
+  const video: MediaTrackConstraints = deviceId
+    ? { deviceId: { exact: deviceId }, width: { ideal: 1920 }, height: { ideal: 1080 } }
+    : { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } };
+  try {
+    return await navigator.mediaDevices.getUserMedia({ video, audio: false });
   } catch (e) {
-    // A camera that refuses those sizes: ask for any back camera.
+    // A camera that refuses those sizes: ask for it at any size.
     if (e instanceof DOMException && e.name === 'OverconstrainedError') {
       return navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' },
+        video: deviceId ? { deviceId: { exact: deviceId } } : { facingMode: 'environment' },
         audio: false,
       });
     }
     throw e;
+  }
+}
+
+/** The main back camera's id, once camera access is granted (labels are empty before). */
+async function mainBackCameraId(): Promise<string | null> {
+  const cameras = (await navigator.mediaDevices.enumerateDevices()).filter(
+    (d) => d.kind === 'videoinput',
+  );
+  const back = cameras.filter(
+    (d) => /back|rear|environment/i.test(d.label) && !/front|user/i.test(d.label),
+  );
+  if (back.length < 2) return null;
+  const notSpecial = back.filter((d) => !/ultra|wide|macro|tele|depth/i.test(d.label));
+  const pool = notSpecial.length ? notSpecial : back;
+  const number = (d: MediaDeviceInfo) => Number(/(\d+)/.exec(d.label)?.[1] ?? 99);
+  return [...pool].sort((x, y) => number(x) - number(y))[0]?.deviceId ?? null;
+}
+
+/** Continuous autofocus and a little zoom, where the camera offers them. */
+async function sharpen(track: MediaStreamTrack | undefined): Promise<void> {
+  if (!track?.getCapabilities) return;
+  const caps = track.getCapabilities() as {
+    focusMode?: string[];
+    zoom?: { min: number; max: number };
+  };
+  const advanced: Record<string, unknown> = {};
+  if (caps.focusMode?.includes('continuous')) advanced['focusMode'] = 'continuous';
+  if (caps.zoom && caps.zoom.max >= 1.5) advanced['zoom'] = Math.min(2, caps.zoom.max);
+  if (Object.keys(advanced).length) {
+    await track
+      .applyConstraints({ advanced: [advanced as MediaTrackConstraintSet] })
+      .catch(() => {});
+  }
+}
+
+/**
+ * Reads a barcode from a still photo (the phone's own camera app: full resolution and
+ * proper focus). The built-in reader first, then ZXing. Null when there's none in it.
+ */
+async function readBarcodeFromPhoto(file: Blob): Promise<string | null> {
+  const formats = await nativeFormats();
+  if (formats.length) {
+    try {
+      const Detector = (window as unknown as { BarcodeDetector: NativeBarcodeDetectorClass })
+        .BarcodeDetector;
+      const bitmap = await createImageBitmap(file);
+      const found = await new Detector({ formats }).detect(bitmap as unknown as HTMLVideoElement);
+      bitmap.close();
+      if (found.length) return found[0].rawValue;
+    } catch {
+      // Fall through to ZXing.
+    }
+  }
+  const url = URL.createObjectURL(file);
+  try {
+    const { BrowserMultiFormatReader } = await import('@zxing/browser');
+    const result = await new BrowserMultiFormatReader().decodeFromImageUrl(url);
+    return result.getText();
+  } catch {
+    return null;
+  } finally {
+    URL.revokeObjectURL(url);
   }
 }
 

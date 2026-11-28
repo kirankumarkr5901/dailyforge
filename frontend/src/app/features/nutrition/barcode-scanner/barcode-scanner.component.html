@@ -3,14 +3,17 @@
     @switch (status()) {
       @case ('nocamera') {
         <p class="scan__muted">
-          The camera isn't available. Allow camera access for DailyForge in your phone settings, or type the barcode below.
+          The camera isn't available. Allow camera access for DailyForge in your phone settings, or
+          type the barcode below.
         </p>
       }
       @case ('looking') {
         <p class="scan__muted">Looking it up…</p>
       }
       @case ('missing') {
-        <p class="scan__muted">Not found in Open Food Facts. Try again, or add it as "Something else".</p>
+        <p class="scan__muted">
+          Not found in Open Food Facts. Try again, or add it as "Something else".
+        </p>
         <button dfButton type="button" variant="secondary" (click)="scanAgain()">Scan again</button>
       }
       @case ('found') {
@@ -18,8 +21,8 @@
           <div class="scan__product">
             <h3 class="scan__name">{{ p.name }}</h3>
             <p class="scan__muted">
-              Per 100 g: {{ p.per100.grams }} g protein · {{ p.per100.kcal }} kcal · {{ p.per100.carbsG }} g carbs ·
-              {{ p.per100.fatG }} g fat
+              Per 100 g: {{ p.per100.grams }} g protein · {{ p.per100.kcal }} kcal ·
+              {{ p.per100.carbsG }} g carbs · {{ p.per100.fatG }} g fat
             </p>
           </div>
           <df-stepper-input
@@ -34,16 +37,33 @@
           />
           @if (serving(); as s) {
             <p class="scan__totals">
-              {{ s.grams }} g protein · {{ s.kcal }} kcal · {{ s.carbsG }} g carbs · {{ s.fatG }} g fat · {{ s.fiberG }} g
-              fiber · {{ s.sugarG }} g sugar
+              {{ s.grams }} g protein · {{ s.kcal }} kcal · {{ s.carbsG }} g carbs · {{ s.fatG }} g
+              fat · {{ s.fiberG }} g fiber · {{ s.sugarG }} g sugar
             </p>
           }
-          <button dfButton type="button" variant="primary" [fullWidth]="true" [disabled]="busy()" (click)="addToToday()">
+          <button
+            dfButton
+            type="button"
+            variant="primary"
+            [fullWidth]="true"
+            [disabled]="busy()"
+            (click)="addToToday()"
+          >
             Add to today
           </button>
           <div class="scan__row">
-            <button dfButton type="button" variant="ghost" [disabled]="busy()" (click)="saveAsFood()">Save as a food</button>
-            <button dfButton type="button" variant="ghost" (click)="scanAgain()">Scan another</button>
+            <button
+              dfButton
+              type="button"
+              variant="ghost"
+              [disabled]="busy()"
+              (click)="saveAsFood()"
+            >
+              Save as a food
+            </button>
+            <button dfButton type="button" variant="ghost" (click)="scanAgain()">
+              Scan another
+            </button>
           </div>
         }
       }
@@ -53,13 +73,33 @@
           <video #video class="scan__video" playsinline muted></video>
           <span class="scan__frame" aria-hidden="true"></span>
         </div>
-        <p class="scan__muted">{{ status() === 'starting' ? 'Starting the camera…' : 'Point the camera at the barcode.' }}</p>
+        <p class="scan__muted">
+          {{
+            status() === 'starting' ? 'Starting the camera…' : 'Point the camera at the barcode.'
+          }}
+        </p>
       }
     }
 
     @if (status() !== 'found' && status() !== 'looking') {
+      <label class="scan__photo-btn" (click)="releaseCamera()">
+        Blurry? Take a photo of the barcode
+        <input
+          class="scan__file"
+          type="file"
+          accept="image/*"
+          capture="environment"
+          (change)="onBarcodePhoto($event)"
+          (cancel)="scanAgain()"
+        />
+      </label>
       <div class="scan__manual">
-        <df-input label="Or type the barcode" placeholder="8 to 13 digits" [ngModel]="manualCode()" (ngModelChange)="manualCode.set($event)" />
+        <df-input
+          label="Or type the barcode"
+          placeholder="8 to 13 digits"
+          [ngModel]="manualCode()"
+          (ngModelChange)="manualCode.set($event)"
+        />
         <button dfButton type="button" variant="secondary" (click)="lookupManual()">Look up</button>
       </div>
     }
