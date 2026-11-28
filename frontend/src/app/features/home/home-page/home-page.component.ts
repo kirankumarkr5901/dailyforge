@@ -25,6 +25,7 @@ import { WeeklyVolumeCardComponent } from '../../workouts/weekly-volume-card/wee
 import { TodayChecklistComponent } from '../today-checklist/today-checklist.component';
 import { WaterCardComponent } from '../water-card/water-card.component';
 import { WeekReviewComponent } from '../week-review/week-review.component';
+import { FutureYouComponent } from '../future-you/future-you.component';
 
 type Period = 'today' | 'thisWeek' | 'thisMonth';
 
@@ -71,6 +72,7 @@ interface DayGroup {
     TodayChecklistComponent,
     WaterCardComponent,
     WeekReviewComponent,
+    FutureYouComponent,
   ],
   templateUrl: './home-page.component.html',
   styleUrl: './home-page.component.scss',

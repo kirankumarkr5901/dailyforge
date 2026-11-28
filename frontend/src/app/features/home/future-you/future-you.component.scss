@@ -1,0 +1,38 @@
+/* Phone first: a single column card; the headline carries it. */
+:host {
+  display: block;
+}
+
+.future__eyebrow {
+  margin: 0 0 var(--space-1);
+  color: var(--ink-muted);
+  font-size: var(--text-xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.future__headline {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-lg);
+  line-height: 1.3;
+}
+
+.future__lines {
+  margin: 0 0 var(--space-3);
+  padding-left: var(--space-4);
+  font-variant-numeric: tabular-nums;
+}
+
+.future__lines li + li {
+  margin-top: var(--space-1);
+}
+
+.future__reality,
+.future__lever {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-sm);
+}
+
+.future__reality {
+  color: var(--ink-muted);
+}

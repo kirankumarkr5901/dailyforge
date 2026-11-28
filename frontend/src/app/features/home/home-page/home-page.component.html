@@ -26,6 +26,7 @@
   @if (summary(); as home) {
     <div class="home-page__grid">
       <div class="home-page__col-main">
+        <df-future-you class="home-page__review" [today]="home.date" />
         <df-week-review class="home-page__review" [today]="home.date" />
 
         @if (home.quote; as quote) {

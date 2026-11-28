@@ -1,0 +1,19 @@
+@if (projection(); as p) {
+  <df-card class="future">
+    <p class="future__eyebrow">Future you · 90 days at this pace</p>
+    <h2 class="future__headline">{{ p.headline }}</h2>
+    @if (p.lines.length > 0) {
+      <ul class="future__lines">
+        @for (line of p.lines; track line) {
+          <li>{{ line }}</li>
+        }
+      </ul>
+    }
+    @if (p.reality) {
+      <p class="future__reality"><strong>Reality check:</strong> {{ p.reality }}</p>
+    }
+    @if (p.lever) {
+      <p class="future__lever"><strong>This month:</strong> {{ p.lever }}</p>
+    }
+  </df-card>
+}
