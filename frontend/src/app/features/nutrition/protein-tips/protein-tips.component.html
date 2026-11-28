@@ -1,4 +1,43 @@
-@if (tips(); as list) {
+@if (meal(); as m) {
+  <div class="tips__meal">
+    <span class="tips__name">{{ m.title }}</span>
+    @if (m.why) {
+      <span class="tips__why">{{ m.why }}</span>
+    }
+    <ul class="tips">
+      @for (item of m.items; track item.name) {
+        <li class="tips__row">
+          <span>{{ item.name }}{{ item.foodId ? '' : ' *' }}</span>
+          <span class="tips__numbers"
+            >{{ item.proteinG }} g · {{ item.kcal }} kcal · {{ item.fiberG }} g fiber</span
+          >
+        </li>
+      }
+    </ul>
+    <span class="tips__numbers"
+      >Together: {{ mealTotals().proteinG }} g protein · {{ mealTotals().kcal }} kcal ·
+      {{ mealTotals().fiberG }} g fiber</span
+    >
+    @if (hasEstimates()) {
+      <span class="tips__why">* Not on your list: the numbers are an estimate.</span>
+    }
+    <div class="tips__actions">
+      <button
+        dfButton
+        type="button"
+        variant="primary"
+        [disabled]="busy() || m.items.length === 0"
+        (click)="addMeal()"
+      >
+        Add all
+      </button>
+      <button dfButton type="button" variant="ghost" [disabled]="loading()" (click)="fillDay()">
+        {{ loading() ? 'Thinking…' : 'Another idea' }}
+      </button>
+      <button dfButton type="button" variant="ghost" (click)="meal.set(null)">Close</button>
+    </div>
+  </div>
+} @else if (tips(); as list) {
   <ul class="tips">
     @for (tip of list; track tip.name) {
       <li class="tips__item">
@@ -20,18 +59,21 @@
       <li class="tips__why">No suggestions this time.</li>
     }
   </ul>
-  <button dfButton type="button" variant="ghost" [disabled]="loading()" (click)="ask()">
-    {{ loading() ? 'Thinking…' : 'Other ideas' }}
-  </button>
+  <div class="tips__actions">
+    <button dfButton type="button" variant="ghost" [disabled]="loading()" (click)="ask()">
+      {{ loading() ? 'Thinking…' : 'Other ideas' }}
+    </button>
+    <button dfButton type="button" variant="ghost" (click)="tips.set(null)">Close</button>
+  </div>
 } @else {
-  <button
-    dfButton
-    type="button"
-    variant="secondary"
-    [fullWidth]="true"
-    [disabled]="loading()"
-    (click)="ask()"
-  >
-    {{ loading() ? 'Thinking…' : 'What should I eat to hit protein?' }}
-  </button>
+  <div class="tips__start" [class.tips__start--single]="reached()">
+    @if (!reached()) {
+      <button dfButton type="button" variant="secondary" [disabled]="loading()" (click)="ask()">
+        {{ loading() && asking() === 'tips' ? 'Thinking…' : 'What to eat for protein?' }}
+      </button>
+    }
+    <button dfButton type="button" variant="secondary" [disabled]="loading()" (click)="fillDay()">
+      {{ loading() && asking() === 'meal' ? 'Thinking…' : 'Fill my day' }}
+    </button>
+  </div>
 }

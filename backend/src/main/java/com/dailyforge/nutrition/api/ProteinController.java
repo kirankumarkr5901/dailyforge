@@ -60,6 +60,13 @@ public class ProteinController {
 
     public record SuggestionsResponse(java.util.List<com.dailyforge.nutrition.domain.ProteinSuggestionService.Suggestion> suggestions) {}
 
+    /** "Fill my day": one meal that closes today's protein, fiber and calorie gaps together. */
+    @PostMapping("/fill-day")
+    public com.dailyforge.nutrition.domain.ProteinSuggestionService.MealIdea fillDay(
+            @Valid @RequestBody SuggestionsRequest request) {
+        return suggestions.fillDay(currentUser.require(), request.date());
+    }
+
     /** "What should I eat to hit protein?": two or three options that fit what's left today. */
     @PostMapping("/suggestions")
     public SuggestionsResponse suggestions(@Valid @RequestBody SuggestionsRequest request) {

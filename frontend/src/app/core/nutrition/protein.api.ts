@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { LogicalDate } from '../time/logical-date';
-import { BarcodeProduct, Meal, MealItem, MealPhotoDish, ProteinSuggestion, NutritionAmounts, ProteinDay, ProteinDayWrite, ProteinFood } from './protein.types';
+import { BarcodeProduct, Meal, MealIdea, MealItem, MealPhotoDish, ProteinSuggestion, NutritionAmounts, ProteinDay, ProteinDayWrite, ProteinFood } from './protein.types';
 
 @Injectable({ providedIn: 'root' })
 export class ProteinApi {
@@ -33,6 +33,11 @@ export class ProteinApi {
   /** Two or three options that fit what's left of the day's protein and calories. */
   suggestions(date: LogicalDate): Observable<{ suggestions: ProteinSuggestion[] }> {
     return this.http.post<{ suggestions: ProteinSuggestion[] }>(`${this.base}/protein/suggestions`, { date });
+  }
+
+  /** "Fill my day": one meal that closes today's protein, fiber and calorie gaps. */
+  fillDay(date: LogicalDate): Observable<MealIdea> {
+    return this.http.post<MealIdea>(`${this.base}/protein/fill-day`, { date });
   }
 
   /** What the user ate, in their own words; the answer is estimates, nothing is logged. */

@@ -53,6 +53,33 @@ public class ProteinSuggestionService {
         return suggestions(answer, day.foods());
     }
 
+    /** "Fill my day": one meal of 1-4 items that closes today's gaps together. */
+    public record MealIdea(String title, String why, List<Suggestion> items) {}
+
+    public MealIdea fillDay(UUID userId, LocalDate date) {
+        gemini.requireEnabled();
+        gemini.countUse(userId, "fill-day", DAILY_LIMIT_PER_USER, "meal ideas");
+        ProteinService.Day day = protein.day(userId, date);
+        String prompt = "You are a practical nutrition assistant for someone in India. Suggest ONE meal (1 to 4 items "
+                + "eaten together) that closes as much as possible of today's remaining gaps at once: protein to its "
+                + "target, fiber to its target, carbs and fat toward their targets, while staying within the calorie "
+                + "budget and the sugar limit. Prefer items from THEIR FOODS (exact name, one serving as listed); use a "
+                + "common food with a realistic serving only where the list has nothing that fits. title: a short name "
+                + "for the meal (\"Paneer wrap with sprouts salad\"). why: one sentence on which gaps it closes.\n\n"
+                + facts(day);
+        Map<String, Object> props = new LinkedHashMap<>();
+        props.put("title", string());
+        props.put("why", string());
+        props.put("suggestions", array(object(itemSchema()), 4));
+        JsonNode answer = gemini.generate(prompt, null, object(props));
+        String title = answer.path("title").asString("").strip();
+        String why = answer.path("why").asString("").strip();
+        return new MealIdea(
+                title.isEmpty() ? "A meal for the rest of today" : (title.length() > 80 ? title.substring(0, 80) : title),
+                why.length() > 200 ? why.substring(0, 200) : why,
+                suggestions(answer, day.foods(), 4));
+    }
+
     static String prompt(ProteinService.Day d) {
         StringBuilder p = new StringBuilder();
         p.append("You are a practical nutrition assistant for someone in India. Suggest 2 or 3 things they could eat ")
@@ -61,6 +88,13 @@ public class ProteinSuggestionService {
                 .append("Only if nothing on the list fits, suggest a common food (mostly Indian, easy to get) with a ")
                 .append("realistic serving and its nutrition. Give each a one-sentence reason (\"why\"). ")
                 .append("Don't repeat something they already ate today unless it's the best fit.\n\n");
+        p.append(facts(d));
+        return p.toString();
+    }
+
+    /** Today's totals against targets, what was eaten, and the food list. */
+    static String facts(ProteinService.Day d) {
+        StringBuilder p = new StringBuilder();
         p.append(String.format(Locale.ROOT, "Protein: %d of %d g eaten (%d g to go).%n",
                 d.totalG(), d.targetG(), Math.max(0, d.targetG() - d.totalG())));
         p.append(String.format(Locale.ROOT, "Calories: %d of a %d kcal budget (%d left).%n",
@@ -82,6 +116,10 @@ public class ProteinSuggestionService {
     }
 
     static Map<String, Object> schema() {
+        return object(Map.of("suggestions", array(object(itemSchema()), 3)));
+    }
+
+    private static Map<String, Object> itemSchema() {
         Map<String, Object> item = new LinkedHashMap<>();
         item.put("name", string());
         item.put("fromTheirFoods", Map.of("type", "boolean"));
@@ -92,11 +130,15 @@ public class ProteinSuggestionService {
         item.put("carbsG", integer());
         item.put("fiberG", integer());
         item.put("sugarG", integer());
-        return object(Map.of("suggestions", array(object(item), 3)));
+        return item;
     }
 
     /** List foods are matched by name and keep their own numbers; the rest are clamped estimates. */
     static List<Suggestion> suggestions(JsonNode answer, List<ProteinFood> foods) {
+        return suggestions(answer, foods, 3);
+    }
+
+    static List<Suggestion> suggestions(JsonNode answer, List<ProteinFood> foods, int max) {
         Map<String, ProteinFood> byName = foods.stream()
                 .collect(Collectors.toMap(f -> f.getName().trim().toLowerCase(Locale.ROOT), Function.identity(), (a, b) -> a));
         List<Suggestion> out = new ArrayList<>();
@@ -122,7 +164,7 @@ public class ProteinSuggestionService {
                         fatG, MealPhotoService.clamp(s.path("carbsG"), 500), MealPhotoService.clamp(s.path("fiberG"), 100),
                         MealPhotoService.clamp(s.path("sugarG"), 300)));
             }
-            if (out.size() == 3) {
+            if (out.size() == max) {
                 break;
             }
         }
