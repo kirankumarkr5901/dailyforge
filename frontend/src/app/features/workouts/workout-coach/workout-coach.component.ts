@@ -9,6 +9,7 @@ import {
 } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
+import { ChevronDown, LucideAngularModule } from 'lucide-angular';
 
 import { AiStatusService } from '../../../core/ai/ai-status.service';
 import { LogicalDate } from '../../../core/time/logical-date';
@@ -18,12 +19,12 @@ import { DfCardComponent } from '../../../shared/ui/df-card/df-card.component';
 
 /**
  * The AI coach on the day's workout: a short pre-workout note, plateau / deload / swap
- * alerts and muscles short of their weekly sets. Loads by itself for the plan day shown;
- * the server keeps it for the day, so switching back and forth costs nothing.
+ * alerts and muscles short of their weekly sets. Folded by default (owner request); it
+ * asks the AI only once opened, and the server keeps the answer for the day.
  */
 @Component({
   selector: 'df-workout-coach',
-  imports: [DfButtonComponent, DfCardComponent],
+  imports: [DfButtonComponent, DfCardComponent, LucideAngularModule],
   templateUrl: './workout-coach.component.html',
   styleUrl: './workout-coach.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -36,6 +37,9 @@ export class WorkoutCoachComponent {
   readonly dayIndex = input.required<number>();
   readonly date = input<LogicalDate | null>(null);
 
+  protected readonly chevronIcon = ChevronDown;
+  /** Folded until tapped; nothing is asked of the AI while folded. */
+  protected readonly open = signal(false);
   protected readonly coaching = signal<Coaching | null>(null);
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
@@ -43,10 +47,12 @@ export class WorkoutCoachComponent {
   private request = 0;
 
   constructor() {
+    void this.ai.load();
     effect(() => {
       const planId = this.planId();
       const dayIndex = this.dayIndex();
       const date = this.date();
+      if (!this.open()) return;
       untracked(() => void this.load(planId, dayIndex, date));
     });
   }
