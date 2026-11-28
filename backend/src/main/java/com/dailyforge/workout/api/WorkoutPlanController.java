@@ -86,10 +86,12 @@ public class WorkoutPlanController {
         return aiPlans.draft(currentUser.require(), request);
     }
 
-    /** Saves a draft (as the user left it) as a new plan, not active until they switch to it. */
+    /**
+     * Saves a draft (as the user left it) as a new plan, not active until they switch to
+     * it. Works with "Enable edit" off, like every reviewed AI change (owner request).
+     */
     @PostMapping("/ai")
     @ResponseStatus(HttpStatus.CREATED)
-    @StructuralChange
     public PlanResponse aiSave(@RequestBody com.dailyforge.workout.domain.WorkoutPlanAiService.Draft draft) {
         return toResponse(aiPlans.save(currentUser.require(), draft));
     }

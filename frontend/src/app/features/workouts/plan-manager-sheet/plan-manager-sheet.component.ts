@@ -5,6 +5,8 @@ import { firstValueFrom } from 'rxjs';
 import { ArchiveRestore, GripVertical, LucideAngularModule, Plus, Settings2, SquarePen, Star, Trash2 } from 'lucide-angular';
 import { AiPlanBuilderComponent } from '../ai-plan-builder/ai-plan-builder.component';
 import { AiStatusService } from '../../../core/ai/ai-status.service';
+import { SessionStore } from '../../../core/auth/session.store';
+import { DfEditingNoteComponent } from '../../../shared/ui/df-editing-note/df-editing-note.component';
 
 import {
   CdkDrag,
@@ -44,6 +46,7 @@ import { ExercisePickerSheetComponent } from '../exercise-picker-sheet/exercise-
 @Component({
   selector: 'df-plan-manager-sheet',
   imports: [
+    DfEditingNoteComponent,
     AiPlanBuilderComponent,
     CdkDrag,
     CdkDragHandle,
@@ -189,6 +192,7 @@ export class PlanManagerSheetComponent {
   }
 
   protected readonly ai = inject(AiStatusService);
+  protected readonly session = inject(SessionStore);
 
   /** An AI plan was saved: show it, so it can be checked and made active. */
   protected async onAiPlanCreated(plan: { id: string }): Promise<void> {

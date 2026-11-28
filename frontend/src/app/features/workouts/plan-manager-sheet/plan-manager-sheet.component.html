@@ -1,5 +1,12 @@
 <df-sheet [open]="open()" (openChange)="$event ? null : close()" heading="Plans">
   <div class="plan-manager">
+    @if (ai.enabled()) {
+      <df-card class="plan-manager__new">
+        <df-ai-plan-builder (created)="onAiPlanCreated($event)" />
+      </df-card>
+    }
+
+    @if (session.editingEnabled()) {
     @if (plans().length > 0) {
       <df-select
         label="Plan"
@@ -102,11 +109,6 @@
       }
     }
 
-    @if (ai.enabled()) {
-      <df-card class="plan-manager__new">
-        <df-ai-plan-builder (created)="onAiPlanCreated($event)" />
-      </df-card>
-    }
 
     <df-card class="plan-manager__new">
       <h3 class="plan-manager__day-title">New plan</h3>
@@ -145,6 +147,9 @@
       } @else {
         <p class="plan-manager__empty">No archived plans.</p>
       }
+    }
+    } @else {
+      <df-editing-note what="add, change or archive plans by hand" />
     }
   </div>
 </df-sheet>
